@@ -1,4 +1,4 @@
-name: Node.js CI
+name: Hardhat CI
 
 # Controls when the action will run.
 on:
@@ -24,6 +24,8 @@ jobs:
 
       - name: install volta
         uses: volta-cli/action@v4
+        with:
+          node-version: 18.x
 
       - name: npm ci
         run: npm ci --no-audit

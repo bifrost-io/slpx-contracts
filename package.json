@@ -44,9 +44,9 @@
     "sort-package-json": "^2.0.0"
   },
   "engines": {
-    "node": ">= 16.14 <17"
+    "node": ">= 16.14"
   },
   "volta": {
-    "node": "16.18.0"
+    "node": "18.12.0"
   }
 }
