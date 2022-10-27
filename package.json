@@ -1,0 +1,52 @@
+{
+  "name": "moonbeam-xcm-action",
+  "version": "0.1.0",
+  "description": "Moonbeam contract to do xcm call to Bifrost's xcm-action pallet",
+  "keywords": [
+    "moonbeam",
+    "bifrost",
+    "xcm-action",
+    "xcm-transactor",
+    "xtokens"
+  ],
+  "homepage": "https://github.com/bifrost-finance/moonbeam-xcm-action#readme",
+  "bugs": {
+    "url": "https://github.com/bifrost-finance/moonbeam-xcm-action/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bifrost-finance/moonbeam-xcm-action.git"
+  },
+  "license": "Apache-2.0",
+  "author": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "hardhat compile",
+    "clean": "hardhat clean",
+    "deploy": "hardhat run scripts/deploy.ts",
+    "gas-test": "REPORT_GAS=true hardhat test",
+    "node": "hardhat node",
+    "slither": "slither .",
+    "solhint": "solhint 'contracts/**/*.sol'",
+    "solhint-fix": "solhint 'contracts/**/*.sol' --fix",
+    "sort-package": "sort-package-json",
+    "test": "hardhat test",
+    "ts-deploy": "TS_NODE_FILES=true ts-node scripts/deploy.ts"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^2.0.0",
+    "@nomiclabs/hardhat-ethers": "^2.2.1",
+    "@nomiclabs/hardhat-etherscan": "^3.1.2",
+    "dotenv": "^16.0.3",
+    "hardhat": "^2.12.1",
+    "hardhat-gas-reporter": "^1.0.9",
+    "solhint": "^3.3.7",
+    "sort-package-json": "^2.0.0"
+  },
+  "engines": {
+    "node": ">= 16.14 <17"
+  },
+  "volta": {
+    "node": "16.18.0"
+  }
+}
