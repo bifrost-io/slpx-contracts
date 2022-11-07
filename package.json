@@ -41,7 +41,7 @@
     "hardhat": "^2.12.1",
     "hardhat-gas-reporter": "^1.0.9",
     "solhint": "^3.3.7",
-    "sort-package-json": "^2.0.0"
+    "sort-package-json": "^2.1.0"
   },
   "engines": {
     "node": ">= 16.14"
