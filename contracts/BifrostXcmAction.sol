@@ -9,6 +9,7 @@ import "./Xtokens.sol";
 
 contract BifrostXcmAction {
   address public owner;
+  string public xcmActionPallet;
   string internal parachainID = "00000007EE"; // bifrost, 2030
   uint64 xtokenWeight = 5000000000;
   uint64 transactRequiredWeightAtMost = 4000000000;
@@ -30,6 +31,10 @@ contract BifrostXcmAction {
 
   function setOwner(address newOwner) external onlyOwner {
     owner = newOwner;
+  }
+
+  function setXcmActionPalletAddress(string memory addr) external onlyOwner {
+    xcmActionPallet = addr;
   }
 
   //https://docs.substrate.io/reference/scale-codec/
@@ -179,13 +184,12 @@ contract BifrostXcmAction {
   ///
   /// @param tokenAddress xc-token address
   /// @param tokenAmount token amount
-  /// @param corr_address public key of owner address
   /// @param tokenID asset id of token
-  function mint(address tokenAddress, string memory corr_address, uint256 tokenID, uint256 tokenAmount) public {
+  function mint(address tokenAddress, uint256 tokenID, uint256 tokenAmount) public {
     // xtokens call
     bytes[] memory interior = new bytes[](2);
     interior[0] = fromHex(parachainID);
-    string memory concatAccountId32 = string.concat("01",corr_address,"00");
+    string memory concatAccountId32 = string.concat("01",xcmActionPallet,"00");
     interior[1] = fromHex(concatAccountId32);
     Xtokens.Multilocation memory derivedAccount = Xtokens.Multilocation(
         1, 
@@ -215,13 +219,12 @@ contract BifrostXcmAction {
   ///
   /// @param vtokenAddress xc-vtoken address
   /// @param vtokenAmount token amount
-  /// @param corr_address public key of owner address
   /// @param vtokenID asset id of vtoken
-  function redeem(address vtokenAddress, string memory corr_address, uint256 vtokenID, uint256 vtokenAmount) public {
+  function redeem(address vtokenAddress, uint256 vtokenID, uint256 vtokenAmount) public {
     // xtokens call
     bytes[] memory interior = new bytes[](2);
     interior[0] = fromHex(parachainID);
-    string memory concatAccountId32 = string.concat("01",corr_address,"00");
+    string memory concatAccountId32 = string.concat("01",xcmActionPallet,"00");
     interior[1] = fromHex(concatAccountId32);
     Xtokens.Multilocation memory derivedAccount = Xtokens.Multilocation(
         1, 
@@ -251,14 +254,13 @@ contract BifrostXcmAction {
   ///
   /// @param inTokenAddress input xc-token address
   /// @param inTokenAmount input xc-token amount
-  /// @param corr_address public key of owner address
   /// @param inTokenID asset id of input token
   /// @param outTokenID asset if of output token
-  function swap(address inTokenAddress, string memory corr_address, uint256 inTokenID, uint256 outTokenID, uint256 inTokenAmount) public {
+  function swap(address inTokenAddress, uint256 inTokenID, uint256 outTokenID, uint256 inTokenAmount) public {
     // xtokens call
     bytes[] memory interior = new bytes[](2);
     interior[0] = fromHex(parachainID);
-    string memory concatAccountId32 = string.concat("01",corr_address,"00");
+    string memory concatAccountId32 = string.concat("01",xcmActionPallet,"00");
     interior[1] = fromHex(concatAccountId32);
     Xtokens.Multilocation memory derivedAccount = Xtokens.Multilocation(
         1,
