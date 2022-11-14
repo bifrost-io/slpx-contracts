@@ -1,5 +1,5 @@
 {
-  "detectors_to_exclude": "external-function,weak-prng,controlled-delegatecall,constable-states,reentrancy-no-eth",
+  "detectors_to_exclude": "external-function,weak-prng,controlled-delegatecall,constable-states,reentrancy-no-eth,dead-code,too-many-digits",
   "exclude_low": true,
   "exclude_informational": true
 }

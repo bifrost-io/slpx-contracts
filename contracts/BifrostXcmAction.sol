@@ -16,6 +16,9 @@ contract BifrostXcmAction {
   uint256 feeAmount = 8000;
   uint64 overallWeight = 8000000000;
 
+  // native erc-20 precompiled contract address https://github.com/PureStake/moonbeam/blob/master/precompiles/balances-erc20/ERC20.sol
+  address internal constant MOVR_ADDRESS = 0x0000000000000000000000000000000000000802;
+
   // pre-compiled contract address
   XcmTransactorV2 xcmtransactor = XcmTransactorV2(0x000000000000000000000000000000000000080D);
   Xtokens xtokens = Xtokens(0x0000000000000000000000000000000000000804);
@@ -182,10 +185,9 @@ contract BifrostXcmAction {
 
   /// mint vtoken from token asset
   ///
-  /// @param tokenAddress xc-token address
   /// @param tokenAmount token amount
   /// @param tokenID asset id of token
-  function mint(address tokenAddress, uint256 tokenID, uint256 tokenAmount) public {
+  function mint(uint256 tokenID, uint256 tokenAmount) public {
     // xtokens call
     bytes[] memory interior = new bytes[](2);
     interior[0] = fromHex(parachainID);
@@ -195,7 +197,7 @@ contract BifrostXcmAction {
         1, 
         interior
     );
-    xtokens.transfer(tokenAddress, tokenAmount, derivedAccount, xtokenWeight);
+    xtokens.transfer(MOVR_ADDRESS, tokenAmount, derivedAccount, xtokenWeight);
 
     // xcm transactor call
     bytes[] memory chainDest = new bytes[](1);
@@ -207,7 +209,7 @@ contract BifrostXcmAction {
     bytes memory call_data = buildMintCallBytes(tokenID, tokenAmount);
     xcmtransactor.transactThroughSigned(
         dest,
-        tokenAddress,
+        MOVR_ADDRESS,
         transactRequiredWeightAtMost,
         call_data,
         feeAmount,
@@ -217,10 +219,9 @@ contract BifrostXcmAction {
 
   /// redeem vtoken to token asset
   ///
-  /// @param vtokenAddress xc-vtoken address
   /// @param vtokenAmount token amount
   /// @param vtokenID asset id of vtoken
-  function redeem(address vtokenAddress, uint256 vtokenID, uint256 vtokenAmount) public {
+  function redeem(uint256 vtokenID, uint256 vtokenAmount) public {
     // xtokens call
     bytes[] memory interior = new bytes[](2);
     interior[0] = fromHex(parachainID);
@@ -230,7 +231,7 @@ contract BifrostXcmAction {
         1, 
         interior
     );
-    xtokens.transfer(vtokenAddress, vtokenAmount, derivedAccount, xtokenWeight);
+    xtokens.transfer(MOVR_ADDRESS, vtokenAmount, derivedAccount, xtokenWeight);
 
     // xcm transactor call
     bytes[] memory chainDest = new bytes[](1);
@@ -242,7 +243,7 @@ contract BifrostXcmAction {
     bytes memory call_data = buildRedeemCallBytes(vtokenID, vtokenAmount);
     xcmtransactor.transactThroughSigned(
         dest,
-        vtokenAddress,
+        MOVR_ADDRESS,
         transactRequiredWeightAtMost,
         call_data,
         feeAmount,
@@ -252,11 +253,10 @@ contract BifrostXcmAction {
 
   /// swap token asset
   ///
-  /// @param inTokenAddress input xc-token address
   /// @param inTokenAmount input xc-token amount
   /// @param inTokenID asset id of input token
   /// @param outTokenID asset if of output token
-  function swap(address inTokenAddress, uint256 inTokenID, uint256 outTokenID, uint256 inTokenAmount) public {
+  function swap(uint256 inTokenID, uint256 outTokenID, uint256 inTokenAmount) public {
     // xtokens call
     bytes[] memory interior = new bytes[](2);
     interior[0] = fromHex(parachainID);
@@ -266,7 +266,7 @@ contract BifrostXcmAction {
         1,
         interior
     );
-    xtokens.transfer(inTokenAddress, inTokenAmount, derivedAccount, xtokenWeight);
+    xtokens.transfer(MOVR_ADDRESS, inTokenAmount, derivedAccount, xtokenWeight);
 
     // xcm transactor call
     bytes[] memory chainDest = new bytes[](1);
@@ -278,7 +278,7 @@ contract BifrostXcmAction {
     bytes memory call_data = buildSwapCallBytes(inTokenID, outTokenID, inTokenAmount);
     xcmtransactor.transactThroughSigned(
         dest,
-        inTokenAddress,
+        MOVR_ADDRESS,
         transactRequiredWeightAtMost,
         call_data,
         feeAmount,
