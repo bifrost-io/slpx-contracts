@@ -3,13 +3,13 @@ pragma solidity ^0.8.16;
 
 import "./XcmTransactorV2.sol";
 import "./Xtokens.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
 // Uncomment this line to use console.log
-// import "hardhat/console.sol";
+import "hardhat/console.sol";
 
 contract BifrostXcmAction {
   address public owner;
-  string public xcmActionPallet;
   string internal parachainID = "00000007EE"; // bifrost, 2030
   uint64 xtokenWeight = 5000000000;
   uint64 transactRequiredWeightAtMost = 4000000000;
@@ -34,10 +34,6 @@ contract BifrostXcmAction {
 
   function setOwner(address newOwner) external onlyOwner {
     owner = newOwner;
-  }
-
-  function setXcmActionPalletAddress(string memory addr) external onlyOwner {
-    xcmActionPallet = addr;
   }
 
   //https://docs.substrate.io/reference/scale-codec/
@@ -183,6 +179,16 @@ contract BifrostXcmAction {
       return r;
   }
 
+  /// generate bifrost account_id32
+  /// 1. public key = append 24 zeros to the evm address
+  /// 2. concat "01" + public key + "00"
+  /// 01 means parachain
+  /// 00 means any network
+  function generateBifrostAccountId32() internal view returns (string memory) {
+    string memory concatAccountId32 = string.concat("01",Strings.toHexString(msg.sender),"000000000000000000000000","00");
+    return concatAccountId32;
+  }
+
   /// mint vtoken from token asset
   ///
   /// @param tokenAmount token amount
@@ -191,10 +197,11 @@ contract BifrostXcmAction {
     // xtokens call
     bytes[] memory interior = new bytes[](2);
     interior[0] = fromHex(parachainID);
-    string memory concatAccountId32 = string.concat("01",xcmActionPallet,"00");
+    string memory concatAccountId32 = generateBifrostAccountId32();
+    console.log(concatAccountId32);
     interior[1] = fromHex(concatAccountId32);
     Xtokens.Multilocation memory derivedAccount = Xtokens.Multilocation(
-        1, 
+        1,
         interior
     );
     xtokens.transfer(MOVR_ADDRESS, tokenAmount, derivedAccount, xtokenWeight);
@@ -225,7 +232,7 @@ contract BifrostXcmAction {
     // xtokens call
     bytes[] memory interior = new bytes[](2);
     interior[0] = fromHex(parachainID);
-    string memory concatAccountId32 = string.concat("01",xcmActionPallet,"00");
+    string memory concatAccountId32 = generateBifrostAccountId32();
     interior[1] = fromHex(concatAccountId32);
     Xtokens.Multilocation memory derivedAccount = Xtokens.Multilocation(
         1, 
@@ -260,7 +267,7 @@ contract BifrostXcmAction {
     // xtokens call
     bytes[] memory interior = new bytes[](2);
     interior[0] = fromHex(parachainID);
-    string memory concatAccountId32 = string.concat("01",xcmActionPallet,"00");
+    string memory concatAccountId32 = generateBifrostAccountId32();
     interior[1] = fromHex(concatAccountId32);
     Xtokens.Multilocation memory derivedAccount = Xtokens.Multilocation(
         1,
