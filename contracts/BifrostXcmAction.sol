@@ -58,6 +58,16 @@ contract BifrostXcmAction {
     return rst;
   }
 
+  function buildClaimCallBytes(ScaleCodec.Multilocation memory tokenID, uint256 tokenAmount) internal pure returns (bytes memory) {
+    bytes memory prefix = new bytes(2);
+    prefix[0] = bytes1(uint8(124));
+    prefix[1] = bytes1(uint8(3));
+    bytes memory tokenIDBytes = ScaleCodec.toBytesMultilocation(tokenID);
+    bytes memory tokenAmountBytes = ScaleCodec.toBytes256(tokenAmount);
+    bytes memory rst = bytes.concat(prefix, tokenIDBytes, tokenAmountBytes);
+    return rst;
+  }
+
   function buildSwapCallBytes(ScaleCodec.Multilocation memory inTokenID, ScaleCodec.Multilocation memory outTokenID, uint256 amountInMax, uint256 amountOut) internal pure returns (bytes memory) {
     bytes memory prefix = new bytes(2);
     prefix[0] = bytes1(uint8(124));
@@ -89,7 +99,7 @@ contract BifrostXcmAction {
     bytes[] memory interior = new bytes[](2);
     interior[0] = ScaleCodec.fromHex(parachainID);
     string memory concatAccountId32 = generateBifrostAccountId32();
-    console.log(concatAccountId32);
+    // console.log(concatAccountId32);
     interior[1] = ScaleCodec.fromHex(concatAccountId32);
     Xtokens.Multilocation memory derivedAccount = Xtokens.Multilocation(
         1,
@@ -139,6 +149,40 @@ contract BifrostXcmAction {
         chainDest
     );
     bytes memory call_data = buildRedeemCallBytes(vtokenID, vtokenAmount);
+    xcmtransactor.transactThroughSigned(
+        dest,
+        MOVR_ADDRESS,
+        transactRequiredWeightAtMost,
+        call_data,
+        feeAmount,
+        overallWeight
+    );
+  }
+
+  /// claim token asset
+  ///
+  /// @param tokenID multilocation of vtoken
+  /// @param tokenAmount token amount
+  function claim(ScaleCodec.Multilocation memory tokenID, uint256 tokenAmount) public {
+    // xtokens call
+    bytes[] memory interior = new bytes[](2);
+    interior[0] = ScaleCodec.fromHex(parachainID);
+    string memory concatAccountId32 = generateBifrostAccountId32();
+    interior[1] = ScaleCodec.fromHex(concatAccountId32);
+    Xtokens.Multilocation memory derivedAccount = Xtokens.Multilocation(
+        1, 
+        interior
+    );
+    xtokens.transfer(MOVR_ADDRESS, tokenAmount, derivedAccount, xtokenWeight);
+
+    // xcm transactor call
+    bytes[] memory chainDest = new bytes[](1);
+    chainDest[0] = ScaleCodec.fromHex(parachainID);
+    XcmTransactorV2.Multilocation memory dest = XcmTransactorV2.Multilocation(
+        1,
+        chainDest
+    );
+    bytes memory call_data = buildClaimCallBytes(tokenID, tokenAmount);
     xcmtransactor.transactThroughSigned(
         dest,
         MOVR_ADDRESS,
