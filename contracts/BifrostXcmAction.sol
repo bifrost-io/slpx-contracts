@@ -40,7 +40,7 @@ contract BifrostXcmAction {
 
   function buildMintCallBytes(ScaleCodec.Multilocation memory tokenID, uint256 tokenAmount) internal pure returns (bytes memory) {
     bytes memory prefix = new bytes(2);
-    prefix[0] = bytes1(uint8(127));
+    prefix[0] = bytes1(uint8(124));
     prefix[1] = bytes1(uint8(0));
     bytes memory tokenIDBytes = ScaleCodec.toBytesMultilocation(tokenID);
     bytes memory tokenAmountBytes = ScaleCodec.toBytes256(tokenAmount);
@@ -50,8 +50,8 @@ contract BifrostXcmAction {
 
   function buildRedeemCallBytes(ScaleCodec.Multilocation memory vtokenID, uint256 vtokenAmount) internal pure returns (bytes memory) {
     bytes memory prefix = new bytes(2);
-    prefix[0] = bytes1(uint8(127));
-    prefix[1] = bytes1(uint8(0));
+    prefix[0] = bytes1(uint8(124));
+    prefix[1] = bytes1(uint8(1));
     bytes memory vTokenIDBytes = ScaleCodec.toBytesMultilocation(vtokenID);
     bytes memory tokenAmountBytes = ScaleCodec.toBytes256(vtokenAmount);
     bytes memory rst = bytes.concat(prefix, vTokenIDBytes, tokenAmountBytes);
@@ -60,8 +60,8 @@ contract BifrostXcmAction {
 
   function buildSwapCallBytes(ScaleCodec.Multilocation memory inTokenID, ScaleCodec.Multilocation memory outTokenID, uint256 amountInMax, uint256 amountOut) internal pure returns (bytes memory) {
     bytes memory prefix = new bytes(2);
-    prefix[0] = bytes1(uint8(127));
-    prefix[1] = bytes1(uint8(0));
+    prefix[0] = bytes1(uint8(124));
+    prefix[1] = bytes1(uint8(2));
     bytes memory inTokenIDBytes = ScaleCodec.toBytesMultilocation(inTokenID);
     bytes memory outTokenIDBytes = ScaleCodec.toBytesMultilocation(outTokenID);
     bytes memory amountInMaxBytes = ScaleCodec.toBytes256(amountInMax);
@@ -89,7 +89,7 @@ contract BifrostXcmAction {
     bytes[] memory interior = new bytes[](2);
     interior[0] = ScaleCodec.fromHex(parachainID);
     string memory concatAccountId32 = generateBifrostAccountId32();
-    // console.log(concatAccountId32);
+    console.log(concatAccountId32);
     interior[1] = ScaleCodec.fromHex(concatAccountId32);
     Xtokens.Multilocation memory derivedAccount = Xtokens.Multilocation(
         1,
