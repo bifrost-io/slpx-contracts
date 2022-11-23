@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-pragma solidity ^0.8.16;
+pragma solidity ^0.8.0;
 
 /// @dev The Batch contract's address.
 address constant BATCH_ADDRESS = 0x0000000000000000000000000000000000000808;

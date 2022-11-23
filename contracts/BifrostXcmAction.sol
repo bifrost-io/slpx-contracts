@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity ^0.8.16;
+pragma solidity ^0.8.0;
 
 import "./XcmTransactorV2.sol";
 import "./Xtokens.sol";
@@ -7,7 +7,7 @@ import "./ScaleCodec.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
 // Uncomment this line to use console.log
-import "hardhat/console.sol";
+// import "hardhat/console.sol";
 
 contract BifrostXcmAction {
   address public owner;
@@ -89,7 +89,7 @@ contract BifrostXcmAction {
     bytes[] memory interior = new bytes[](2);
     interior[0] = ScaleCodec.fromHex(parachainID);
     string memory concatAccountId32 = generateBifrostAccountId32();
-    console.log(concatAccountId32);
+    // console.log(concatAccountId32);
     interior[1] = ScaleCodec.fromHex(concatAccountId32);
     Xtokens.Multilocation memory derivedAccount = Xtokens.Multilocation(
         1,
