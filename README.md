@@ -1,7 +1,5 @@
 # XCM Action contracts
 
-[![Hardhat CI](https://github.com/bifrost-finance/moonbeam-xcm-action/actions/workflows/ci.yml/badge.svg)](https://github.com/bifrost-finance/moonbeam-xcm-action/actions/workflows/ci.yml)
-
 XCM Action contracts contract to do xcm call to Bifrost's xcm-action pallet.
 
 ## Astar precompiled contracts
