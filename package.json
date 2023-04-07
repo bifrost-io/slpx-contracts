@@ -1,53 +1,30 @@
 {
-  "name": "moonbeam-xcm-action",
+  "name": "xcm-action-contracts",
   "version": "0.1.0",
-  "description": "Moonbeam contract to do xcm call to Bifrost's xcm-action pallet",
+  "description": "Xcm action contracts to do xcm call to Bifrost's xcm-action pallet",
   "keywords": [
-    "moonbeam",
     "bifrost",
+    "astar",
+    "moonbeam",
     "xcm-action",
     "xcm-transactor",
     "xtokens"
   ],
-  "homepage": "https://github.com/bifrost-finance/moonbeam-xcm-action#readme",
+  "homepage": "https://github.com/bifrost-finance/xcm-action-contracts#readme",
   "bugs": {
-    "url": "https://github.com/bifrost-finance/moonbeam-xcm-action/issues"
+    "url": "https://github.com/bifrost-finance/xcm-action-contracts/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bifrost-finance/moonbeam-xcm-action.git"
+    "url": "git+https://github.com/bifrost-finance/xcm-action-contracts.git"
   },
-  "license": "Apache-2.0",
   "author": "",
-  "main": "index.js",
-  "scripts": {
-    "build": "hardhat compile",
-    "clean": "hardhat clean",
-    "deploy": "hardhat run scripts/deploy.ts",
-    "gas-test": "REPORT_GAS=true hardhat test",
-    "node": "hardhat node",
-    "slither": "slither .",
-    "solhint": "solhint 'contracts/**/*.sol'",
-    "solhint-fix": "solhint 'contracts/**/*.sol' --fix",
-    "sort-package": "sort-package-json",
-    "test": "hardhat test",
-    "ts-deploy": "TS_NODE_FILES=true ts-node scripts/deploy.ts"
-  },
+  "license": "Apache-2.0",
   "devDependencies": {
-    "@nomicfoundation/hardhat-toolbox": "^2.0.0",
-    "@nomiclabs/hardhat-ethers": "^2.2.1",
-    "@nomiclabs/hardhat-etherscan": "^3.1.2",
-    "@openzeppelin/contracts": "^4.8.0",
+    "@nomicfoundation/hardhat-toolbox": "^2.0.2",
+    "@nomiclabs/hardhat-ethers": "^2.2.2",
+    "@openzeppelin/contracts": "^4.8.2",
     "dotenv": "^16.0.3",
-    "hardhat": "^2.12.2",
-    "hardhat-gas-reporter": "^1.0.9",
-    "solhint": "^3.3.7",
-    "sort-package-json": "^2.1.0"
-  },
-  "engines": {
-    "node": ">= 16.14"
-  },
-  "volta": {
-    "node": "18.12.1"
+    "hardhat": "^2.13.0"
   }
 }

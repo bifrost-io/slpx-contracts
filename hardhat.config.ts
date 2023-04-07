@@ -1,5 +1,6 @@
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
+import "@nomiclabs/hardhat-ethers";
 import * as dotenv from "dotenv"
 
 dotenv.config();
@@ -17,20 +18,17 @@ const config: HardhatUserConfig = {
     }]
   },
   networks: {
-    moonbaseAlpha:{
+    moonbaseAlpha: {
       url: "https://rpc.api.moonbase.moonbeam.network",
       chainId: 1287,
-      accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY]: [],
+      accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
+    astar: {
+      url: "http://127.0.0.1:8910",
+      chainId: 592,
+      accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     }
-  },
-  etherscan: {
-    apiKey: process.env.ETHERSCAN_API_KEY,
-  },
-  gasReporter: {
-    currency: "USD",
-    coinmarketcap: process.env.COINMARKETCAP_API_KEY || undefined,
-    enabled: process.env.REPORT_GAS? true : false,
-  },
+  }
 };
 
 export default config;
