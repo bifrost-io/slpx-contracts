@@ -24,6 +24,7 @@
     "@nomicfoundation/hardhat-toolbox": "^2.0.2",
     "@nomiclabs/hardhat-ethers": "^2.2.2",
     "@openzeppelin/contracts": "^4.8.2",
+    "@polkadot/api": "^10.2.2",
     "dotenv": "^16.0.3",
     "hardhat": "^2.13.0"
   }
