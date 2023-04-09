@@ -16,6 +16,9 @@ contract AstarXcmAction is Ownable {
     uint8 internal constant PALLET_INDEX = 125;
     uint8 internal constant MINT_CALL_INDEX = 0;
 
+    bytes1 internal constant TARGET_CHAIN = bytes1(0);
+    bytes2 internal constant ASTR_BYTES = 0x0801;
+
     uint256 public bifrost_transaction_fee = 1000000000000;
     bytes32 public xcm_action_account_id;
 
@@ -41,13 +44,16 @@ contract AstarXcmAction is Ownable {
         xcm.assets_reserve_transfer(asset_id, asset_amount, xcm_action_account_id, false, BIFROST_PARACHAIN_ID, 0);
     }
 
-    function mint_vastr(bytes memory callcode) payable external {
+    function mint_vastr() payable external {
         xcm_transfer_asset(BNC_ADDRESS, bifrost_transaction_fee);
         xcm_transfer_astr(msg.value);
+
+        bytes memory callcode =  buildMintCallBytes(ASTR_BYTES, msg.sender);
 
         // xcm transact
         xcm.remote_transact(BIFROST_PARACHAIN_ID, false, BNC_ADDRESS, bifrost_transaction_fee / 10, callcode, 8000000000);
     }
+
 
     function swap(address asset_id , uint256 asset_amount , bytes memory callcode) payable external {
         if (asset_id == BNC_ADDRESS){
@@ -72,25 +78,15 @@ contract AstarXcmAction is Ownable {
         xcm_action_account_id = account_id;
     }
 
-    function buildMintCallBytes(uint8 call_index, string memory token_name, address receiver) public view returns (bytes memory) {
-        require(tokenNameToBytes[token_name].length != 0, "AstarXcmAction: The token does not exist");
+    function buildMintCallBytes(bytes2 token, address receiver) public pure returns (bytes memory) {
+
         bytes memory prefix = new bytes(2);
         // storage pallet index
         prefix[0] = bytes1(PALLET_INDEX);
         // storage call index
-        prefix[1] = bytes1(call_index);
+        prefix[1] = bytes1(MINT_CALL_INDEX);
 
         // astar target_chain = bytes1(0)
-        return bytes.concat(prefix, tokenNameToBytes[token_name], bytes1(0), abi.encodePacked(receiver));
-    }
-
-    function set_token(string memory token_name,bytes memory token_bytes) onlyOwner external  {
-        tokenNameToBytes[token_name] = token_bytes;
-    }
-
-    function get_balance() external view returns(uint256) {
-        IERC20 erc20 = IERC20(ASTR_ADDRESS);
-        uint256 r = erc20.balanceOf(0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266);
-        return r;
+        return bytes.concat(prefix, token, TARGET_CHAIN, abi.encodePacked(receiver));
     }
 }
