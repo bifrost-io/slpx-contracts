@@ -15,70 +15,111 @@ contract AstarXcmAction is Ownable {
 
     uint8 internal constant PALLET_INDEX = 125;
     uint8 internal constant MINT_CALL_INDEX = 0;
+    uint8 internal constant SWAP_CALL_INDEX = 1;
 
     bytes1 internal constant TARGET_CHAIN = bytes1(0);
     bytes2 internal constant ASTR_BYTES = 0x0801;
 
     uint256 public bifrost_transaction_fee = 1000000000000;
-    bytes32 public xcm_action_account_id;
 
     XCM xcm = XCM(0x0000000000000000000000000000000000005004);
 
-    mapping (string => bytes) public tokenNameToBytes;
+    mapping (address => bytes32) public addressToSubstratePublickey;
+    mapping (address => bytes2) public assetAddressToCurrencyId;
 
-    function xcm_transfer_asset(address asset,uint256 amount) internal {
+    constructor() {
+        assetAddressToCurrencyId[ASTR_ADDRESS] = 0x0801;
+        assetAddressToCurrencyId[VASTR_ADDRESS] = 0x0901;
+    }
+
+    function xcm_transfer_asset(bytes32 public_key ,address asset,uint256 amount) internal {
         address[] memory asset_id = new address[](1);
         uint256[] memory asset_amount = new uint256[](1);
         IERC20 erc20 = IERC20(asset);
         erc20.transferFrom(msg.sender, address(this), amount);
         asset_id[0] = asset;
         asset_amount[0] = amount;
-        xcm.assets_withdraw(asset_id, asset_amount, xcm_action_account_id, false, BIFROST_PARACHAIN_ID, 0);
+        xcm.assets_withdraw(asset_id, asset_amount, public_key, false, BIFROST_PARACHAIN_ID, 0);
     }
 
-    function xcm_transfer_astr(uint256 amount) internal {
+    function xcm_transfer_astr(bytes32 public_key , uint256 amount) internal {
         address[] memory asset_id = new address[](1);
         uint256[] memory asset_amount = new uint256[](1);
         asset_id[0] = ASTR_ADDRESS;
         asset_amount[0] = amount;
-        xcm.assets_reserve_transfer(asset_id, asset_amount, xcm_action_account_id, false, BIFROST_PARACHAIN_ID, 0);
+        xcm.assets_reserve_transfer(asset_id, asset_amount, public_key, false, BIFROST_PARACHAIN_ID, 0);
+    }
+
+    function bind(bytes32 substrate_publickey) external {
+        addressToSubstratePublickey[msg.sender] = substrate_publickey;
     }
 
     function mint_vastr() payable external {
-        xcm_transfer_asset(BNC_ADDRESS, bifrost_transaction_fee);
-        xcm_transfer_astr(msg.value);
+        //        xcm_transfer_asset(BNC_ADDRESS, bifrost_transaction_fee);
+        bytes32 public_key = addressToSubstratePublickey[msg.sender];
+        require(public_key != bytes32(0) , "AstarXcmAction: The address is not bind to the substrate_publickey");
+        xcm_transfer_astr(public_key, msg.value);
 
-        bytes memory callcode =  buildMintCallBytes(ASTR_BYTES, msg.sender);
+        bytes memory callcode =  buildMintCallBytes(msg.sender , ASTR_BYTES);
 
         // xcm transact
         xcm.remote_transact(BIFROST_PARACHAIN_ID, false, BNC_ADDRESS, bifrost_transaction_fee / 10, callcode, 8000000000);
     }
 
 
-    function swap(address asset_id , uint256 asset_amount , bytes memory callcode) payable external {
-        if (asset_id == BNC_ADDRESS){
-            xcm_transfer_asset(BNC_ADDRESS, bifrost_transaction_fee + asset_amount);
-        } else if (asset_id == ASTR_ADDRESS){
-            xcm_transfer_asset(BNC_ADDRESS, bifrost_transaction_fee);
-            xcm_transfer_astr(msg.value);
-        } else {
-            xcm_transfer_asset(BNC_ADDRESS, bifrost_transaction_fee);
-            xcm_transfer_asset(asset_id, asset_amount);
-        }
+    function swap_assets_for_exact_assets(address asset_id_in, address asset_id_out,uint256 asset_in_amount, uint128 asset_id_out_min) external {
+        bytes32 public_key = addressToSubstratePublickey[msg.sender];
+        require(public_key != bytes32(0) , "AstarXcmAction: The address is not bind to the substrate_publickey");
+
+        bytes2 currency_in = assetAddressToCurrencyId[asset_id_in];
+        bytes2 currnecy_out = assetAddressToCurrencyId[asset_id_out];
+        require(currency_in != bytes2(0) &&  currnecy_out != bytes2(0), "AstarXcmAction: The input token does not exist");
+
+        xcm_transfer_asset(public_key,asset_id_in, asset_in_amount);
+
+        bytes memory callcode =  buildSwapCallBytes(msg.sender , currency_in,currnecy_out,asset_id_out_min);
         // xcm transact
         xcm.remote_transact(2030, false, BNC_ADDRESS, bifrost_transaction_fee / 10, callcode, 8000000000);
     }
+
+    function swap_assets_for_exact_astr(address asset_id_in, uint256 asset_in_amount, uint128 asset_id_out_min) external {
+        bytes32 public_key = addressToSubstratePublickey[msg.sender];
+        require(public_key != bytes32(0) , "AstarXcmAction: The address is not bind to the substrate_publickey");
+
+        bytes2 currency_in = assetAddressToCurrencyId[asset_id_in];
+        require(currency_in != bytes2(0), "AstarXcmAction: The input token does not exist");
+
+        xcm_transfer_asset(public_key,asset_id_in, asset_in_amount);
+
+        bytes memory callcode =  buildSwapCallBytes(msg.sender , currency_in,ASTR_BYTES,asset_id_out_min);
+        // xcm transact
+        xcm.remote_transact(2030, false, BNC_ADDRESS, bifrost_transaction_fee / 10, callcode, 8000000000);
+    }
+
+    function swap_astr_for_exact_assets(address asset_id_out, uint128 asset_id_out_min) payable external {
+        bytes32 public_key = addressToSubstratePublickey[msg.sender];
+        require(public_key != bytes32(0) , "AstarXcmAction: The address is not bind to the substrate_publickey");
+
+
+        bytes2 currnecy_out = assetAddressToCurrencyId[asset_id_out];
+        require(currnecy_out != bytes2(0), "AstarXcmAction: The input token does not exist");
+
+
+        xcm_transfer_astr(public_key , msg.value);
+
+        bytes memory callcode =  buildSwapCallBytes(msg.sender , ASTR_BYTES,currnecy_out,asset_id_out_min);
+        // xcm transact
+        xcm.remote_transact(2030, false, BNC_ADDRESS, bifrost_transaction_fee / 10, callcode, 8000000000);
+    }
+
+
 
 
     function set_bifrost_transaction_fee(uint256 fee) onlyOwner external {
         bifrost_transaction_fee = fee;
     }
 
-    function set_xcm_action_account_id(bytes32 account_id) onlyOwner external {
-        xcm_action_account_id = account_id;
-    }
-
-    function buildMintCallBytes(bytes2 token, address receiver) public pure returns (bytes memory) {
+    function buildMintCallBytes(address caller , bytes2 token) public pure returns (bytes memory) {
 
         bytes memory prefix = new bytes(2);
         // storage pallet index
@@ -87,6 +128,27 @@ contract AstarXcmAction is Ownable {
         prefix[1] = bytes1(MINT_CALL_INDEX);
 
         // astar target_chain = bytes1(0)
-        return bytes.concat(prefix, token, TARGET_CHAIN, abi.encodePacked(receiver));
+        return bytes.concat(prefix, abi.encodePacked(caller) , token, TARGET_CHAIN);
+    }
+
+    function buildSwapCallBytes(address caller , bytes2 currency_in, bytes2 currency_in_out, uint128 currency_out_min) public pure returns (bytes memory) {
+
+        bytes memory prefix = new bytes(2);
+        // storage pallet index
+        prefix[0] = bytes1(PALLET_INDEX);
+        // storage call index
+        prefix[1] = bytes1(SWAP_CALL_INDEX);
+
+        // astar target_chain = bytes1(0)
+        return bytes.concat(prefix, abi.encodePacked(caller) , currency_in,currency_in_out, encode_uint128(currency_out_min) ,TARGET_CHAIN);
+    }
+
+    //https://docs.substrate.io/reference/scale-codec/
+    function encode_uint128(uint128 x) internal pure returns (bytes memory) {
+        bytes memory b = new bytes(16);
+        for (uint i = 0; i < 16; i++) {
+            b[i] = bytes1(uint8(x / (2**(8*i))));
+        }
+        return b;
     }
 }
