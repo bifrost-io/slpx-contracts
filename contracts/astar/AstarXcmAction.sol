@@ -16,6 +16,7 @@ contract AstarXcmAction is Ownable {
     uint8 internal constant PALLET_INDEX = 125;
     uint8 internal constant MINT_CALL_INDEX = 0;
     uint8 internal constant SWAP_CALL_INDEX = 1;
+    uint8 internal constant REDEEM_CALL_INDEX = 2;
 
     bytes1 internal constant TARGET_CHAIN = bytes1(0);
     bytes2 internal constant ASTR_BYTES = 0x0801;
@@ -55,7 +56,6 @@ contract AstarXcmAction is Ownable {
     }
 
     function mint_vastr() payable external {
-        //        xcm_transfer_asset(BNC_ADDRESS, bifrost_transaction_fee);
         bytes32 public_key = addressToSubstratePublickey[msg.sender];
         require(public_key != bytes32(0) , "AstarXcmAction: The address is not bind to the substrate_publickey");
         xcm_transfer_astr(public_key, msg.value);
@@ -64,6 +64,21 @@ contract AstarXcmAction is Ownable {
 
         // xcm transact
         xcm.remote_transact(BIFROST_PARACHAIN_ID, false, BNC_ADDRESS, bifrost_transaction_fee / 10, callcode, 8000000000);
+    }
+
+    function redeem_astr(uint128 vastr_amount) external {
+        bytes32 public_key = addressToSubstratePublickey[msg.sender];
+        require(public_key != bytes32(0) , "AstarXcmAction: The address is not bind to the substrate_publickey");
+
+        bytes2 vtoken = assetAddressToCurrencyId[VASTR_ADDRESS];
+        require(vtoken != bytes2(0), "AstarXcmAction: The input token does not exist");
+
+
+        xcm_transfer_asset(public_key, VASTR_ADDRESS, vastr_amount);
+
+        bytes memory callcode =  buildRedeemCallBytes(msg.sender , vtoken);
+        // xcm transact
+        xcm.remote_transact(2030, false, BNC_ADDRESS, bifrost_transaction_fee / 10, callcode, 8000000000);
     }
 
 
@@ -112,9 +127,6 @@ contract AstarXcmAction is Ownable {
         xcm.remote_transact(2030, false, BNC_ADDRESS, bifrost_transaction_fee / 10, callcode, 8000000000);
     }
 
-
-
-
     function set_bifrost_transaction_fee(uint256 fee) onlyOwner external {
         bifrost_transaction_fee = fee;
     }
@@ -141,6 +153,18 @@ contract AstarXcmAction is Ownable {
 
         // astar target_chain = bytes1(0)
         return bytes.concat(prefix, abi.encodePacked(caller) , currency_in,currency_in_out, encode_uint128(currency_out_min) ,TARGET_CHAIN);
+    }
+
+    function buildRedeemCallBytes(address caller , bytes2 vtoken) public pure returns (bytes memory) {
+
+        bytes memory prefix = new bytes(2);
+        // storage pallet index
+        prefix[0] = bytes1(PALLET_INDEX);
+        // storage call index
+        prefix[1] = bytes1(REDEEM_CALL_INDEX);
+
+        // astar target_chain = bytes1(0)
+        return bytes.concat(prefix, abi.encodePacked(caller) , vtoken, TARGET_CHAIN);
     }
 
     //https://docs.substrate.io/reference/scale-codec/
