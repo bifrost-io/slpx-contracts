@@ -5,7 +5,7 @@
 	},
 	"relaychain": {
 		"chain": "rococo-local",
-		"default_command": "polkadot",
+		"default_command": "polkadot-v0.9.38-fast-sudo",
 		"default_args": ["-lparachain=debug", "--state-pruning=archive", "--no-hardware-benchmarks"],
 		"nodes": [
 			{
@@ -66,10 +66,7 @@
 					"command": "bifrost-xcm-action",
 					"name": "alice",
 					"ws_port": "{{BIFROST_WS_PORT}}",
-					"rpc_port": "{{BIFROST_RPC_PORT}}",
-					"args": [
-						"-lparachain=trace,xcm=trace,cumulus-consensus=trace,cumulus-collator=trace,collator_protocol=trace,collation_generation=trace"
-					]
+					"rpc_port": "{{BIFROST_RPC_PORT}}"
 				}
 			]
 		}

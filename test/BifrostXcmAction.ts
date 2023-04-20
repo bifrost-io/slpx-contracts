@@ -6,8 +6,6 @@ import {u8aToHex} from "@polkadot/util";
 import * as polkadotCryptoUtils from "@polkadot/util-crypto";
 import {ASTR_DECIMALS, BNC_DECIMALS, TEST_ACCOUNT} from "../scripts/constants";
 import {KeyringPair} from "@polkadot/keyring/types";
-import {SubmittableExtrinsic} from "@polkadot/api/types";
-import {ISubmittableResult} from "@polkadot/types/types";
 import {MultiLocation} from "@polkadot/types/interfaces";
 
 //aNhuaXEfaSiXJcC1YxssiHgNjCvoJbESD68KjycecaZvqpv
@@ -51,6 +49,7 @@ describe("BifrostXcmAction", function () {
     const caller = await ethers.getSigner("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
     const AstarXcmAction = await ethers.getContractFactory("AstarXcmAction",caller);
     const astarXcmAction = await AstarXcmAction.deploy();
+    console.log("Contract address:",astarXcmAction.address)
     return astarXcmAction
   }
 
@@ -76,134 +75,117 @@ describe("BifrostXcmAction", function () {
     })
   }
 
-  it("mint vastr", async function() {
+  let contract_address:string;
+  let astarXcmAction:any;
+  let test_account_public_key:string;
+  let bifrost_api:ApiPromise;
+  let astar_api:ApiPromise;
+  let alice:KeyringPair;
+
+  before("Setup env",async function() {
     this.timeout(1000 * 1000)
-    const astarXcmAction =  await deployAstarXcmAction()
+    // Deploy xcm-action contract
+    const caller = await ethers.getSigner("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
+    const AstarXcmAction = await ethers.getContractFactory("AstarXcmAction",caller);
+    astarXcmAction = await AstarXcmAction.deploy();
+    console.log("Contract address:",astarXcmAction.address)
     await waitFor(24 * 1000)
-    const contract_account_id = polkadotCryptoUtils.evmToAddress(astarXcmAction.address)
-    const keyring = new Keyring({ type: 'sr25519', ss58Format: 6 })
-    const contract_public_key = keyring.addFromAddress(contract_account_id).publicKey;
-    const alice = keyring.addFromUri('//Alice')
 
-    const test_account_id = polkadotCryptoUtils.evmToAddress("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
-    const test_account_public_key = keyring.addFromAddress(test_account_id).publicKey;
-
+    // init polkadot api
     const wsProvider = new WsProvider("ws://127.0.0.1:9920")
-    const bifrost_api = await ApiPromise.create({provider: wsProvider})
-
-    const derivative_account_public_key = await calculate_multilocation_derivative_account(bifrost_api, u8aToHex(contract_public_key))
-
-
-    // bind
-    await astarXcmAction.bind(test_account_public_key)
-    await waitFor(24 * 1000)
-    expect(await astarXcmAction.addressToSubstratePublickey("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266")).to.equal(u8aToHex(test_account_public_key))
-
-    const contract_derivative_account = keyring.addFromAddress(derivative_account_public_key).address
-    console.log(contract_derivative_account)
-
-    await transfer(bifrost_api,alice,contract_derivative_account,10n * BNC_DECIMALS)
-    // await transfer(bifrost_api,alice,TEST_ACCOUNT,1n * BNC_DECIMALS)
-
-    // await addWhitelist(bifrost_api,alice, contract_derivative_account)
-    // await waitFor(24 * 1000)
-
-    // const bnc = await ethers.getContractAt("IERC20","0xfFffFffF00000000000000010000000000000007");
-    // await bnc.approve(astarXcmAction.address,"1000000000000000000")
-    // await waitFor(23 * 1000)
-
-    console.log(await astarXcmAction.buildMintCallBytes("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266","0x0801"))
-
-    await astarXcmAction.mint_vastr({from:"0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266", value: 10n * ASTR_DECIMALS })
-    // await waitFor(24 * 1000)
-
-    // console.log(await astarXcmAction.buildMintCallBytes("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266", "0x0801"));
-
-
-    // console.log(astarXcmAction.address)
-    //
-    // const token_bytes = await astarXcmAction.tokenNameToBytes("bnc")
-    // expect(token_bytes).to.equal("0x0809")
-    //
-
-    // const balance:any = await astar_api.query.system.account("aNhuaXEfaSiXJcC1YxssiHgNjCvoJbESD68KjycecaZvqpv")
-    // console.log(balance)
-    // expect(balance['data']['free']).to.equal("99991663480000000000");
-
-  });
-
-  it("swap vastr to astr", async function() {
-    this.timeout(1000 * 1000)
-    const astarXcmAction =  await deployAstarXcmAction()
-    await waitFor(24 * 1000)
-    const contract_account_id = polkadotCryptoUtils.evmToAddress(astarXcmAction.address)
-    const keyring = new Keyring({ type: 'sr25519', ss58Format: 6 })
-    const contract_public_key = keyring.addFromAddress(contract_account_id).publicKey;
-    const alice = keyring.addFromUri('//Alice')
-
-    const test_account_id = polkadotCryptoUtils.evmToAddress("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
-    const test_account_public_key = keyring.addFromAddress(test_account_id).publicKey;
-
-    const wsProvider = new WsProvider("ws://127.0.0.1:9920")
-    const bifrost_api = await ApiPromise.create({provider: wsProvider})
-
+    bifrost_api = await ApiPromise.create({provider: wsProvider})
     const wsProvider1 = new WsProvider("ws://127.0.0.1:9910")
-    const astar_api = await ApiPromise.create({provider: wsProvider1})
+    astar_api = await ApiPromise.create({provider: wsProvider1})
+    const keyring = new Keyring({ type: 'sr25519', ss58Format: 6 })
+    alice = keyring.addFromUri('//Alice')
 
-    const derivative_account_public_key = await calculate_multilocation_derivative_account(bifrost_api, u8aToHex(contract_public_key))
+    // test address -> test account_id
+    const test_account_id = polkadotCryptoUtils.evmToAddress("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
+    // test account_id -> test account_id public_key
+    test_account_public_key = u8aToHex(keyring.addFromAddress(test_account_id).publicKey);
 
-    // bind
-    await astarXcmAction.bind(test_account_public_key)
-    await waitFor(24 * 1000)
-    expect(await astarXcmAction.addressToSubstratePublickey("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266")).to.equal(u8aToHex(test_account_public_key))
+    // xcm-action contract address -> xcm-action contract account_id
+    const contract_account_id = polkadotCryptoUtils.evmToAddress(astarXcmAction.address)
 
+    // xcm-action contract account_id -> xcm-action contract account_id public_key
+    const contract_public_key = u8aToHex(keyring.addFromAddress(contract_account_id).publicKey);
+
+    // calculate multilocation derivative account (xcm-action contract)
+    const derivative_account_public_key = await calculate_multilocation_derivative_account(bifrost_api, contract_public_key)
     const contract_derivative_account = keyring.addFromAddress(derivative_account_public_key).address
     console.log(contract_derivative_account)
 
+    // Recharge BNC to contract_derivative_account
     await transfer(bifrost_api,alice,contract_derivative_account,10n * BNC_DECIMALS)
+    // transfer some astr to contract_account_id to activate the account
     await transfer(astar_api,alice,contract_account_id,1n * ASTR_DECIMALS)
 
+    // add whitelist
     await addWhitelist(bifrost_api,alice, contract_derivative_account)
     await waitFor(24 * 1000)
+  })
 
-    const vastr = await ethers.getContractAt("IERC20","0xFfFfFfff00000000000000010000000000000008");
-    await vastr.approve(astarXcmAction.address,"1000000000000000000000000")
-    await waitFor(23 * 1000)
+  it("mint vastr", async function() {
+    this.timeout(1000 * 1000)
 
-    await astarXcmAction.swap_assets_for_exact_astr("0xFfFfFfff00000000000000010000000000000008","10000000000000000000",0)
+    // bind caller publick_key
+    await astarXcmAction.bind(test_account_public_key)
+    await waitFor(36 * 1000)
+    expect(await astarXcmAction.addressToSubstratePublickey("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266")).to.equal(test_account_public_key)
+
+    const before_astr_balance:any = await astar_api.query.system.account(TEST_ACCOUNT)
+    const before_vastr_balance:any = await astar_api.query.assets.account("18446744073709551624",TEST_ACCOUNT)
+
+    // mint 10 vastr
+    await astarXcmAction.mint_vastr({from:"0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266", value: 10n * ASTR_DECIMALS })
+    await waitFor(60 * 1000)
+
+    const after_astr_balance:any = await astar_api.query.system.account(TEST_ACCOUNT)
+    const after_vastr_balance:any = await astar_api.query.assets.account("18446744073709551624",TEST_ACCOUNT)
+
+    expect(BigInt(before_astr_balance['data']['free']) - BigInt(after_astr_balance['data']['free'])).to.greaterThan(10n * ASTR_DECIMALS);
+    expect(BigInt(after_vastr_balance.toJSON().balance) - BigInt(before_vastr_balance.toJSON().balance)).to.greaterThan(9n * ASTR_DECIMALS);
+
   });
 
-  it("swap astr to vastr", async function() {
+  it("Swap ASTR to vASTR", async function() {
     this.timeout(1000 * 1000)
-    const astarXcmAction =  await deployAstarXcmAction()
-    await waitFor(24 * 1000)
-    const contract_account_id = polkadotCryptoUtils.evmToAddress(astarXcmAction.address)
-    const keyring = new Keyring({ type: 'sr25519', ss58Format: 6 })
-    const contract_public_key = keyring.addFromAddress(contract_account_id).publicKey;
-    const alice = keyring.addFromUri('//Alice')
 
-    const test_account_id = polkadotCryptoUtils.evmToAddress("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
-    const test_account_public_key = keyring.addFromAddress(test_account_id).publicKey;
+    const before_astr_balance:any = await astar_api.query.system.account(TEST_ACCOUNT)
+    const before_vastr_balance:any = await astar_api.query.assets.account("18446744073709551624",TEST_ACCOUNT)
 
-    const wsProvider = new WsProvider("ws://127.0.0.1:9920")
-    const bifrost_api = await ApiPromise.create({provider: wsProvider})
+    // Swap ASTR to vASTR
+    await astarXcmAction.swap_astr_for_exact_assets("0xFfFfFfff00000000000000010000000000000008",0,{value: 10n * ASTR_DECIMALS })
+    await waitFor(60 * 1000)
 
-    const derivative_account_public_key = await calculate_multilocation_derivative_account(bifrost_api, u8aToHex(contract_public_key))
+    const after_astr_balance:any = await astar_api.query.system.account(TEST_ACCOUNT)
+    const after_vastr_balance:any = await astar_api.query.assets.account("18446744073709551624",TEST_ACCOUNT)
 
+    expect(BigInt(before_astr_balance['data']['free']) - BigInt(after_astr_balance['data']['free'])).to.greaterThan(2n * ASTR_DECIMALS);
+    expect(BigInt(after_vastr_balance.toJSON().balance) - BigInt(before_vastr_balance.toJSON().balance)).to.greaterThan(2n * ASTR_DECIMALS);
 
-    // bind
-    await astarXcmAction.bind(test_account_public_key)
-    await waitFor(24 * 1000)
-    expect(await astarXcmAction.addressToSubstratePublickey("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266")).to.equal(u8aToHex(test_account_public_key))
+  });
 
-    const contract_derivative_account = keyring.addFromAddress(derivative_account_public_key).address
-    console.log(contract_derivative_account)
+  it("Swap vASTR to ASTR", async function() {
+    this.timeout(1000 * 1000)
 
-    await transfer(bifrost_api,alice,contract_derivative_account,10n * BNC_DECIMALS)
-
-    await addWhitelist(bifrost_api,alice, contract_derivative_account)
+    // Approve VASTR to contract
+    const caller = await ethers.getSigner("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
+    const vastr = await ethers.getContractAt("IERC20","0xFfFfFfff00000000000000010000000000000008",caller);
+    await vastr.approve(astarXcmAction.address,"100000000000000000000")
     await waitFor(24 * 1000)
 
-    await astarXcmAction.swap_astr_for_exact_assets("0xFfFfFfff00000000000000010000000000000008",0,{from:"0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266", value: 10n * ASTR_DECIMALS })
+    const before_astr_balance:any = await astar_api.query.system.account(TEST_ACCOUNT)
+    const before_vastr_balance:any = await astar_api.query.assets.account("18446744073709551624",TEST_ACCOUNT)
+
+    // Swap vASTR to ASTR
+    await astarXcmAction.swap_assets_for_exact_astr("0xFfFfFfff00000000000000010000000000000008","5000000000000000000",0)
+    await waitFor(60 * 1000)
+
+    const after_astr_balance:any = await astar_api.query.system.account(TEST_ACCOUNT)
+    const after_vastr_balance:any = await astar_api.query.assets.account("18446744073709551624",TEST_ACCOUNT)
+
+    expect(BigInt(after_astr_balance['data']['free']) - BigInt(before_astr_balance['data']['free'])).to.greaterThan(2n * ASTR_DECIMALS);
+    expect(BigInt(before_vastr_balance.toJSON().balance) - BigInt(after_vastr_balance.toJSON().balance)).to.greaterThan(2n * ASTR_DECIMALS);
   });
 });
