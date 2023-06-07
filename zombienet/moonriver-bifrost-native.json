@@ -4,7 +4,7 @@
 		"timeout": 1800
 	},
 	"relaychain": {
-		"chain": "polkadot-local",
+		"chain": "kusama-local",
 		"default_command": "polkadot-v0.9.38-fast-sudo",
 		"default_args": ["-lparachain=debug", "-lxcm=trace", "--state-pruning=archive", "--no-hardware-benchmarks"],
 		"nodes": [
@@ -45,8 +45,8 @@
 	"parachains": [
 		{
 			"cumulus_based": true,
-			"id": 2004,
-			"chain": "moonbeam-local",
+			"id": 2023,
+			"chain": "moonriver-local",
 			"default_args": [
 				"--trie-cache-size=0",
 				"--state-pruning=archive",
@@ -67,8 +67,8 @@
 		},
 		{
 			"cumulus_based": true,
-			"id": 2030,
-			"chain": "bifrost-polkadot-local",
+			"id": 2001,
+			"chain": "bifrost-kusama-local",
 			"default_args": [
 				"--trie-cache-size=0",
 				"--state-pruning=archive",
@@ -79,7 +79,7 @@
 			],
 			"collators": [
 				{
-					"command": "bifrost-v0.9.38",
+					"command": "bifrost-xcm-action",
 					"name": "alice",
 					"ws_port": "{{BIFROST_WS_PORT}}",
 					"rpc_port": "{{BIFROST_RPC_PORT}}",
@@ -90,14 +90,14 @@
 	],
 	"hrmp_channels": [
 		{
-			"sender": 2004,
-			"recipient": 2030,
+			"sender": 2023,
+			"recipient": 2001,
 			"max_capacity": 8,
 			"max_message_size": 512
 		},
 		{
-			"sender": 2030,
-			"recipient": 2004,
+			"sender": 2001,
+			"recipient": 2023,
 			"max_capacity": 8,
 			"max_message_size": 512
 		}

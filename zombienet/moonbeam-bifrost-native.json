@@ -79,7 +79,7 @@
 			],
 			"collators": [
 				{
-					"command": "bifrost-v0.9.38",
+					"command": "bifrost-polkadot-xcm-action",
 					"name": "alice",
 					"ws_port": "{{BIFROST_WS_PORT}}",
 					"rpc_port": "{{BIFROST_RPC_PORT}}",

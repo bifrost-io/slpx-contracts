@@ -4,7 +4,7 @@
 		"timeout": 1800
 	},
 	"relaychain": {
-		"chain": "rococo-local",
+		"chain": "polkadot-local",
 		"default_command": "polkadot-v0.9.38-fast-sudo",
 		"default_args": ["-lparachain=debug", "--state-pruning=archive", "--no-hardware-benchmarks"],
 		"nodes": [
@@ -45,7 +45,8 @@
 					"command": "astar-collator",
 					"name": "alice",
 					"ws_port": "{{PARACHAIN_WS_PORT}}",
-					"rpc_port": "{{PARACHAIN_RPC_PORT}}"
+					"rpc_port": "{{PARACHAIN_RPC_PORT}}",
+					"args": ["--enable-evm-rpc"]
 				}
 			]
 		},
@@ -66,7 +67,8 @@
 					"command": "bifrost-xcm-action",
 					"name": "alice",
 					"ws_port": "{{BIFROST_WS_PORT}}",
-					"rpc_port": "{{BIFROST_RPC_PORT}}"
+					"rpc_port": "{{BIFROST_RPC_PORT}}",
+					"args": ["-lparachain=debug", "-lxcm=trace"]
 				}
 			]
 		}
