@@ -48,8 +48,8 @@ describe("BifrostXcmAction", function () {
 
   async function deployMoonriverXcmAction() {
     const caller = await ethers.getSigner("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
-    const MoonriverXcmAction = await ethers.getContractFactory("MoonriverXcmAction",caller);
-    const moonriverXcmAction = await MoonriverXcmAction.deploy();
+    const MoonbeamXcmAction = await ethers.getContractFactory("MoonbeamXcmAction",caller);
+    const moonriverXcmAction = await MoonbeamXcmAction.deploy();
     console.log("Contract address:",moonriverXcmAction.address)
     return moonriverXcmAction
   }
@@ -83,7 +83,7 @@ describe("BifrostXcmAction", function () {
   let astar_api:ApiPromise;
   let alice:KeyringPair;
 
-  before("Setup env",async function() {
+  it("Setup env",async function() {
     this.timeout(1000 * 1000)
     // Deploy xcm-action contract
     const caller = await ethers.getSigner(Hardhat0)
@@ -99,49 +99,49 @@ describe("BifrostXcmAction", function () {
 
     await waitFor(12 * 1000);
 
-    moonriverXcmAction = await hre.ethers.getContractFactory("MoonriverXcmAction", {
+    moonriverXcmAction = await hre.ethers.getContractFactory("MoonbeamXcmAction", {
       libraries: {
         AddressToAccount: addressToAccount.address,
         BuildCallData: buildCallData.address,
       }
     });
-    moonriverXcmAction = await moonriverXcmAction.deploy();
+    moonriverXcmAction = await moonriverXcmAction.deploy("0x01","0xfFFFfFfF62a882bb647792832b9c360a67c1976d","2030","0x0801");
     await moonriverXcmAction.deployed();
     console.log("AstarXcmAction deployed to:", moonriverXcmAction.address);
     expect(await moonriverXcmAction.owner()).to.equal(Hardhat0);
 
     // init polkadot api
-    const wsProvider = new WsProvider("ws://127.0.0.1:9920")
-    bifrost_api = await ApiPromise.create({provider: wsProvider})
-    const wsProvider1 = new WsProvider("ws://127.0.0.1:9910")
-    astar_api = await ApiPromise.create({provider: wsProvider1})
-    const keyring = new Keyring({ type: 'sr25519', ss58Format: 6 })
-    alice = keyring.addFromUri('//Alice')
-
-    // xcm-action contract address -> xcm-action contract account_id
-    const contract_account_id = polkadotCryptoUtils.evmToAddress(moonriverXcmAction.address)
-
-    // xcm-action contract account_id -> xcm-action contract account_id public_key
-    const contract_public_key = u8aToHex(keyring.addFromAddress(contract_account_id).publicKey);
-
-    // calculate multilocation derivative account (xcm-action contract)
-    const contract_derivative_account = await calculate_multilocation_derivative_account(bifrost_api,2006,contract_public_key)
-
-    // Recharge BNC to contract_derivative_account
-    await balanceTransfer(bifrost_api,alice,contract_derivative_account,100n * BNC_DECIMALS)
-    // transfer some astr to contract_account_id to activate the account
-    await balanceTransfer(astar_api, alice, contract_account_id, 1n * ASTR_DECIMALS)
-
-    // add whitelist
-    const bifrost_set_up_calls = bifrost_api.tx.utility.batchAll([
-      bifrost_api.tx.xcmAction.addWhitelist("Astar",contract_derivative_account),
-      bifrost_api.tx.xcmAction.setExecutionFee(ASTR, 1n * ASTR_DECIMALS),
-      bifrost_api.tx.xcmAction.setExecutionFee(VASTR, 1n * ASTR_DECIMALS),
-    ])
-
-    await councilPropose(bifrost_api,alice,1,bifrost_set_up_calls,bifrost_set_up_calls.encodedLength)
-    // Set execuation fee
-    await waitFor(24 * 1000)
+    // const wsProvider = new WsProvider("ws://127.0.0.1:9920")
+    // bifrost_api = await ApiPromise.create({provider: wsProvider})
+    // const wsProvider1 = new WsProvider("ws://127.0.0.1:9910")
+    // astar_api = await ApiPromise.create({provider: wsProvider1})
+    // const keyring = new Keyring({ type: 'sr25519', ss58Format: 6 })
+    // alice = keyring.addFromUri('//Alice')
+    //
+    // // xcm-action contract address -> xcm-action contract account_id
+    // const contract_account_id = polkadotCryptoUtils.evmToAddress(moonriverXcmAction.address)
+    //
+    // // xcm-action contract account_id -> xcm-action contract account_id public_key
+    // const contract_public_key = u8aToHex(keyring.addFromAddress(contract_account_id).publicKey);
+    //
+    // // calculate multilocation derivative account (xcm-action contract)
+    // const contract_derivative_account = await calculate_multilocation_derivative_account(bifrost_api,2006,contract_public_key)
+    //
+    // // Recharge BNC to contract_derivative_account
+    // await balanceTransfer(bifrost_api,alice,contract_derivative_account,100n * BNC_DECIMALS)
+    // // transfer some astr to contract_account_id to activate the account
+    // await balanceTransfer(astar_api, alice, contract_account_id, 1n * ASTR_DECIMALS)
+    //
+    // // add whitelist
+    // const bifrost_set_up_calls = bifrost_api.tx.utility.batchAll([
+    //   bifrost_api.tx.xcmAction.addWhitelist("Astar",contract_derivative_account),
+    //   bifrost_api.tx.xcmAction.setExecutionFee(ASTR, 1n * ASTR_DECIMALS),
+    //   bifrost_api.tx.xcmAction.setExecutionFee(VASTR, 1n * ASTR_DECIMALS),
+    // ])
+    //
+    // await councilPropose(bifrost_api,alice,1,bifrost_set_up_calls,bifrost_set_up_calls.encodedLength)
+    // // Set execuation fee
+    // await waitFor(24 * 1000)
   })
 
   // it("mint vastr", async function() {

@@ -29,7 +29,7 @@ const main = async () => {
         bifrost_api.tx.assetRegistry.registerMultilocation(VASTR,ASSET_VASTR_LOCATION,0),
     ])
 
-    // await councilPropose(bifrost_api,alice,1,bifrost_set_up_calls,bifrost_set_up_calls.encodedLength)
+    await councilPropose(bifrost_api,alice,1,bifrost_set_up_calls,bifrost_set_up_calls.encodedLength)
 
     const set_up_calls = parachain_api.tx.utility.batchAll([
         parachain_api.tx.balances.forceTransfer(alice.address, TEST_ACCOUNT, 1000n * ASTR_DECIMALS),
@@ -76,12 +76,12 @@ const main = async () => {
         )
     ]);
 
-    // await sudo(parachain_api, alice, set_up_calls)
+    await sudo(parachain_api, alice, set_up_calls)
 
-    // await crossAssetToAstar(bifrost_api, alice, BNC, 1000n * BNC_DECIMALS)
-    // await crossAstrToBifrost(parachain_api, alice, 1000n * ASTR_DECIMALS)
-    // await waitFor(12 * 1000);
-    // await mintVtoken(bifrost_api,alice,ASTR, 500n * ASTR_DECIMALS)
+    await crossAssetToAstar(bifrost_api, alice, BNC, 1000n * BNC_DECIMALS)
+    await crossAstrToBifrost(parachain_api, alice, 1000n * ASTR_DECIMALS)
+    await waitFor(12 * 1000);
+    await mintVtoken(bifrost_api,alice,ASTR, 500n * ASTR_DECIMALS)
 
     let astr = {
         chainId: 2030,
@@ -102,9 +102,11 @@ const main = async () => {
     }
 
     await democracyForCallNeedRootOrigin(bifrost_api, alice, bifrost_api.tx.zenlinkProtocol.createPair(bnc,vastr))
+    await democracyForCallNeedRootOrigin(bifrost_api, alice, bifrost_api.tx.zenlinkProtocol.createPair(bnc,astr))
     await addLiquidity(bifrost_api,alice,bnc,vastr,1000n * BNC_DECIMALS,100n * ASTR_DECIMALS);
+    await addLiquidity(bifrost_api,alice,bnc,astr,1000n * BNC_DECIMALS,100n * ASTR_DECIMALS);
 }
-// main()
-//     .then()
-//     .catch((err) => console.log(err))
-//     .finally(() => process.exit())
+main()
+    .then()
+    .catch((err) => console.log(err))
+    .finally(() => process.exit())

@@ -12,7 +12,16 @@ import {
 	ASTR,
 	ASTR_DECIMALS,
 	KSM_METADATA,
-	KSM_DECIMALS, ALITH, MOVR_DECIMALS, BNC_DECIMALS
+	KSM_DECIMALS,
+	ALITH,
+	MOVR_DECIMALS,
+	BNC_DECIMALS,
+	ASTR_METADATA,
+	GLMR_METADATA,
+	GLMR,
+	ASSET_GLMR_LOCATION,
+	VGLMR,
+	ASSET_VGLMR_LOCATION, VDOT, ASSET_VDOT_LOCATION, DOT, ASSET_DOT_LOCATION
 } from './constants'
 import {
 	addLiquidity,
@@ -25,9 +34,9 @@ import {
 import {KeyringPair} from "@polkadot/keyring/types";
 import { decodeAddress } from '@polkadot/util-crypto'
 
-export async function cross_ksm_to_bifrost(api:ApiPromise, signer:KeyringPair, amount:any, receiver = ALICE) {
+export async function cross_dot_to_bifrost(api:ApiPromise, signer:KeyringPair, amount:any, receiver = ALICE) {
 	const paras = [
-		{ V3: { parents: 0, interior: { X1: { Parachain: 2001 } } } },
+		{ V3: { parents: 0, interior: { X1: { Parachain: 2030 } } } },
 		{ V3: { parents: 0, interior: { X1: { AccountId32: { network: null, id: decodeAddress(receiver) } } } } },
 		{ V3: [{ id: { Concrete: { parents: 0, interior: 'Here' } }, fun: { Fungible: amount } }] },
 		0,
@@ -35,16 +44,16 @@ export async function cross_ksm_to_bifrost(api:ApiPromise, signer:KeyringPair, a
 	return new Promise((resolve) => {
 		api.tx.xcmPallet.reserveTransferAssets(...paras).signAndSend(signer, ({ status }) => {
 			if (status.isFinalized) {
-				console.log(`✔️  - cross_ksm_to_bifrost finalized at block hash #${status.asFinalized.toString()}`)
+				console.log(`✔️  - cross_dot_to_bifrost finalized at block hash #${status.asFinalized.toString()}`)
 				resolve(status.asFinalized.toString())
 			}
 		})
 	})
 }
 
-export async function cross_ksm_to_moonriver(api:ApiPromise, signer:KeyringPair, amount:any, receiver = ALITH) {
+export async function cross_dot_to_moonbeam(api:ApiPromise, signer:KeyringPair, amount:any, receiver = ALITH) {
 	const paras = [
-		{ V3: { parents: 0, interior: { X1: { Parachain: 2023 } } } },
+		{ V3: { parents: 0, interior: { X1: { Parachain: 2004 } } } },
 		{ V3: { parents: 0, interior: { X1: { AccountKey20: { network: null, key: ALITH } } } } },
 		{ V3: [{ id: { Concrete: { parents: 0, interior: 'Here' } }, fun: { Fungible: amount } }] },
 		0,
@@ -52,21 +61,21 @@ export async function cross_ksm_to_moonriver(api:ApiPromise, signer:KeyringPair,
 	return new Promise((resolve) => {
 		api.tx.xcmPallet.reserveTransferAssets(...paras).signAndSend(signer, ({ status }) => {
 			if (status.isFinalized) {
-				console.log(`✔️  - cross_ksm_to_bifrost finalized at block hash #${status.asFinalized.toString()}`)
+				console.log(`✔️  - cross_dot_to_bifrost finalized at block hash #${status.asFinalized.toString()}`)
 				resolve(status.asFinalized.toString())
 			}
 		})
 	})
 }
 
-export async function cross_movr_to_bifrost(api:ApiPromise, signer:KeyringPair, amount:bigint, receiver = ALICE) {
+export async function cross_glmr_to_bifrost(api:ApiPromise, signer:KeyringPair, amount:bigint, receiver = ALICE) {
 	const paras = [
 		'SelfReserve',
 		amount,
 		{
 			V3: {
 				parents: 1n,
-				interior: { X2: [{ Parachain: 2001n }, { AccountId32: { network: null, id: decodeAddress(receiver) } }] },
+				interior: { X2: [{ Parachain: 2030n }, { AccountId32: { network: null, id: decodeAddress(receiver) } }] },
 			},
 		},
 		4000000000n,
@@ -74,7 +83,7 @@ export async function cross_movr_to_bifrost(api:ApiPromise, signer:KeyringPair, 
 	return new Promise((resolve) => {
 		api.tx.xTokens.transfer(...paras).signAndSend(signer, ({ status }) => {
 			if (status.isFinalized) {
-				console.log(`✔️  - cross_movr_to_bifrost finalized at block hash #${status.asFinalized.toString()}`)
+				console.log(`✔️  - cross_glmr_to_bifrost finalized at block hash #${status.asFinalized.toString()}`)
 				resolve(status.asFinalized.toString())
 			}
 		})
@@ -91,13 +100,15 @@ const main = async () => {
 	const alith = keyringEth.addFromUri("0x5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133")
 
 	const bifrost_set_up_calls = bifrost_api.tx.utility.batchAll([
-		bifrost_api.tx.assetRegistry.registerMultilocation(MOVR, ASSET_MOVR_LOCATION, 0),
-		bifrost_api.tx.assetRegistry.registerMultilocation(vMOVR, ASSET_VMOVR_LOCATION, 0),
-		bifrost_api.tx.assetRegistry.registerMultilocation(vKSM, ASSET_VKSM_LOCATION, 0),
-		bifrost_api.tx.assetRegistry.registerMultilocation(KSM, ASSET_KSM_LOCATION, 0),
+		bifrost_api.tx.assetRegistry.registerTokenMetadata(GLMR_METADATA),
+		bifrost_api.tx.assetRegistry.registerVtokenMetadata(1),
+		bifrost_api.tx.assetRegistry.registerMultilocation(GLMR, ASSET_GLMR_LOCATION, 0),
+		bifrost_api.tx.assetRegistry.registerMultilocation(VGLMR, ASSET_VGLMR_LOCATION, 0),
+		bifrost_api.tx.assetRegistry.registerMultilocation(VDOT, ASSET_VDOT_LOCATION, 0),
+		bifrost_api.tx.assetRegistry.registerMultilocation(DOT, ASSET_DOT_LOCATION, 0),
 	])
 
-	await councilPropose(bifrost_api, alice, 1, bifrost_set_up_calls, bifrost_set_up_calls.encodedLength)
+	// await councilPropose(bifrost_api, alice, 1, bifrost_set_up_calls, bifrost_set_up_calls.encodedLength)
 
 	// 165823357460190568952172802245839421906
 	const calls = parachain_api.tx.utility.batchAll([
@@ -107,7 +118,7 @@ const main = async () => {
 					parents: 1,
 					interior: {
 						X2: [
-							{ Parachain: 2001n },
+							{ Parachain: 2030n },
 							{ GeneralKey: { length: 2, data: '0x0001000000000000000000000000000000000000000000000000000000000000' } },
 						],
 					},
@@ -128,7 +139,7 @@ const main = async () => {
 					parents: 1,
 					interior: {
 						X2: [
-							{ Parachain: 2001n },
+							{ Parachain: 2030n },
 							{ GeneralKey: { length: 2, data: '0x0001000000000000000000000000000000000000000000000000000000000000' } },
 						],
 					},
@@ -145,15 +156,15 @@ const main = async () => {
 					parents: 1,
 					interior: {
 						X2: [
-							{ Parachain: 2001n },
-							{ GeneralKey: { length: 2, data: '0x010a000000000000000000000000000000000000000000000000000000000000' } },
+							{ Parachain: 2030n },
+							{ GeneralKey: { length: 2, data: '0x0901000000000000000000000000000000000000000000000000000000000000' } },
 						],
 					},
 				},
 			},
 			{
-				name: 'vMOVR',
-				symbol: 'vMOVR',
+				name: 'vGLMR',
+				symbol: 'vGLMR',
 				decimals: 18,
 				isFrozen: false,
 			},
@@ -166,16 +177,16 @@ const main = async () => {
 					parents: 1,
 					interior: {
 						X2: [
-							{ Parachain: 2001n },
-							{ GeneralKey: { length: 2, data: '0x0104000000000000000000000000000000000000000000000000000000000000' } },
+							{ Parachain: 2030n },
+							{ GeneralKey: { length: 2, data: '0x0900000000000000000000000000000000000000000000000000000000000000' } },
 						],
 					},
 				},
 			},
 			{
-				name: 'vKSM',
-				symbol: 'vKSM',
-				decimals: 12,
+				name: 'vDOT',
+				symbol: 'vDOT',
+				decimals: 10,
 				isFrozen: false,
 			},
 			1n,
@@ -184,9 +195,9 @@ const main = async () => {
 		parachain_api.tx.assetManager.registerForeignAsset(
 			{ Xcm: { parents: 1, interior: 'Here' } },
 			{
-				name: 'xcKSM',
-				symbol: 'xcKSM',
-				decimals: 12,
+				name: 'xcDOT',
+				symbol: 'xcDOT',
+				decimals: 10,
 				isFrozen: false,
 			},
 			1n,
@@ -204,11 +215,11 @@ const main = async () => {
 		),
 	])
 
-	await sudo(parachain_api, alith, calls)
+	// await sudo(parachain_api, alith, calls)
 
-	await cross_ksm_to_bifrost(relaychain_api, alice, 1000n * KSM_DECIMALS)
-	await cross_ksm_to_moonriver(relaychain_api, alice, 1000n * KSM_DECIMALS)
-	await cross_movr_to_bifrost(parachain_api,alith,1000n * MOVR_DECIMALS);
+	await cross_dot_to_bifrost(relaychain_api, alice, 1000n * KSM_DECIMALS)
+	await cross_dot_to_moonbeam(relaychain_api, alice, 1000n * KSM_DECIMALS)
+	await cross_glmr_to_bifrost(parachain_api,alith,1000n * MOVR_DECIMALS);
 
 	// wait for 24 seconds to make sure the xcm message is executed in polkadot
 	await waitFor(24 * 1000)
@@ -238,13 +249,13 @@ let movr = {
 	}
 
 	// await democracyForCallNeedRootOrigin(bifrost_api, alice, bifrost_api.tx.zenlinkProtocol.createPair(ksm,vksm))
-	await democracyForCallNeedRootOrigin(bifrost_api, alice, bifrost_api.tx.zenlinkProtocol.createPair(bnc,ksm))
-	await democracyForCallNeedRootOrigin(bifrost_api, alice, bifrost_api.tx.zenlinkProtocol.createPair(bnc,movr))
+	// await democracyForCallNeedRootOrigin(bifrost_api, alice, bifrost_api.tx.zenlinkProtocol.createPair(bnc,ksm))
+	// await democracyForCallNeedRootOrigin(bifrost_api, alice, bifrost_api.tx.zenlinkProtocol.createPair(bnc,movr))
 	// await democracyForCallNeedRootOrigin(bifrost_api, alice, bifrost_api.tx.zenlinkProtocol.createPair(ksm,movr))
 
 	// await addLiquidity(bifrost_api,alice,ksm,vksm,10n * KSM_DECIMALS,10n * KSM_DECIMALS);
-	await addLiquidity(bifrost_api,alice,bnc,ksm,1000n * BNC_DECIMALS,10n * KSM_DECIMALS);
-	await addLiquidity(bifrost_api,alice,bnc,movr,1000n * BNC_DECIMALS,10n * MOVR_DECIMALS);
+	// await addLiquidity(bifrost_api,alice,bnc,ksm,1000n * BNC_DECIMALS,10n * KSM_DECIMALS);
+	// await addLiquidity(bifrost_api,alice,bnc,movr,1000n * BNC_DECIMALS,10n * MOVR_DECIMALS);
 	// await addLiquidity(bifrost_api,alice,ksm,movr,10n * KSM_DECIMALS,10n * MOVR_DECIMALS);
 
 
@@ -256,8 +267,6 @@ let movr = {
 	//
 	// await mint(bifrost_api, alice, KSM, 100n * KSM_DECIMALS)
 	// await cross_to_moonriver(bifrost_api, alice, vKSM, 2n * KSM_DECIMALS)
-
-
 
 }
 main()

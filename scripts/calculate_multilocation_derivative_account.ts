@@ -46,8 +46,8 @@ const main =async () => {
     // const wsProvider = new WsProvider("wss://bifrost-rpc.dwellir.com")
     const bifrost_api = await ApiPromise.create({provider: wsProvider})
 
-    await calculate_multilocation_derivative_account(bifrost_api,2023,"0x962c0940d72E7Db6c9a5F81f1cA87D8DB2B82A23")
-    await calculate_multilocation_derivative_account(bifrost_api,2006,"0xacf60d770fbebe36fcfc01b62c720522e65a204d0bbdfde171adc85385313b28")
+    await calculate_multilocation_derivative_account(bifrost_api,2004,"0x3469E1DaC06611030AEce8209F07501E9A7aCC69")
+    await calculate_multilocation_derivative_account(bifrost_api,2006,"0x7c5dfc0e1c2e6eb1e77a3b3aa714fdbd63253e5b6f390ba894b694bd0ddea6fc")
 }
 main()
     .then()

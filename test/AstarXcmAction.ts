@@ -79,10 +79,9 @@ describe("AstarXcmAction", function () {
     astarXcmAction = await hre.ethers.getContractFactory("AstarXcmAction", {
       libraries: {
         AddressToAccount: addressToAccount.address,
-        BuildCallData: buildCallData.address,
       }
     });
-    astarXcmAction = await astarXcmAction.deploy();
+    astarXcmAction = await astarXcmAction.deploy(100000000000,10000000000);
     await astarXcmAction.deployed();
     console.log("AstarXcmAction deployed to:", astarXcmAction.address);
     expect(await astarXcmAction.owner()).to.equal(Hardhat0);
@@ -117,9 +116,51 @@ describe("AstarXcmAction", function () {
     ])
 
     await councilPropose(bifrost_api,alice,1,bifrost_set_up_calls,bifrost_set_up_calls.encodedLength)
-    // Set execuation fee
-    await waitFor(24 * 1000)
   })
+
+  it("setBifrostTransactionFee", async function() {
+    this.timeout(1000 * 1000)
+
+    await astarXcmAction.setBifrostTransactionFee(100000000000)
+    await waitFor(12 * 1000)
+
+    expect(await astarXcmAction.bifrostTransactionFee()).to.equal(100000000000);
+  });
+
+  it("setTransactWeight", async function() {
+    this.timeout(1000 * 1000)
+
+    await astarXcmAction.setTransactWeight(10000000000)
+    await waitFor(12 * 1000)
+
+    expect(await astarXcmAction.transactWeight()).to.equal(10000000000);
+  });
+
+  it("setAssetAddressToCurrencyId", async function() {
+    this.timeout(1000 * 1000)
+
+    await astarXcmAction.setAssetAddressToMinimumValue("0xfFffFffF00000000000000010000000000000007","2000000000000")
+    await astarXcmAction.setAssetAddressToMinimumValue("0xFfFfFfff00000000000000010000000000000008","2000000000000000000")
+    await astarXcmAction.setAssetAddressToMinimumValue("0x0000000000000000000000000000000000000000","2000000000000000000")
+    await waitFor(36 * 1000)
+
+    expect(await astarXcmAction.assetAddressToCurrencyId("")).to.equal("2000000000000");
+    expect(await astarXcmAction.assetAddressToCurrencyId("")).to.equal("2000000000000000000");
+    expect(await astarXcmAction.assetAddressToCurrencyId("")).to.equal("2000000000000000000");
+  });
+
+  it("setAssetAddressToCurrencyId", async function() {
+    this.timeout(1000 * 1000)
+
+    await astarXcmAction.setAssetAddressToCurrencyId("0xfFffFffF00000000000000010000000000000007","0x0001")
+    await astarXcmAction.setAssetAddressToCurrencyId("0xFfFfFfff00000000000000010000000000000008","0x0903")
+    await astarXcmAction.setAssetAddressToCurrencyId("0x0000000000000000000000000000000000000000","0x0803")
+    await waitFor(36 * 1000)
+
+    expect(await astarXcmAction.assetAddressToCurrencyId("")).to.equal("0x0001");
+    expect(await astarXcmAction.assetAddressToCurrencyId("")).to.equal("0x0903");
+    expect(await astarXcmAction.assetAddressToCurrencyId("")).to.equal("0x0803");
+  });
 
   it("mint vastr", async function() {
     this.timeout(1000 * 1000)

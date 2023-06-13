@@ -1,16 +1,19 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-import "./Constants.sol";
-
 library BuildCallData {
+    uint8  constant public PALLET_INDEX = 125;
+    uint8  constant public MINT_CALL_INDEX = 0;
+    uint8  constant public SWAP_CALL_INDEX = 1;
+    uint8  constant public REDEEM_CALL_INDEX = 2;
+    
     function buildMintCallBytes(address caller , bytes2 token, bytes1 targetChain) public pure returns (bytes memory) {
 
         bytes memory prefix = new bytes(2);
         // storage pallet index
-        prefix[0] = bytes1(Constants.PALLET_INDEX);
+        prefix[0] = bytes1(PALLET_INDEX);
         // storage call index
-        prefix[1] = bytes1(Constants.MINT_CALL_INDEX);
+        prefix[1] = bytes1(MINT_CALL_INDEX);
 
         // astar target_chain = bytes1(0)
         return bytes.concat(prefix, abi.encodePacked(caller) , token, targetChain);
@@ -20,9 +23,9 @@ library BuildCallData {
 
         bytes memory prefix = new bytes(2);
         // storage pallet index
-        prefix[0] = bytes1(Constants.PALLET_INDEX);
+        prefix[0] = bytes1(PALLET_INDEX);
         // storage call index
-        prefix[1] = bytes1(Constants.SWAP_CALL_INDEX);
+        prefix[1] = bytes1(SWAP_CALL_INDEX);
 
         // astar target_chain = bytes1(0)
         return bytes.concat(prefix, abi.encodePacked(caller) , currency_in,currency_in_out, encode_uint128(currency_out_min) ,targetChain);
@@ -32,9 +35,9 @@ library BuildCallData {
 
         bytes memory prefix = new bytes(2);
         // storage pallet index
-        prefix[0] = bytes1(Constants.PALLET_INDEX);
+        prefix[0] = bytes1(PALLET_INDEX);
         // storage call index
-        prefix[1] = bytes1(Constants.REDEEM_CALL_INDEX);
+        prefix[1] = bytes1(REDEEM_CALL_INDEX);
 
         // astar target_chain = bytes1(0)
         return bytes.concat(prefix, abi.encodePacked(caller) , vtoken, targetChain);

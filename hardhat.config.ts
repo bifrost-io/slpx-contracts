@@ -27,6 +27,11 @@ const config: HardhatUserConfig = {
       url: "http://127.0.0.1:8910",
       chainId: 592,
       accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
+    moonbeam: {
+      url: "http://127.0.0.1:8910",
+      chainId: 1280,
+      accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     }
   }
 };
