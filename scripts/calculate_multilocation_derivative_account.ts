@@ -42,16 +42,16 @@ export async function calculate_multilocation_derivative_account(api:ApiPromise,
 }
 
 const main =async () => {
-    const wsProvider = new WsProvider("ws://127.0.0.1:9920")
+    const wsProvider = new WsProvider("wss://bifrost-polkadot-rpc.devnet.liebi.com/ws")
     // const wsProvider = new WsProvider("wss://bifrost-rpc.dwellir.com")
     const bifrost_api = await ApiPromise.create({provider: wsProvider})
 
     await calculate_multilocation_derivative_account(bifrost_api,2004,"0x3469E1DaC06611030AEce8209F07501E9A7aCC69")
     await calculate_multilocation_derivative_account(bifrost_api,2006,"0x7c5dfc0e1c2e6eb1e77a3b3aa714fdbd63253e5b6f390ba894b694bd0ddea6fc")
 }
-main()
-    .then()
-    .catch((err) => console.log(err))
-    .finally(() => process.exit())
+// main()
+//     .then()
+//     .catch((err) => console.log(err))
+//     .finally(() => process.exit())
 
 

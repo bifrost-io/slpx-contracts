@@ -23,36 +23,6 @@ import {calculate_multilocation_derivative_account} from "../scripts/calculate_m
 //0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
 
 describe("AstarXcmAction", function () {
-  async function deployAstarXcmAction() {
-    const caller = await ethers.getSigner("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
-    const AstarXcmAction = await ethers.getContractFactory("AstarXcmAction",caller);
-    const astarXcmAction = await AstarXcmAction.deploy();
-    console.log("Contract address:",astarXcmAction.address)
-    return astarXcmAction
-  }
-
-  async function addWhitelist(api: ApiPromise, signer: KeyringPair, accountId:string) {
-    return new Promise((resolve) => {
-      api.tx.xcmAction.addWhitelist("Astar",accountId).signAndSend(signer, ({ status }) => {
-        if (status.isFinalized) {
-          console.log(`✔️  - addWhitelist finalized at block hash #${status.asFinalized.toString()}`)
-          resolve(status.asFinalized.toString())
-        }
-      })
-    })
-  }
-
-  async function addWhitelist(api: ApiPromise, signer: KeyringPair, accountId:string) {
-    return new Promise((resolve) => {
-      api.tx.xcmAction.addWhitelist("Astar",accountId).signAndSend(signer, ({ status }) => {
-        if (status.isFinalized) {
-          console.log(`✔️  - addWhitelist finalized at block hash #${status.asFinalized.toString()}`)
-          resolve(status.asFinalized.toString())
-        }
-      })
-    })
-  }
-
   let contract_address:string;
   let astarXcmAction:any;
   let test_account_public_key:string;
@@ -76,9 +46,10 @@ describe("AstarXcmAction", function () {
 
     await waitFor(12 * 1000);
 
-    astarXcmAction = await hre.ethers.getContractFactory("AstarXcmAction", {
+    astarXcmAction = await ethers.getContractFactory("AstarXcmAction", {
       libraries: {
         AddressToAccount: addressToAccount.address,
+        BuildCallData: buildCallData.address,
       }
     });
     astarXcmAction = await astarXcmAction.deploy(100000000000,10000000000);
@@ -109,44 +80,35 @@ describe("AstarXcmAction", function () {
     await balanceTransfer(astar_api, alice, contract_account_id, 1n * ASTR_DECIMALS)
 
     // add whitelist
-    const bifrost_set_up_calls = bifrost_api.tx.utility.batchAll([
-      bifrost_api.tx.xcmAction.addWhitelist("Astar",contract_derivative_account),
-      bifrost_api.tx.xcmAction.setExecutionFee(ASTR, 1n * ASTR_DECIMALS),
-      bifrost_api.tx.xcmAction.setExecutionFee(VASTR, 1n * ASTR_DECIMALS),
-    ])
+    await councilPropose(bifrost_api,alice,1,bifrost_api.tx.xcmAction.addWhitelist("Astar",contract_derivative_account),bifrost_api.tx.xcmAction.addWhitelist("Astar",contract_derivative_account).encodedLength)
 
-    await councilPropose(bifrost_api,alice,1,bifrost_set_up_calls,bifrost_set_up_calls.encodedLength)
+    // Approve
+    const bnc = await ethers.getContractAt("IERC20","0xfFffFffF00000000000000010000000000000007");
+    const vastr = await ethers.getContractAt("IERC20","0xFfFfFfff00000000000000010000000000000008");
+    await vastr.approve(astarXcmAction.address,"1000000000000000000000000")
+    await bnc.approve(astarXcmAction.address,"1000000000000000000000000")
   })
 
   it("setBifrostTransactionFee", async function() {
     this.timeout(1000 * 1000)
 
-    await astarXcmAction.setBifrostTransactionFee(100000000000)
-    await waitFor(12 * 1000)
-
-    expect(await astarXcmAction.bifrostTransactionFee()).to.equal(100000000000);
-  });
-
-  it("setTransactWeight", async function() {
-    this.timeout(1000 * 1000)
-
-    await astarXcmAction.setTransactWeight(10000000000)
+    await astarXcmAction.setBifrostTransactionFee(100000000000,10000000000)
     await waitFor(12 * 1000)
 
     expect(await astarXcmAction.transactWeight()).to.equal(10000000000);
+    expect(await astarXcmAction.bifrostTransactionFee()).to.equal(100000000000);
   });
 
   it("setAssetAddressToCurrencyId", async function() {
     this.timeout(1000 * 1000)
 
-    await astarXcmAction.setAssetAddressToMinimumValue("0xfFffFffF00000000000000010000000000000007","2000000000000")
-    await astarXcmAction.setAssetAddressToMinimumValue("0xFfFfFfff00000000000000010000000000000008","2000000000000000000")
-    await astarXcmAction.setAssetAddressToMinimumValue("0x0000000000000000000000000000000000000000","2000000000000000000")
-    await waitFor(36 * 1000)
-
-    expect(await astarXcmAction.assetAddressToCurrencyId("")).to.equal("2000000000000");
-    expect(await astarXcmAction.assetAddressToCurrencyId("")).to.equal("2000000000000000000");
-    expect(await astarXcmAction.assetAddressToCurrencyId("")).to.equal("2000000000000000000");
+    await astarXcmAction.setAssetAddressToMinimumValue("0xfFffFffF00000000000000010000000000000007","1000000000000")
+    await astarXcmAction.setAssetAddressToMinimumValue("0xFfFfFfff00000000000000010000000000000008","1000000000000000000")
+    await astarXcmAction.setAssetAddressToMinimumValue("0x0000000000000000000000000000000000000000","1000000000000000000")
+    await waitFor(24 * 1000)
+    expect(await astarXcmAction.assetAddressToMinimumValue("0xfFffFffF00000000000000010000000000000007")).to.equal("1000000000000");
+    expect(await astarXcmAction.assetAddressToMinimumValue("0xFfFfFfff00000000000000010000000000000008")).to.equal("1000000000000000000");
+    expect(await astarXcmAction.assetAddressToMinimumValue("0x0000000000000000000000000000000000000000")).to.equal("1000000000000000000");
   });
 
   it("setAssetAddressToCurrencyId", async function() {
@@ -155,11 +117,10 @@ describe("AstarXcmAction", function () {
     await astarXcmAction.setAssetAddressToCurrencyId("0xfFffFffF00000000000000010000000000000007","0x0001")
     await astarXcmAction.setAssetAddressToCurrencyId("0xFfFfFfff00000000000000010000000000000008","0x0903")
     await astarXcmAction.setAssetAddressToCurrencyId("0x0000000000000000000000000000000000000000","0x0803")
-    await waitFor(36 * 1000)
-
-    expect(await astarXcmAction.assetAddressToCurrencyId("")).to.equal("0x0001");
-    expect(await astarXcmAction.assetAddressToCurrencyId("")).to.equal("0x0903");
-    expect(await astarXcmAction.assetAddressToCurrencyId("")).to.equal("0x0803");
+    await waitFor(24 * 1000)
+    expect(await astarXcmAction.assetAddressToCurrencyId("0xfFffFffF00000000000000010000000000000007")).to.equal("0x0001");
+    expect(await astarXcmAction.assetAddressToCurrencyId("0xFfFfFfff00000000000000010000000000000008")).to.equal("0x0903");
+    expect(await astarXcmAction.assetAddressToCurrencyId("0x0000000000000000000000000000000000000000")).to.equal("0x0803");
   });
 
   it("mint vastr", async function() {
@@ -176,47 +137,58 @@ describe("AstarXcmAction", function () {
     const after_vastr_balance:any = await astar_api.query.assets.account("18446744073709551624",TEST_ACCOUNT)
 
     expect(BigInt(before_astr_balance['data']['free']) - BigInt(after_astr_balance['data']['free'])).to.greaterThan(10n * ASTR_DECIMALS);
-    expect(BigInt(after_vastr_balance.toJSON()["balance"]) - BigInt(before_vastr_balance.toJSON()["balance"])).to.greaterThan(8n * ASTR_DECIMALS);
+    expect(BigInt(after_vastr_balance.toJSON().balance) - BigInt(before_vastr_balance.toJSON().balance)).to.greaterThan(8n * ASTR_DECIMALS);
   });
 
-  it("Swap ASTR to vASTR", async function() {
+  it("Swap ASTR to BNC", async function() {
     this.timeout(1000 * 1000)
 
     const before_astr_balance:any = await astar_api.query.system.account(TEST_ACCOUNT)
-    const before_vastr_balance:any = await astar_api.query.assets.account("18446744073709551624",TEST_ACCOUNT)
+    const before_bnc_balance:any = await astar_api.query.assets.account("18446744073709551623",TEST_ACCOUNT)
 
-    // Swap ASTR to vASTR
-    await astarXcmAction.swapNativeAssetsForExactAssets("0xFfFfFfff00000000000000010000000000000008",0,{value: 10n * ASTR_DECIMALS })
+    // Swap ASTR to BNC
+    await astarXcmAction.swapNativeAssetsForExactAssets("0xfFffFffF00000000000000010000000000000007",0,{value: 50n * ASTR_DECIMALS })
     await waitFor(60 * 1000)
 
     const after_astr_balance:any = await astar_api.query.system.account(TEST_ACCOUNT)
-    const after_vastr_balance:any = await astar_api.query.assets.account("18446744073709551624",TEST_ACCOUNT)
+    const after_bnc_balance:any = await astar_api.query.assets.account("18446744073709551623",TEST_ACCOUNT)
 
-    expect(BigInt(before_astr_balance['data']['free']) - BigInt(after_astr_balance['data']['free'])).to.greaterThan(2n * ASTR_DECIMALS);
-    expect(BigInt(after_vastr_balance.toJSON().balance) - BigInt(before_vastr_balance.toJSON().balance)).to.greaterThan(2n * ASTR_DECIMALS);
+    expect(BigInt(before_astr_balance['data']['free']) - BigInt(after_astr_balance['data']['free'])).to.greaterThan(50n * ASTR_DECIMALS);
+    expect(BigInt(after_bnc_balance.toJSON().balance) - BigInt(before_bnc_balance.toJSON().balance)).to.greaterThan(100n * BNC_DECIMALS);
 
   });
 
-  it("Swap vASTR to ASTR", async function() {
+  it("Swap BNC to ASTR", async function() {
     this.timeout(1000 * 1000)
 
-    // Approve VASTR to contract
-    const caller = await ethers.getSigner("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
-    const vastr = await ethers.getContractAt("IERC20","0xFfFfFfff00000000000000010000000000000008",caller);
-    await vastr.approve(astarXcmAction.address,"100000000000000000000")
-    await waitFor(24 * 1000)
-
     const before_astr_balance:any = await astar_api.query.system.account(TEST_ACCOUNT)
-    const before_vastr_balance:any = await astar_api.query.assets.account("18446744073709551624",TEST_ACCOUNT)
+    const before_bnc_balance:any = await astar_api.query.assets.account("18446744073709551623",TEST_ACCOUNT)
 
-    // Swap vASTR to ASTR
-    await astarXcmAction.swapAssetsForExactNativeAssets("0xFfFfFfff00000000000000010000000000000008","5000000000000000000",0)
+    // Swap BNC to ASTR
+    await astarXcmAction.swapAssetsForExactNativeAssets("0xfFffFffF00000000000000010000000000000007","100000000000000",0)
     await waitFor(60 * 1000)
 
     const after_astr_balance:any = await astar_api.query.system.account(TEST_ACCOUNT)
+    const after_bnc_balance:any = await astar_api.query.assets.account("18446744073709551623",TEST_ACCOUNT)
+
+    expect(BigInt(after_astr_balance['data']['free']) - BigInt(before_astr_balance['data']['free'])).to.greaterThan(1n * ASTR_DECIMALS);
+    expect(BigInt(before_bnc_balance.toJSON().balance) - BigInt(after_bnc_balance.toJSON().balance)).to.greaterThan(100n * BNC_DECIMALS);
+  });
+
+  it("Swap BNC to VASTR", async function() {
+    this.timeout(1000 * 1000)
+
+    const before_bnc_balance:any = await astar_api.query.assets.account("18446744073709551623",TEST_ACCOUNT)
+    const before_vastr_balance:any = await astar_api.query.assets.account("184467440737095516234",TEST_ACCOUNT)
+
+    // Swap BNC to ASTR
+    await astarXcmAction.swapAssetsForExactAssets("0xfFffFffF00000000000000010000000000000007","0xFfFfFfff00000000000000010000000000000008","100000000000000",0)
+    await waitFor(60 * 1000)
+
+    const after_bnc_balance:any = await astar_api.query.assets.account("18446744073709551623",TEST_ACCOUNT)
     const after_vastr_balance:any = await astar_api.query.assets.account("18446744073709551624",TEST_ACCOUNT)
 
-    expect(BigInt(after_astr_balance['data']['free']) - BigInt(before_astr_balance['data']['free'])).to.greaterThan(2n * ASTR_DECIMALS);
-    expect(BigInt(before_vastr_balance.toJSON().balance) - BigInt(after_vastr_balance.toJSON().balance)).to.greaterThan(2n * ASTR_DECIMALS);
+    expect(BigInt(after_vastr_balance.toJSON().balance) - BigInt(before_vastr_balance.toJSON().balance)).to.greaterThan(1n * ASTR_DECIMALS);
+    expect(BigInt(before_bnc_balance.toJSON().balance) - BigInt(after_bnc_balance.toJSON().balance)).to.greaterThan(30n * BNC_DECIMALS);
   });
 });
