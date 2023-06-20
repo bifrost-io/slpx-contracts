@@ -1,111 +1,162 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import "@nomiclabs/hardhat-ethers"
-import {ApiPromise, Keyring, WsProvider} from "@polkadot/api";
-import {u8aToHex} from "@polkadot/util";
+import "@nomiclabs/hardhat-ethers";
+import { ApiPromise, Keyring, WsProvider } from "@polkadot/api";
+import { u8aToHex } from "@polkadot/util";
 import * as polkadotCryptoUtils from "@polkadot/util-crypto";
-import {ASTR, ASTR_DECIMALS, BNC_DECIMALS, Hardhat0, TEST_ACCOUNT, VASTR} from "../scripts/constants";
-import {KeyringPair} from "@polkadot/keyring/types";
-import {MultiLocation} from "@polkadot/types/interfaces";
-import {balanceTransfer, councilPropose, waitFor} from "../scripts/utils";
+import {
+  ASTR,
+  ASTR_DECIMALS,
+  BNC_DECIMALS,
+  Hardhat0,
+  TEST_ACCOUNT,
+  VASTR,
+} from "../scripts/constants";
+import { KeyringPair } from "@polkadot/keyring/types";
+import { MultiLocation } from "@polkadot/types/interfaces";
+import { balanceTransfer, councilPropose, waitFor } from "../scripts/utils";
 
 //aNhuaXEfaSiXJcC1YxssiHgNjCvoJbESD68KjycecaZvqpv
 //0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
 
-async function calculate_multilocation_derivative_account(api:ApiPromise,publicKey:string){
+async function calculate_multilocation_derivative_account(
+  api: ApiPromise,
+  publicKey: string
+) {
   const interior = {
-    X2: [{ Parachain: 2023 }, { AccountKey20: { network: null, key: publicKey } }],
+    X2: [
+      { Parachain: 2023 },
+      { AccountKey20: { network: null, key: publicKey } },
+    ],
   };
   const multilocation: MultiLocation = api.createType(
-      'XcmV3MultiLocation',
-      JSON.parse(
-          JSON.stringify({
-            parents: 1,
-            interior: interior,
-          })
-      )
+    "XcmV3MultiLocation",
+    JSON.parse(
+      JSON.stringify({
+        parents: 1,
+        interior: interior,
+      })
+    )
   );
-  console.log('Multilocation for calculation', multilocation.toString());
+  console.log("Multilocation for calculation", multilocation.toString());
 
   const toHash = new Uint8Array([
     ...new Uint8Array([32]),
-    ...new TextEncoder().encode('multiloc'),
+    ...new TextEncoder().encode("multiloc"),
     ...multilocation.toU8a(),
   ]);
 
-  const DescendOriginAddress32 = u8aToHex(api.registry.hash(toHash).slice(0, 32));
-  const DescendOriginAddress20 = u8aToHex(api.registry.hash(toHash).slice(0, 20));
+  const DescendOriginAddress32 = u8aToHex(
+    api.registry.hash(toHash).slice(0, 32)
+  );
+  const DescendOriginAddress20 = u8aToHex(
+    api.registry.hash(toHash).slice(0, 20)
+  );
 
-  console.log('32 byte address is %s', DescendOriginAddress32);
-  console.log('20 byte address is %s', DescendOriginAddress20);
-  return DescendOriginAddress32
+  console.log("32 byte address is %s", DescendOriginAddress32);
+  console.log("20 byte address is %s", DescendOriginAddress20);
+  return DescendOriginAddress32;
 }
 
 describe("BifrostXcmAction", function () {
   async function waitFor(ms: number) {
-    return new Promise((resolve) => setTimeout(resolve, ms))
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   async function deployMoonriverXcmAction() {
-    const caller = await ethers.getSigner("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
-    const MoonbeamXcmAction = await ethers.getContractFactory("MoonbeamXcmAction",caller);
+    const caller = await ethers.getSigner(
+      "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+    );
+    const MoonbeamXcmAction = await ethers.getContractFactory(
+      "MoonbeamXcmAction",
+      caller
+    );
     const moonriverXcmAction = await MoonbeamXcmAction.deploy();
-    console.log("Contract address:",moonriverXcmAction.address)
-    return moonriverXcmAction
+    console.log("Contract address:", moonriverXcmAction.address);
+    return moonriverXcmAction;
   }
 
-  async function addWhitelist(api: ApiPromise, signer: KeyringPair, accountId:string) {
+  async function addWhitelist(
+    api: ApiPromise,
+    signer: KeyringPair,
+    accountId: string
+  ) {
     return new Promise((resolve) => {
-      api.tx.xcmAction.addWhitelist("Moonriver",accountId).signAndSend(signer, ({ status }) => {
-        if (status.isFinalized) {
-          console.log(`✔️  - addWhitelist finalized at block hash #${status.asFinalized.toString()}`)
-          resolve(status.asFinalized.toString())
-        }
-      })
-    })
+      api.tx.xcmAction
+        .addWhitelist("Moonriver", accountId)
+        .signAndSend(signer, ({ status }) => {
+          if (status.isFinalized) {
+            console.log(
+              `✔️  - addWhitelist finalized at block hash #${status.asFinalized.toString()}`
+            );
+            resolve(status.asFinalized.toString());
+          }
+        });
+    });
   }
 
-  async function transfer(api:ApiPromise, signer:KeyringPair, to:string, amount: bigint) {
+  async function transfer(
+    api: ApiPromise,
+    signer: KeyringPair,
+    to: string,
+    amount: bigint
+  ) {
     return new Promise((resolve) => {
       api.tx.balances.transfer(to, amount).signAndSend(signer, ({ status }) => {
         if (status.isFinalized) {
-          console.log(`✔️  - transfer finalized at block hash #${status.asFinalized.toString()}`)
-          resolve(status.asFinalized.toString())
+          console.log(
+            `✔️  - transfer finalized at block hash #${status.asFinalized.toString()}`
+          );
+          resolve(status.asFinalized.toString());
         }
-      })
-    })
+      });
+    });
   }
 
-  let contract_address:string;
-  let moonriverXcmAction:any;
-  let test_account_public_key:string;
-  let bifrost_api:ApiPromise;
-  let astar_api:ApiPromise;
-  let alice:KeyringPair;
+  let contract_address: string;
+  let moonriverXcmAction: any;
+  let test_account_public_key: string;
+  let bifrost_api: ApiPromise;
+  let astar_api: ApiPromise;
+  let alice: KeyringPair;
 
-  it("Setup env",async function() {
-    this.timeout(1000 * 1000)
+  it("Setup env", async function () {
+    this.timeout(1000 * 1000);
     // Deploy xcm-action contract
-    const caller = await ethers.getSigner(Hardhat0)
-    const AddressToAccount = await ethers.getContractFactory("AddressToAccount",caller);
+    const caller = await ethers.getSigner(Hardhat0);
+    const AddressToAccount = await ethers.getContractFactory(
+      "AddressToAccount",
+      caller
+    );
     const addressToAccount = await AddressToAccount.deploy();
     await addressToAccount.deployed();
     console.log("AddressToAccount deployed to:", addressToAccount.address);
 
-    const BuildCallData = await ethers.getContractFactory("BuildCallData",caller);
+    const BuildCallData = await ethers.getContractFactory(
+      "BuildCallData",
+      caller
+    );
     const buildCallData = await BuildCallData.deploy();
     await buildCallData.deployed();
     console.log("BuildCallData deployed to:", buildCallData.address);
 
     await waitFor(12 * 1000);
 
-    moonriverXcmAction = await hre.ethers.getContractFactory("MoonbeamXcmAction", {
-      libraries: {
-        AddressToAccount: addressToAccount.address,
-        BuildCallData: buildCallData.address,
+    moonriverXcmAction = await hre.ethers.getContractFactory(
+      "MoonbeamXcmAction",
+      {
+        libraries: {
+          AddressToAccount: addressToAccount.address,
+          BuildCallData: buildCallData.address,
+        },
       }
-    });
-    moonriverXcmAction = await moonriverXcmAction.deploy("0x01","0xfFFFfFfF62a882bb647792832b9c360a67c1976d","2030","0x0801");
+    );
+    moonriverXcmAction = await moonriverXcmAction.deploy(
+      "0x01",
+      "0xfFFFfFfF62a882bb647792832b9c360a67c1976d",
+      "2030",
+      "0x0801"
+    );
     await moonriverXcmAction.deployed();
     console.log("AstarXcmAction deployed to:", moonriverXcmAction.address);
     expect(await moonriverXcmAction.owner()).to.equal(Hardhat0);
@@ -142,7 +193,7 @@ describe("BifrostXcmAction", function () {
     // await councilPropose(bifrost_api,alice,1,bifrost_set_up_calls,bifrost_set_up_calls.encodedLength)
     // // Set execuation fee
     // await waitFor(24 * 1000)
-  })
+  });
 
   // it("mint vastr", async function() {
   //   this.timeout(1000 * 1000)

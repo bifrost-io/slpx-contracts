@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-only
+// SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.0;
 
 /// @dev The XcmTransactorV2 contract's address.
@@ -34,7 +34,9 @@ interface XcmTransactorV2 {
     /// @return transactExtraWeightSigned The extra weight involved in the XCM message of using signed
     /// @return maxWeight Maximum allowed weight for a single message in dest
     ///
-    function transactInfoWithSigned(Multilocation memory multilocation)
+    function transactInfoWithSigned(
+        Multilocation memory multilocation
+    )
         external
         view
         returns (
@@ -48,10 +50,9 @@ interface XcmTransactorV2 {
     /// @param multilocation The asset location for which we want to know the fee per second value
     /// @return feePerSecond The fee per second that the reserve chain charges for this asset
     ///
-    function feePerSecond(Multilocation memory multilocation)
-        external
-        view
-        returns (uint256 feePerSecond);
+    function feePerSecond(
+        Multilocation memory multilocation
+    ) external view returns (uint256 feePerSecond);
 
     /// Transact through XCM using fee based on its multilocation
     /// @custom:selector fe430475

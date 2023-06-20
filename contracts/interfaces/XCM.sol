@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.0;
 
 /**
@@ -22,10 +22,10 @@ interface XCM {
     function assets_withdraw(
         address[] calldata asset_id,
         uint256[] calldata asset_amount,
-        bytes32   recipient_account_id,
-        bool      is_relay,
-        uint256   parachain_id,
-        uint256   fee_index
+        bytes32 recipient_account_id,
+        bool is_relay,
+        uint256 parachain_id,
+        uint256 fee_index
     ) external returns (bool);
 
     /**
@@ -45,10 +45,10 @@ interface XCM {
     function assets_withdraw(
         address[] calldata asset_id,
         uint256[] calldata asset_amount,
-        address   recipient_account_id,
-        bool      is_relay,
-        uint256   parachain_id,
-        uint256   fee_index
+        address recipient_account_id,
+        bool is_relay,
+        uint256 parachain_id,
+        uint256 fee_index
     ) external returns (bool);
 
     /**
@@ -87,10 +87,10 @@ interface XCM {
     function assets_reserve_transfer(
         address[] calldata asset_id,
         uint256[] calldata asset_amount,
-        bytes32   recipient_account_id,
-        bool      is_relay,
-        uint256   parachain_id,
-        uint256   fee_index
+        bytes32 recipient_account_id,
+        bool is_relay,
+        uint256 parachain_id,
+        uint256 fee_index
     ) external returns (bool);
 
     /**
@@ -110,9 +110,9 @@ interface XCM {
     function assets_reserve_transfer(
         address[] calldata asset_id,
         uint256[] calldata asset_amount,
-        address   recipient_account_id,
-        bool      is_relay,
-        uint256   parachain_id,
-        uint256   fee_index
+        address recipient_account_id,
+        bool is_relay,
+        uint256 parachain_id,
+        uint256 fee_index
     ) external returns (bool);
 }
