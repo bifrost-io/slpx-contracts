@@ -1,56 +1,53 @@
-import { ethers, upgrades } from "hardhat";
-import { waitFor } from "../scripts/utils";
+import { DeployFunction } from "hardhat-deploy/types";
+import { HardhatRuntimeEnvironment } from "hardhat/types";
 
-async function main() {
-  const AddressToAccount = await ethers.getContractFactory("AddressToAccount");
-  const addressToAccount = await AddressToAccount.deploy();
-  await addressToAccount.deployed();
-  console.log("AddressToAccount deployed to:", addressToAccount.address);
+const deployFunction: DeployFunction = async function ({
+  deployments,
+  getNamedAccounts,
+  network,
+}: HardhatRuntimeEnvironment) {
+  if (network.name == "astar" || network.name == "astar_local") {
+    console.log("Running AstarXcmAction deploy script");
 
-  const BuildCallData = await ethers.getContractFactory("BuildCallData");
-  const buildCallData = await BuildCallData.deploy();
-  await buildCallData.deployed();
-  console.log("BuildCallData deployed to:", buildCallData.address);
+    const { deploy } = deployments;
+    const { deployer } = await getNamedAccounts();
 
-  const AstarXcmAction = await ethers.getContractFactory("AstarXcmAction", {
-    libraries: {
-      AddressToAccount: addressToAccount.address,
-      BuildCallData: buildCallData.address,
-    },
-  });
+    console.log("Deployer is :", deployer);
+    const addressToAccount = await deploy("AddressToAccount", {
+      from: deployer,
+      log: true,
+      deterministicDeployment: false,
+    });
 
-  const proxyAstarXcmAction = await upgrades.deployProxy(
-    AstarXcmAction,
-    [100000000000, 10000000000],
-    { initializer: "initialize", unsafeAllow: ["external-library-linking"] }
-  );
-  await proxyAstarXcmAction.deployed();
+    const buildCallData = await deploy("BuildCallData", {
+      from: deployer,
+      log: true,
+      deterministicDeployment: false,
+    });
 
-  console.log(proxyAstarXcmAction.address, " astarXcmAction(proxy) address");
-  console.log(
-    await upgrades.erc1967.getImplementationAddress(
-      proxyAstarXcmAction.address
-    ),
-    " getImplementationAddress"
-  );
-  console.log(
-    await upgrades.erc1967.getAdminAddress(proxyAstarXcmAction.address),
-    " getAdminAddress"
-  );
+    await deploy("AstarXcmAction", {
+      from: deployer,
+      log: true,
+      deterministicDeployment: false,
+      libraries: {
+        AddressToAccount: addressToAccount.address,
+        BuildCallData: buildCallData.address,
+      },
+      proxy: {
+        proxyContract: "OpenZeppelinTransparentProxy",
+        execute: {
+          init: {
+            methodName: "initialize",
+            args: [100000000000, 10000000000],
+          },
+        },
+      },
+    });
+  }
+};
 
-  const astarXcmActionImplementationAddress = await ethers.getContractAt(
-    "AstarXcmAction",
-    await upgrades.erc1967.getImplementationAddress(proxyAstarXcmAction.address)
-  );
-  await astarXcmActionImplementationAddress.initialize(
-    100000000000,
-    10000000000
-  );
-  await waitFor(24 * 1000);
-  console.log("Owner:", await astarXcmActionImplementationAddress.owner());
-}
+export default deployFunction;
 
-main()
-  .then()
-  .catch((err) => console.log(err))
-  .finally(() => process.exit());
+deployFunction.dependencies = [""];
+
+deployFunction.tags = ["AstarXcmAction"];

@@ -2,6 +2,7 @@ import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 import "@nomiclabs/hardhat-ethers";
 import "@openzeppelin/hardhat-upgrades";
+import "hardhat-deploy";
 import * as dotenv from "dotenv";
 
 dotenv.config();
@@ -19,6 +20,9 @@ const config: HardhatUserConfig = {
         },
       },
     ],
+  },
+  namedAccounts: {
+    deployer: 0,
   },
   networks: {
     astar: {
@@ -45,6 +49,12 @@ const config: HardhatUserConfig = {
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
+    moonriver_local: {
+      url: "http://127.0.0.1:8910",
+      chainId: 1280,
+      accounts:
+        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
     astar_local: {
       url: "http://127.0.0.1:8910",
       chainId: 592,
@@ -56,6 +66,13 @@ const config: HardhatUserConfig = {
       chainId: 1287,
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
+    hardhat: {
+      chainId: 1000,
+      forking: {
+        enabled: process.env.FORKING === "true",
+        url: `http://127.0.0.1:8545`,
+      },
     },
   },
 };

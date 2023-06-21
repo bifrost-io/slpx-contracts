@@ -1,67 +1,94 @@
-import { ethers, upgrades } from "hardhat";
-import { waitFor } from "../scripts/utils";
+import { DeployFunction } from "hardhat-deploy/types";
+import { HardhatRuntimeEnvironment } from "hardhat/types";
 
-async function main() {
-  const [caller] = await ethers.getSigners();
+const deployFunction: DeployFunction = async function ({
+  deployments,
+  getNamedAccounts,
+  network,
+}: HardhatRuntimeEnvironment) {
+  console.log("Running MoonbeamXcmAction deploy script");
 
-  const AddressToAccount = await ethers.getContractFactory("AddressToAccount");
-  const addressToAccount = await AddressToAccount.deploy();
-  await addressToAccount.deployed();
-  console.log("AddressToAccount deployed to:", addressToAccount.address);
+  const { deploy } = deployments;
+  const { deployer } = await getNamedAccounts();
 
-  const BuildCallData = await ethers.getContractFactory("BuildCallData");
-  const buildCallData = await BuildCallData.deploy();
-  await buildCallData.deployed();
-  console.log("BuildCallData deployed to:", buildCallData.address);
+  console.log("Deployer is :", deployer);
 
-  const MoonbeamXcmAction = await ethers.getContractFactory(
-    "MoonbeamXcmAction",
-    {
+  if (network.name == "moonbeam" || network.name == "moonbeam_local") {
+    const addressToAccount = await deploy("AddressToAccount", {
+      from: deployer,
+      log: true,
+      deterministicDeployment: false,
+    });
+
+    const buildCallData = await deploy("BuildCallData", {
+      from: deployer,
+      log: true,
+      deterministicDeployment: false,
+    });
+
+    await deploy("MoonbeamXcmAction", {
+      from: deployer,
+      log: true,
+      deterministicDeployment: false,
       libraries: {
         AddressToAccount: addressToAccount.address,
         BuildCallData: buildCallData.address,
       },
-    }
-  );
+      proxy: {
+        proxyContract: "OpenZeppelinTransparentProxy",
+        execute: {
+          init: {
+            methodName: "initialize",
+            args: [
+              "0xFFffffFf7cC06abdF7201b350A1265c62C8601d2",
+              2030,
+              "0x0801",
+            ],
+          },
+        },
+      },
+    });
+  }
+  if (network.name == "moonriver" || network.name == "moonriver_local") {
+    const addressToAccount = await deploy("AddressToAccount", {
+      from: deployer,
+      log: true,
+      deterministicDeployment: false,
+    });
 
-  const proxyMoonbeamXcmAction = await upgrades.deployProxy(
-    MoonbeamXcmAction,
-    ["0xfFFFfFfF006cD1E2a35Acdb1786cAF7893547b75", 2001, "0x020a"],
-    { initializer: "initialize", unsafeAllow: ["external-library-linking"] }
-  );
-  await proxyMoonbeamXcmAction.deployed();
+    const buildCallData = await deploy("BuildCallData", {
+      from: deployer,
+      log: true,
+      deterministicDeployment: false,
+    });
 
-  console.log(
-    proxyMoonbeamXcmAction.address,
-    " MoonbeamXcmAction(proxy) address"
-  );
-  console.log(
-    await upgrades.erc1967.getImplementationAddress(
-      proxyMoonbeamXcmAction.address
-    ),
-    " getImplementationAddress"
-  );
-  console.log(
-    await upgrades.erc1967.getAdminAddress(proxyMoonbeamXcmAction.address),
-    " getAdminAddress"
-  );
+    await deploy("MoonbeamXcmAction", {
+      from: deployer,
+      log: true,
+      deterministicDeployment: false,
+      libraries: {
+        AddressToAccount: addressToAccount.address,
+        BuildCallData: buildCallData.address,
+      },
+      proxy: {
+        proxyContract: "OpenZeppelinTransparentProxy",
+        execute: {
+          init: {
+            methodName: "initialize",
+            args: [
+              "0xfFFFfFfF006cD1E2a35Acdb1786cAF7893547b75",
+              2001,
+              "0x020a",
+            ],
+          },
+        },
+      },
+    });
+  }
+};
 
-  const moonbeamXcmActionImplementationAddress = await ethers.getContractAt(
-    "MoonbeamXcmAction",
-    await upgrades.erc1967.getImplementationAddress(
-      proxyMoonbeamXcmAction.address
-    )
-  );
-  await moonbeamXcmActionImplementationAddress.initialize(
-    "0xfFFFfFfF006cD1E2a35Acdb1786cAF7893547b75",
-    2001,
-    "0x020a"
-  );
-  await waitFor(24 * 1000);
-  console.log("Owner:", await moonbeamXcmActionImplementationAddress.owner());
-}
+export default deployFunction;
 
-main()
-  .then()
-  .catch((err) => console.log(err))
-  .finally(() => process.exit());
+deployFunction.dependencies = [""];
+
+deployFunction.tags = ["MoonbeamXcmAction"];
