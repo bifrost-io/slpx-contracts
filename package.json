@@ -26,7 +26,7 @@
     "deployMoonbeam": "hardhat run deploy/moonbeamXcmAction.ts --network moonbeam",
     "deployMoonriver": "hardhat run deploy/moonriverXcmAction.ts --network moonriver",
     "lint:solidity": "solhint 'contracts/**/*.sol'",
-    "format": "prettier --write contracts/**/*.sol deploy/**/*.ts test/*.ts scripts/*.ts hardhat.config.ts"
+    "format": "prettier --write contracts/**/*.sol contracts/*.sol deploy/**/*.ts test/*.ts scripts/*.ts hardhat.config.ts"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "^2.0.1",
