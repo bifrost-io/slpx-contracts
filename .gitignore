@@ -10,4 +10,6 @@ cache
 artifacts
 .idea
 .DS_Store
+.deps
+.openzeppelin
 
