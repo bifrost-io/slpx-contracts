@@ -24,8 +24,6 @@ contract AstarXcmAction is IXcmAction, OwnableUpgradeable, PausableUpgradeable {
     uint256 public bifrostTransactionFee;
     uint64 public transactWeight;
 
-    XCM xcm;
-
     mapping(address => bytes2) public assetAddressToCurrencyId;
     mapping(address => uint256) public assetAddressToMinimumValue;
 
@@ -34,7 +32,7 @@ contract AstarXcmAction is IXcmAction, OwnableUpgradeable, PausableUpgradeable {
         uint64 _transactWeight
     ) public initializer {
         super.__Ownable_init();
-        xcm = XCM(XCM_ADDRESS);
+        super.__Pausable_init();
         setBifrostTransactionFee(_bifrostTransactionFee, _transactWeight);
     }
 
@@ -89,7 +87,7 @@ contract AstarXcmAction is IXcmAction, OwnableUpgradeable, PausableUpgradeable {
         erc20.transferFrom(_msgSender(), address(this), amount);
         assetId[0] = assetAddress;
         assetAmount[0] = amount;
-        xcm.assets_withdraw(
+        XCM(XCM_ADDRESS).assets_withdraw(
             assetId,
             assetAmount,
             publicKey,
@@ -111,7 +109,7 @@ contract AstarXcmAction is IXcmAction, OwnableUpgradeable, PausableUpgradeable {
         uint256[] memory assetAmount = new uint256[](1);
         assetId[0] = NATIVE_ASSET_ADDRESS;
         assetAmount[0] = amount;
-        xcm.assets_reserve_transfer(
+        XCM(XCM_ADDRESS).assets_reserve_transfer(
             assetId,
             assetAmount,
             publicKey,
@@ -131,7 +129,7 @@ contract AstarXcmAction is IXcmAction, OwnableUpgradeable, PausableUpgradeable {
         );
 
         // xcm transact
-        xcm.remote_transact(
+        XCM(XCM_ADDRESS).remote_transact(
             BIFROST_PARA_ID,
             false,
             BNC_ADDRESS,
@@ -161,7 +159,7 @@ contract AstarXcmAction is IXcmAction, OwnableUpgradeable, PausableUpgradeable {
             ASTAR_CHAIN
         );
         // xcm transact
-        xcm.remote_transact(
+        XCM(XCM_ADDRESS).remote_transact(
             BIFROST_PARA_ID,
             false,
             BNC_ADDRESS,
@@ -195,7 +193,7 @@ contract AstarXcmAction is IXcmAction, OwnableUpgradeable, PausableUpgradeable {
             ASTAR_CHAIN
         );
         // xcm transact
-        xcm.remote_transact(
+        XCM(XCM_ADDRESS).remote_transact(
             BIFROST_PARA_ID,
             false,
             BNC_ADDRESS,
@@ -231,7 +229,7 @@ contract AstarXcmAction is IXcmAction, OwnableUpgradeable, PausableUpgradeable {
             ASTAR_CHAIN
         );
         // xcm transact
-        xcm.remote_transact(
+        XCM(XCM_ADDRESS).remote_transact(
             BIFROST_PARA_ID,
             false,
             BNC_ADDRESS,
@@ -266,7 +264,7 @@ contract AstarXcmAction is IXcmAction, OwnableUpgradeable, PausableUpgradeable {
             ASTAR_CHAIN
         );
         // xcm transact
-        xcm.remote_transact(
+        XCM(XCM_ADDRESS).remote_transact(
             BIFROST_PARA_ID,
             false,
             BNC_ADDRESS,

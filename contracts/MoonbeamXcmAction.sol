@@ -32,10 +32,6 @@ contract MoonbeamXcmAction is
     uint32 public bifrostParaId;
     bytes2 public nativeCurrencyId;
 
-    // pre-compiled contract address
-    XcmTransactorV2 xcmtransactor;
-    Xtokens xtokens;
-
     mapping(address => bytes2) public assetAddressToCurrencyId;
     mapping(address => uint256) public assetAddressToMinimumValue;
 
@@ -45,6 +41,7 @@ contract MoonbeamXcmAction is
         bytes2 _nativeCurrencyId
     ) public initializer {
         super.__Ownable_init();
+        super.__Pausable_init();
         require(_BNCAddress != address(0), "Invalid address");
         require(
             _bifrostParaId == 2001 || _bifrostParaId == 2030,
@@ -54,8 +51,6 @@ contract MoonbeamXcmAction is
             _nativeCurrencyId == 0x020a || _nativeCurrencyId == 0x0801,
             "Invalid nativeCurrencyId"
         );
-        xcmtransactor = XcmTransactorV2(XCM_TRANSACTORV2_ADDRESS);
-        xtokens = Xtokens(XTOKENS);
         setFee(10000000000, 10000000000, 10000000000, 1000000000000);
         BNCAddress = _BNCAddress;
         bifrostParaId = _bifrostParaId;
@@ -123,7 +118,12 @@ contract MoonbeamXcmAction is
         );
         IERC20 asset = IERC20(assetAddress);
         asset.transferFrom(_msgSender(), address(this), amount);
-        xtokens.transfer(assetAddress, amount, dest_account, xtokenWeight);
+        Xtokens(XTOKENS).transfer(
+            assetAddress,
+            amount,
+            dest_account,
+            xtokenWeight
+        );
     }
 
     function xcmTransferNativeAsset(uint256 amount) internal {
@@ -138,7 +138,7 @@ contract MoonbeamXcmAction is
         Xtokens.Multilocation memory dest_account = getXtokensDestination(
             publicKey
         );
-        xtokens.transfer(
+        Xtokens(XTOKENS).transfer(
             NATIVE_ASSET_ADDRESS,
             amount,
             dest_account,
@@ -160,7 +160,7 @@ contract MoonbeamXcmAction is
             TARGETCHAIN
         );
         // XCM Transact
-        xcmtransactor.transactThroughSigned(
+        XcmTransactorV2(XCM_TRANSACTORV2_ADDRESS).transactThroughSigned(
             dest,
             BNCAddress,
             transactRequiredWeightAtMost,
@@ -191,7 +191,7 @@ contract MoonbeamXcmAction is
             TARGETCHAIN
         );
         // XCM Transact
-        xcmtransactor.transactThroughSigned(
+        XcmTransactorV2(XCM_TRANSACTORV2_ADDRESS).transactThroughSigned(
             dest,
             BNCAddress,
             transactRequiredWeightAtMost,
@@ -221,7 +221,7 @@ contract MoonbeamXcmAction is
             vtoken,
             TARGETCHAIN
         );
-        xcmtransactor.transactThroughSigned(
+        XcmTransactorV2(XCM_TRANSACTORV2_ADDRESS).transactThroughSigned(
             dest,
             BNCAddress,
             transactRequiredWeightAtMost,
@@ -255,7 +255,7 @@ contract MoonbeamXcmAction is
             assetOutMin,
             TARGETCHAIN
         );
-        xcmtransactor.transactThroughSigned(
+        XcmTransactorV2(XCM_TRANSACTORV2_ADDRESS).transactThroughSigned(
             dest,
             BNCAddress,
             transactRequiredWeightAtMost,
@@ -294,7 +294,7 @@ contract MoonbeamXcmAction is
             assetOutMin,
             TARGETCHAIN
         );
-        xcmtransactor.transactThroughSigned(
+        XcmTransactorV2(XCM_TRANSACTORV2_ADDRESS).transactThroughSigned(
             dest,
             BNCAddress,
             transactRequiredWeightAtMost,
@@ -332,7 +332,7 @@ contract MoonbeamXcmAction is
             assetOutMin,
             TARGETCHAIN
         );
-        xcmtransactor.transactThroughSigned(
+        XcmTransactorV2(XCM_TRANSACTORV2_ADDRESS).transactThroughSigned(
             dest,
             BNCAddress,
             transactRequiredWeightAtMost,
