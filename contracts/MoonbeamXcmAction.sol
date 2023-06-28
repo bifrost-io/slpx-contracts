@@ -68,10 +68,7 @@ contract MoonbeamXcmAction is
             _transactRequiredWeightAtMost <= 10000000000,
             "transactRequiredWeightAtMost too large"
         );
-        require(
-            _overallWeight <= 10000000000,
-            "transactRequiredWeightAtMost too large"
-        );
+        require(_overallWeight <= 10000000000, "OverallWeight too large");
         require(_feeAmount <= 1000000000000, "feeAmount too large");
         xtokenWeight = _xtokenWeight;
         transactRequiredWeightAtMost = _transactRequiredWeightAtMost;
