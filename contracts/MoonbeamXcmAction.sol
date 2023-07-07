@@ -40,8 +40,8 @@ contract MoonbeamXcmAction is
         uint32 _bifrostParaId,
         bytes2 _nativeCurrencyId
     ) public initializer {
-        super.__Ownable_init();
-        super.__Pausable_init();
+        __Ownable_init();
+        __Pausable_init();
         require(_BNCAddress != address(0), "Invalid address");
         require(
             _bifrostParaId == 2001 || _bifrostParaId == 2030,

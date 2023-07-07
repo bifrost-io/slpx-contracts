@@ -33,8 +33,8 @@ contract AstarXcmAction is IXcmAction, OwnableUpgradeable, PausableUpgradeable {
         uint256 _bifrostTransactionFee,
         uint64 _transactWeight
     ) public initializer {
-        super.__Ownable_init();
-        super.__Pausable_init();
+        __Ownable_init();
+        __Pausable_init();
         setBifrostTransactionFee(_bifrostTransactionFee, _transactWeight);
     }
 
