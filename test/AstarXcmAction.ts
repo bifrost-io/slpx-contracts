@@ -37,17 +37,13 @@ describe("AstarXcmAction", function () {
     // Deploy xcm-action contract
     const caller = await ethers.getSigner(Hardhat0);
     const AddressToAccount = await ethers.getContractFactory(
-      "AddressToAccount",
-      caller
+      "AddressToAccount"
     );
     const addressToAccount = await AddressToAccount.deploy();
     await addressToAccount.deployed();
     console.log("AddressToAccount deployed to:", addressToAccount.address);
 
-    const BuildCallData = await ethers.getContractFactory(
-      "BuildCallData",
-      caller
-    );
+    const BuildCallData = await ethers.getContractFactory("BuildCallData");
     const buildCallData = await BuildCallData.deploy();
     await buildCallData.deployed();
     console.log("BuildCallData deployed to:", buildCallData.address);

@@ -57,12 +57,18 @@ const config: HardhatUserConfig = {
     },
     astar_local: {
       url: "http://127.0.0.1:8910",
-      chainId: 592,
+      chainId: 692,
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
-    moonbaseAlpha: {
-      url: "https://rpc.api.moonbase.moonbeam.network",
+    astar_rococo: {
+      url: "https://evm.rocstar.astar.network",
+      chainId: 692,
+      accounts:
+        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
+    moonbase_alpha: {
+      url: "https://rpc.testnet.moonbeam.network",
       chainId: 1287,
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],

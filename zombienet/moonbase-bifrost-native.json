@@ -4,34 +4,49 @@
 		"timeout": 1800
 	},
 	"relaychain": {
-		"chain": "polkadot-local",
-		"default_command": "polkadot-v0.9.42-fast-sudo",
-		"default_args": ["-lparachain=debug", "--state-pruning=archive", "--no-hardware-benchmarks"],
+		"chain": "rococo-local",
+		"default_command": "polkadot-v0.9.38-fast-sudo",
+		"default_args": ["-lparachain=debug", "-lxcm=trace", "--state-pruning=archive", "--no-hardware-benchmarks"],
 		"nodes": [
 			{
 				"name": "alice",
 				"validator": true,
-				"env": [{ "name": "RUST_LOG", "value": "trace" }],
+				"env": [
+					{
+						"name": "RUST_LOG",
+						"value": "trace"
+					}
+				],
 				"ws_port": "{{RELAY_WS_PORT}}",
 				"rpc_port": "{{RELAY_RPC_PORT}}"
 			},
 			{
 				"name": "bob",
 				"validator": true,
-				"env": [{ "name": "RUST_LOG", "value": "trace" }]
+				"env": [
+					{
+						"name": "RUST_LOG",
+						"value": "trace"
+					}
+				]
 			},
 			{
 				"name": "charlie",
 				"validator": true,
-				"env": [{ "name": "RUST_LOG", "value": "trace" }]
+				"env": [
+					{
+						"name": "RUST_LOG",
+						"value": "trace"
+					}
+				]
 			}
 		]
 	},
 	"parachains": [
 		{
 			"cumulus_based": true,
-			"id": 2006,
-			"chain": "shibuya-dev",
+			"id": 1000,
+			"chain": "moonbase-local",
 			"default_args": [
 				"--trie-cache-size=0",
 				"--state-pruning=archive",
@@ -42,11 +57,11 @@
 			],
 			"collators": [
 				{
-					"command": "astar-collator",
-					"name": "alice",
+					"command": "moonbeam-2401",
+					"name": "alith",
 					"ws_port": "{{PARACHAIN_WS_PORT}}",
 					"rpc_port": "{{PARACHAIN_RPC_PORT}}",
-					"args": ["--enable-evm-rpc"]
+					"args": ["-lparachain=debug", "-lxcm=trace"]
 				}
 			]
 		},
@@ -64,7 +79,7 @@
 			],
 			"collators": [
 				{
-					"command": "bifrost-xcm-action",
+					"command": "bifrost-moonbase",
 					"name": "alice",
 					"ws_port": "{{BIFROST_WS_PORT}}",
 					"rpc_port": "{{BIFROST_RPC_PORT}}",
@@ -75,14 +90,14 @@
 	],
 	"hrmp_channels": [
 		{
-			"sender": 2006,
+			"sender": 1000,
 			"recipient": 2030,
 			"max_capacity": 8,
 			"max_message_size": 512
 		},
 		{
 			"sender": 2030,
-			"recipient": 2006,
+			"recipient": 1000,
 			"max_capacity": 8,
 			"max_message_size": 512
 		}

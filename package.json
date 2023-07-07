@@ -25,6 +25,8 @@
     "deployAstar": "hardhat run deploy/astarXcmAction.ts --network astar",
     "deployMoonbeam": "hardhat run deploy/moonbeamXcmAction.ts --network moonbeam",
     "deployMoonriver": "hardhat run deploy/moonriverXcmAction.ts --network moonriver",
+    "deployMoonbaseAlpha": "hardhat --network moonbase_alpha deploy",
+    "deployAstarRococo": "hardhat --network astar_rococo deploy",
     "lint:solidity": "solhint 'contracts/**/*.sol'",
     "format": "prettier --write contracts/**/*.sol contracts/*.sol deploy/**/*.ts test/*.ts scripts/*.ts hardhat.config.ts"
   },

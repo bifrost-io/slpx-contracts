@@ -13,7 +13,11 @@ const deployFunction: DeployFunction = async function ({
 
   console.log("Deployer is :", deployer);
 
-  if (network.name == "moonbeam" || network.name == "moonbeam_local") {
+  if (
+    network.name == "moonbeam" ||
+    network.name == "moonbeam_local" ||
+    network.name == "moonbase_alpha"
+  ) {
     const addressToAccount = await deploy("AddressToAccount", {
       from: deployer,
       log: true,
@@ -40,7 +44,7 @@ const deployFunction: DeployFunction = async function ({
           init: {
             methodName: "initialize",
             args: [
-              "0xFFffffFf7cC06abdF7201b350A1265c62C8601d2",
+              "0xffffffff62a882bb647792832b9c360a67c1976d",
               2030,
               "0x0801",
             ],

@@ -6,7 +6,7 @@ const deployFunction: DeployFunction = async function ({
   getNamedAccounts,
   network,
 }: HardhatRuntimeEnvironment) {
-  if (network.name == "astar" || network.name == "astar_local") {
+  if (network.name == "astar" || network.name == "astar_local" || network.name == "astar_rococo") {
     console.log("Running AstarXcmAction deploy script");
 
     const { deploy } = deployments;
