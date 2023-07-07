@@ -89,13 +89,16 @@ contract AstarXcmAction is IXcmAction, OwnableUpgradeable, PausableUpgradeable {
         erc20.transferFrom(_msgSender(), address(this), amount);
         assetId[0] = assetAddress;
         assetAmount[0] = amount;
-        XCM(XCM_ADDRESS).assets_withdraw(
-            assetId,
-            assetAmount,
-            publicKey,
-            false,
-            BIFROST_PARA_ID,
-            0
+        require(
+            XCM(XCM_ADDRESS).assets_withdraw(
+                assetId,
+                assetAmount,
+                publicKey,
+                false,
+                BIFROST_PARA_ID,
+                0
+            ),
+            "Failed to send xcm"
         );
     }
 
@@ -111,13 +114,16 @@ contract AstarXcmAction is IXcmAction, OwnableUpgradeable, PausableUpgradeable {
         uint256[] memory assetAmount = new uint256[](1);
         assetId[0] = NATIVE_ASSET_ADDRESS;
         assetAmount[0] = amount;
-        XCM(XCM_ADDRESS).assets_reserve_transfer(
-            assetId,
-            assetAmount,
-            publicKey,
-            false,
-            BIFROST_PARA_ID,
-            0
+        require(
+            XCM(XCM_ADDRESS).assets_reserve_transfer(
+                assetId,
+                assetAmount,
+                publicKey,
+                false,
+                BIFROST_PARA_ID,
+                0
+            ),
+            "Failed to send xcm"
         );
     }
 
@@ -131,13 +137,16 @@ contract AstarXcmAction is IXcmAction, OwnableUpgradeable, PausableUpgradeable {
         );
 
         // xcm transact
-        XCM(XCM_ADDRESS).remote_transact(
-            BIFROST_PARA_ID,
-            false,
-            BNC_ADDRESS,
-            bifrostTransactionFee,
-            callcode,
-            transactWeight
+        require(
+            XCM(XCM_ADDRESS).remote_transact(
+                BIFROST_PARA_ID,
+                false,
+                BNC_ADDRESS,
+                bifrostTransactionFee,
+                callcode,
+                transactWeight
+            ),
+            "Failed to send xcm"
         );
         emit Mint(_msgSender(), NATIVE_ASSET_ADDRESS, msg.value, callcode);
     }
@@ -161,13 +170,16 @@ contract AstarXcmAction is IXcmAction, OwnableUpgradeable, PausableUpgradeable {
             ASTAR_CHAIN
         );
         // xcm transact
-        XCM(XCM_ADDRESS).remote_transact(
-            BIFROST_PARA_ID,
-            false,
-            BNC_ADDRESS,
-            bifrostTransactionFee,
-            callcode,
-            transactWeight
+        require(
+            XCM(XCM_ADDRESS).remote_transact(
+                BIFROST_PARA_ID,
+                false,
+                BNC_ADDRESS,
+                bifrostTransactionFee,
+                callcode,
+                transactWeight
+            ),
+            "Failed to send xcm"
         );
         emit Redeem(_msgSender(), vAssetAddress, amount, callcode);
     }
@@ -195,13 +207,16 @@ contract AstarXcmAction is IXcmAction, OwnableUpgradeable, PausableUpgradeable {
             ASTAR_CHAIN
         );
         // xcm transact
-        XCM(XCM_ADDRESS).remote_transact(
-            BIFROST_PARA_ID,
-            false,
-            BNC_ADDRESS,
-            bifrostTransactionFee,
-            callcode,
-            transactWeight
+        require(
+            XCM(XCM_ADDRESS).remote_transact(
+                BIFROST_PARA_ID,
+                false,
+                BNC_ADDRESS,
+                bifrostTransactionFee,
+                callcode,
+                transactWeight
+            ),
+            "Failed to send xcm"
         );
         emit Swap(
             _msgSender(),
@@ -231,13 +246,16 @@ contract AstarXcmAction is IXcmAction, OwnableUpgradeable, PausableUpgradeable {
             ASTAR_CHAIN
         );
         // xcm transact
-        XCM(XCM_ADDRESS).remote_transact(
-            BIFROST_PARA_ID,
-            false,
-            BNC_ADDRESS,
-            bifrostTransactionFee,
-            callcode,
-            transactWeight
+        require(
+            XCM(XCM_ADDRESS).remote_transact(
+                BIFROST_PARA_ID,
+                false,
+                BNC_ADDRESS,
+                bifrostTransactionFee,
+                callcode,
+                transactWeight
+            ),
+            "Failed to send xcm"
         );
         emit Swap(
             _msgSender(),
@@ -266,13 +284,16 @@ contract AstarXcmAction is IXcmAction, OwnableUpgradeable, PausableUpgradeable {
             ASTAR_CHAIN
         );
         // xcm transact
-        XCM(XCM_ADDRESS).remote_transact(
-            BIFROST_PARA_ID,
-            false,
-            BNC_ADDRESS,
-            bifrostTransactionFee,
-            callcode,
-            transactWeight
+        require(
+            XCM(XCM_ADDRESS).remote_transact(
+                BIFROST_PARA_ID,
+                false,
+                BNC_ADDRESS,
+                bifrostTransactionFee,
+                callcode,
+                transactWeight
+            ),
+            "Failed to send xcm"
         );
         emit Swap(
             _msgSender(),
