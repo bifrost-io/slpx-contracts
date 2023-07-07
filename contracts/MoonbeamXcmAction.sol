@@ -32,6 +32,8 @@ contract MoonbeamXcmAction is
     uint32 public bifrostParaId;
     bytes2 public nativeCurrencyId;
 
+    XcmTransactorV2.Multilocation public xcmTransactorDestination;
+
     mapping(address => bytes2) public assetAddressToCurrencyId;
     mapping(address => uint256) public assetAddressToMinimumValue;
 
@@ -55,6 +57,15 @@ contract MoonbeamXcmAction is
         BNCAddress = _BNCAddress;
         bifrostParaId = _bifrostParaId;
         nativeCurrencyId = _nativeCurrencyId;
+
+        // Init xcmTransactorDestination
+        bytes[] memory interior = new bytes[](1);
+        // Parachain: 2001/2030
+        interior[0] = bytes.concat(hex"00", bytes4(_bifrostParaId));
+        xcmTransactorDestination = XcmTransactorV2.Multilocation({
+            parents: 1,
+            interior: interior
+        });
     }
 
     function setFee(
@@ -150,9 +161,6 @@ contract MoonbeamXcmAction is
         // xtokens call
         xcmTransferNativeAsset(msg.value);
 
-        // xcm transactor call
-        XcmTransactorV2.Multilocation
-            memory dest = getXcmTransactorDestination();
         // Build bifrost xcm-action mint call data
         bytes memory callData = BuildCallData.buildMintCallBytes(
             _msgSender(),
@@ -161,7 +169,7 @@ contract MoonbeamXcmAction is
         );
         // XCM Transact
         XcmTransactorV2(XCM_TRANSACTORV2_ADDRESS).transactThroughSigned(
-            dest,
+            xcmTransactorDestination,
             BNCAddress,
             transactRequiredWeightAtMost,
             callData,
@@ -181,9 +189,6 @@ contract MoonbeamXcmAction is
         // xtokens call
         xcmTransferAsset(assetAddress, amount);
 
-        // xcm transactor call
-        XcmTransactorV2.Multilocation
-            memory dest = getXcmTransactorDestination();
         // Build bifrost xcm-action mint call data
         bytes memory callData = BuildCallData.buildMintCallBytes(
             _msgSender(),
@@ -192,7 +197,7 @@ contract MoonbeamXcmAction is
         );
         // XCM Transact
         XcmTransactorV2(XCM_TRANSACTORV2_ADDRESS).transactThroughSigned(
-            dest,
+            xcmTransactorDestination,
             BNCAddress,
             transactRequiredWeightAtMost,
             callData,
@@ -213,16 +218,13 @@ contract MoonbeamXcmAction is
         xcmTransferAsset(vAssetAddress, amount);
 
         // xcm transactor call
-        XcmTransactorV2.Multilocation
-            memory dest = getXcmTransactorDestination();
-
         bytes memory callData = BuildCallData.buildRedeemCallBytes(
             _msgSender(),
             vtoken,
             TARGETCHAIN
         );
         XcmTransactorV2(XCM_TRANSACTORV2_ADDRESS).transactThroughSigned(
-            dest,
+            xcmTransactorDestination,
             BNCAddress,
             transactRequiredWeightAtMost,
             callData,
@@ -245,9 +247,6 @@ contract MoonbeamXcmAction is
         xcmTransferAsset(assetInAddress, assetInAmount);
 
         // xcm transactor call
-        XcmTransactorV2.Multilocation
-            memory dest = getXcmTransactorDestination();
-
         bytes memory callData = BuildCallData.buildSwapCallBytes(
             _msgSender(),
             assetIn,
@@ -256,7 +255,7 @@ contract MoonbeamXcmAction is
             TARGETCHAIN
         );
         XcmTransactorV2(XCM_TRANSACTORV2_ADDRESS).transactThroughSigned(
-            dest,
+            xcmTransactorDestination,
             BNCAddress,
             transactRequiredWeightAtMost,
             callData,
@@ -284,9 +283,6 @@ contract MoonbeamXcmAction is
         xcmTransferAsset(assetInAddress, assetInAmount);
 
         // xcm transactor call
-        XcmTransactorV2.Multilocation
-            memory dest = getXcmTransactorDestination();
-
         bytes memory callData = BuildCallData.buildSwapCallBytes(
             _msgSender(),
             assetIn,
@@ -295,7 +291,7 @@ contract MoonbeamXcmAction is
             TARGETCHAIN
         );
         XcmTransactorV2(XCM_TRANSACTORV2_ADDRESS).transactThroughSigned(
-            dest,
+            xcmTransactorDestination,
             BNCAddress,
             transactRequiredWeightAtMost,
             callData,
@@ -322,9 +318,6 @@ contract MoonbeamXcmAction is
         xcmTransferNativeAsset(msg.value);
 
         // xcm transactor call
-        XcmTransactorV2.Multilocation
-            memory dest = getXcmTransactorDestination();
-
         bytes memory callData = BuildCallData.buildSwapCallBytes(
             _msgSender(),
             nativeCurrencyId,
@@ -333,7 +326,7 @@ contract MoonbeamXcmAction is
             TARGETCHAIN
         );
         XcmTransactorV2(XCM_TRANSACTORV2_ADDRESS).transactThroughSigned(
-            dest,
+            xcmTransactorDestination,
             BNCAddress,
             transactRequiredWeightAtMost,
             callData,
@@ -363,19 +356,6 @@ contract MoonbeamXcmAction is
             interior: interior
         });
 
-        return dest;
-    }
-
-    function getXcmTransactorDestination()
-        internal
-        view
-        returns (XcmTransactorV2.Multilocation memory)
-    {
-        bytes[] memory interior = new bytes[](1);
-        // Parachain: 2001/2030
-        interior[0] = bytes.concat(hex"00", bytes4(bifrostParaId));
-        XcmTransactorV2.Multilocation memory dest = XcmTransactorV2
-            .Multilocation({parents: 1, interior: interior});
         return dest;
     }
 }
