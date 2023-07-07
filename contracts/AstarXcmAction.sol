@@ -12,10 +12,10 @@ import "./utils/AddressToAccount.sol";
 contract AstarXcmAction is IXcmAction, OwnableUpgradeable, PausableUpgradeable {
     address public constant NATIVE_ASSET_ADDRESS =
         0x0000000000000000000000000000000000000000;
-//    address public constant BNC_ADDRESS =
-//        0xfFffFffF00000000000000010000000000000007;
+    //    address public constant BNC_ADDRESS =
+    //        0xfFffFffF00000000000000010000000000000007;
     address public constant BNC_ADDRESS =
-    0xfFFFFfFf00000000000000010000000000000002;
+        0xfFFFFfFf00000000000000010000000000000002;
     address public constant XCM_ADDRESS =
         0x0000000000000000000000000000000000005004;
     bytes2 public constant ASTR_BYTES = 0x0803;
