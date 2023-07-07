@@ -51,18 +51,14 @@ contract AstarXcmAction is IXcmAction, OwnableUpgradeable, PausableUpgradeable {
         transactWeight = _transactWeight;
     }
 
-    function setAssetAddressToMinimumValue(
+    function setAssetAddressInfo(
         address assetAddress,
-        uint256 minimumValue
-    ) public onlyOwner {
-        assetAddressToMinimumValue[assetAddress] = minimumValue;
-    }
-
-    function setAssetAddressToCurrencyId(
-        address assetAddress,
+        uint256 minimumValue,
         bytes2 currencyId
     ) public onlyOwner {
+        require(minimumValue != 0, "Invalid minimumValue");
         require(currencyId != bytes2(0), "Invalid currencyId");
+        assetAddressToMinimumValue[assetAddress] = minimumValue;
         assetAddressToCurrencyId[assetAddress] = currencyId;
     }
 

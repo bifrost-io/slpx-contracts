@@ -76,20 +76,15 @@ contract MoonbeamXcmAction is
         feeAmount = _feeAmount;
     }
 
-    function setAssetAddressToMinimumValue(
+    function setAssetAddressInfo(
         address assetAddress,
-        uint256 minimumValue
-    ) external onlyOwner {
-        require(assetAddress != address(0), "Invalid assetAddress");
-        assetAddressToMinimumValue[assetAddress] = minimumValue;
-    }
-
-    function setAssetAddressToCurrencyId(
-        address assetAddress,
+        uint256 minimumValue,
         bytes2 currencyId
-    ) external onlyOwner {
+    ) public onlyOwner {
         require(assetAddress != address(0), "Invalid assetAddress");
+        require(minimumValue != 0, "Invalid minimumValue");
         require(currencyId != bytes2(0), "Invalid currencyId");
+        assetAddressToMinimumValue[assetAddress] = minimumValue;
         assetAddressToCurrencyId[assetAddress] = currencyId;
     }
 
@@ -104,7 +99,11 @@ contract MoonbeamXcmAction is
     function xcmTransferAsset(address assetAddress, uint256 amount) internal {
         require(assetAddress != address(0), "Invalid assetAddress");
         require(
-            assetAddressToMinimumValue[assetAddress] <= amount,
+            assetAddressToMinimumValue[assetAddress] != 0,
+            "Not set MinimumValue"
+        );
+        require(
+            amount >= assetAddressToMinimumValue[assetAddress],
             "Less than MinimumValue"
         );
         bytes32 publicKey = AddressToAccount.AddressToSubstrateAccount(
@@ -125,7 +124,11 @@ contract MoonbeamXcmAction is
 
     function xcmTransferNativeAsset(uint256 amount) internal {
         require(
-            assetAddressToMinimumValue[NATIVE_ASSET_ADDRESS] <= amount,
+            assetAddressToMinimumValue[NATIVE_ASSET_ADDRESS] != 0,
+            "Not set MinimumValue"
+        );
+        require(
+            amount >= assetAddressToMinimumValue[NATIVE_ASSET_ADDRESS],
             "Less than MinimumValue"
         );
         bytes32 publicKey = AddressToAccount.AddressToSubstrateAccount(
