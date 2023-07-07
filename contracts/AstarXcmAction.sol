@@ -77,7 +77,11 @@ contract AstarXcmAction is IXcmAction, OwnableUpgradeable, PausableUpgradeable {
     function xcmTransferAsset(address assetAddress, uint256 amount) internal {
         require(assetAddress != address(0), "Invalid assetAddress");
         require(
-            assetAddressToMinimumValue[assetAddress] <= amount,
+            assetAddressToMinimumValue[assetAddress] != 0,
+            "Not set MinimumValue"
+        );
+        require(
+            amount >= assetAddressToMinimumValue[assetAddress],
             "Less than MinimumValue"
         );
         bytes32 publicKey = AddressToAccount.AddressToSubstrateAccount(
@@ -104,7 +108,11 @@ contract AstarXcmAction is IXcmAction, OwnableUpgradeable, PausableUpgradeable {
 
     function xcmTransferNativeAsset(uint256 amount) internal {
         require(
-            assetAddressToMinimumValue[NATIVE_ASSET_ADDRESS] <= amount,
+            assetAddressToMinimumValue[NATIVE_ASSET_ADDRESS] != 0,
+            "Not set MinimumValue"
+        );
+        require(
+            amount >= assetAddressToMinimumValue[NATIVE_ASSET_ADDRESS],
             "Less than MinimumValue"
         );
         bytes32 publicKey = AddressToAccount.AddressToSubstrateAccount(
