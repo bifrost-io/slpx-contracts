@@ -26,7 +26,7 @@ library BuildCallData {
     function buildSwapCallBytes(
         address caller,
         bytes2 currency_in,
-        bytes2 currency_in_out,
+        bytes2 currency_out,
         uint128 currency_out_min,
         bytes1 targetChain
     ) public pure returns (bytes memory) {
@@ -42,7 +42,7 @@ library BuildCallData {
                 prefix,
                 abi.encodePacked(caller),
                 currency_in,
-                currency_in_out,
+                currency_out,
                 encode_uint128(currency_out_min),
                 targetChain
             );
