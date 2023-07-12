@@ -6,7 +6,7 @@ const deployFunction: DeployFunction = async function ({
   getNamedAccounts,
   network,
 }: HardhatRuntimeEnvironment) {
-  console.log("Running MoonbeamXcmAction deploy script");
+  console.log("Running MoonbeamSlpx deploy script");
 
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
@@ -30,7 +30,7 @@ const deployFunction: DeployFunction = async function ({
       deterministicDeployment: false,
     });
 
-    await deploy("MoonbeamXcmAction", {
+    await deploy("MoonbeamSlpx", {
       from: deployer,
       log: true,
       deterministicDeployment: false,
@@ -66,7 +66,7 @@ const deployFunction: DeployFunction = async function ({
       deterministicDeployment: false,
     });
 
-    await deploy("MoonbeamXcmAction", {
+    await deploy("MoonbeamSlpx", {
       from: deployer,
       log: true,
       deterministicDeployment: false,
@@ -95,4 +95,4 @@ export default deployFunction;
 
 deployFunction.dependencies = [""];
 
-deployFunction.tags = ["MoonbeamXcmAction"];
+deployFunction.tags = ["MoonbeamSlpx"];

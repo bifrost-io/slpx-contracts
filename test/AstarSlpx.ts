@@ -24,9 +24,9 @@ import { calculate_multilocation_derivative_account } from "../scripts/calculate
 //aNhuaXEfaSiXJcC1YxssiHgNjCvoJbESD68KjycecaZvqpv
 //0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
 
-describe("AstarXcmAction", function () {
+describe("AstarSlpx", function () {
   let contract_address: string;
-  let astarXcmAction: any;
+  let astarSlpx: any;
   let test_account_public_key: string;
   let bifrost_api: ApiPromise;
   let astar_api: ApiPromise;
@@ -50,16 +50,16 @@ describe("AstarXcmAction", function () {
 
     await waitFor(12 * 1000);
 
-    astarXcmAction = await ethers.getContractFactory("AstarXcmAction", {
+    astarSlpx = await ethers.getContractFactory("AstarSlpx", {
       libraries: {
         AddressToAccount: addressToAccount.address,
         BuildCallData: buildCallData.address,
       },
     });
-    astarXcmAction = await astarXcmAction.deploy(100000000000, 10000000000);
-    await astarXcmAction.deployed();
-    console.log("AstarXcmAction deployed to:", astarXcmAction.address);
-    expect(await astarXcmAction.owner()).to.equal(Hardhat0);
+    astarSlpx = await astarSlpx.deploy(100000000000, 10000000000);
+    await astarSlpx.deployed();
+    console.log("AstarSlpx deployed to:", astarSlpx.address);
+    expect(await astarSlpx.owner()).to.equal(Hardhat0);
 
     // init polkadot api
     const wsProvider = new WsProvider("ws://127.0.0.1:9920");
@@ -71,7 +71,7 @@ describe("AstarXcmAction", function () {
 
     // xcm-action contract address -> xcm-action contract account_id
     const contract_account_id = polkadotCryptoUtils.evmToAddress(
-      astarXcmAction.address
+      astarSlpx.address
     );
 
     // xcm-action contract account_id -> xcm-action contract account_id public_key
@@ -107,11 +107,11 @@ describe("AstarXcmAction", function () {
       bifrost_api,
       alice,
       1,
-      bifrost_api.tx.xcmAction.addWhitelist(
+      bifrost_api.tx.slpx.addWhitelist(
         "Astar",
         contract_derivative_account
       ),
-      bifrost_api.tx.xcmAction.addWhitelist(
+      bifrost_api.tx.slpx.addWhitelist(
         "Astar",
         contract_derivative_account
       ).encodedLength
@@ -126,48 +126,48 @@ describe("AstarXcmAction", function () {
       "IERC20",
       "0xFfFfFfff00000000000000010000000000000008"
     );
-    await vastr.approve(astarXcmAction.address, "1000000000000000000000000");
-    await bnc.approve(astarXcmAction.address, "1000000000000000000000000");
+    await vastr.approve(astarSlpx.address, "1000000000000000000000000");
+    await bnc.approve(astarSlpx.address, "1000000000000000000000000");
   });
 
   it("setBifrostTransactionFee", async function () {
     this.timeout(1000 * 1000);
 
-    await astarXcmAction.setBifrostTransactionFee(100000000000, 10000000000);
+    await astarSlpx.setBifrostTransactionFee(100000000000, 10000000000);
     await waitFor(12 * 1000);
 
-    expect(await astarXcmAction.transactWeight()).to.equal(10000000000);
-    expect(await astarXcmAction.bifrostTransactionFee()).to.equal(100000000000);
+    expect(await astarSlpx.transactWeight()).to.equal(10000000000);
+    expect(await astarSlpx.bifrostTransactionFee()).to.equal(100000000000);
   });
 
   it("setAssetAddressToCurrencyId", async function () {
     this.timeout(1000 * 1000);
 
-    await astarXcmAction.setAssetAddressToMinimumValue(
+    await astarSlpx.setAssetAddressToMinimumValue(
       "0xfFffFffF00000000000000010000000000000007",
       "1000000000000"
     );
-    await astarXcmAction.setAssetAddressToMinimumValue(
+    await astarSlpx.setAssetAddressToMinimumValue(
       "0xFfFfFfff00000000000000010000000000000008",
       "1000000000000000000"
     );
-    await astarXcmAction.setAssetAddressToMinimumValue(
+    await astarSlpx.setAssetAddressToMinimumValue(
       "0x0000000000000000000000000000000000000000",
       "1000000000000000000"
     );
     await waitFor(24 * 1000);
     expect(
-      await astarXcmAction.assetAddressToMinimumValue(
+      await astarSlpx.assetAddressToMinimumValue(
         "0xfFffFffF00000000000000010000000000000007"
       )
     ).to.equal("1000000000000");
     expect(
-      await astarXcmAction.assetAddressToMinimumValue(
+      await astarSlpx.assetAddressToMinimumValue(
         "0xFfFfFfff00000000000000010000000000000008"
       )
     ).to.equal("1000000000000000000");
     expect(
-      await astarXcmAction.assetAddressToMinimumValue(
+      await astarSlpx.assetAddressToMinimumValue(
         "0x0000000000000000000000000000000000000000"
       )
     ).to.equal("1000000000000000000");
@@ -176,31 +176,31 @@ describe("AstarXcmAction", function () {
   it("setAssetAddressToCurrencyId", async function () {
     this.timeout(1000 * 1000);
 
-    await astarXcmAction.setAssetAddressToCurrencyId(
+    await astarSlpx.setAssetAddressToCurrencyId(
       "0xfFffFffF00000000000000010000000000000007",
       "0x0001"
     );
-    await astarXcmAction.setAssetAddressToCurrencyId(
+    await astarSlpx.setAssetAddressToCurrencyId(
       "0xFfFfFfff00000000000000010000000000000008",
       "0x0903"
     );
-    await astarXcmAction.setAssetAddressToCurrencyId(
+    await astarSlpx.setAssetAddressToCurrencyId(
       "0x0000000000000000000000000000000000000000",
       "0x0803"
     );
     await waitFor(24 * 1000);
     expect(
-      await astarXcmAction.assetAddressToCurrencyId(
+      await astarSlpx.assetAddressToCurrencyId(
         "0xfFffFffF00000000000000010000000000000007"
       )
     ).to.equal("0x0001");
     expect(
-      await astarXcmAction.assetAddressToCurrencyId(
+      await astarSlpx.assetAddressToCurrencyId(
         "0xFfFfFfff00000000000000010000000000000008"
       )
     ).to.equal("0x0903");
     expect(
-      await astarXcmAction.assetAddressToCurrencyId(
+      await astarSlpx.assetAddressToCurrencyId(
         "0x0000000000000000000000000000000000000000"
       )
     ).to.equal("0x0803");
@@ -218,7 +218,7 @@ describe("AstarXcmAction", function () {
     );
 
     // mint 10 vastr
-    await astarXcmAction.mintVNativeAsset({
+    await astarSlpx.mintVNativeAsset({
       from: Hardhat0,
       value: "10000000000000000000",
     });
@@ -254,7 +254,7 @@ describe("AstarXcmAction", function () {
     );
 
     // Swap ASTR to BNC
-    await astarXcmAction.swapNativeAssetsForExactAssets(
+    await astarSlpx.swapNativeAssetsForExactAssets(
       "0xfFffFffF00000000000000010000000000000007",
       0,
       { value: 50n * ASTR_DECIMALS }
@@ -291,7 +291,7 @@ describe("AstarXcmAction", function () {
     );
 
     // Swap BNC to ASTR
-    await astarXcmAction.swapAssetsForExactNativeAssets(
+    await astarSlpx.swapAssetsForExactNativeAssets(
       "0xfFffFffF00000000000000010000000000000007",
       "100000000000000",
       0
@@ -329,7 +329,7 @@ describe("AstarXcmAction", function () {
     );
 
     // Swap BNC to ASTR
-    await astarXcmAction.swapAssetsForExactAssets(
+    await astarSlpx.swapAssetsForExactAssets(
       "0xfFffFffF00000000000000010000000000000007",
       "0xFfFfFfff00000000000000010000000000000008",
       "100000000000000",

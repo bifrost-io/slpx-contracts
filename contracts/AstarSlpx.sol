@@ -5,11 +5,11 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "./interfaces/XCM.sol";
-import "./interfaces/IXcmAction.sol";
+import "./interfaces/ISlpx.sol";
 import "./utils/BuildCallData.sol";
 import "./utils/AddressToAccount.sol";
 
-contract AstarXcmAction is IXcmAction, OwnableUpgradeable, PausableUpgradeable {
+contract AstarSlpx is ISlpx, OwnableUpgradeable, PausableUpgradeable {
     address public constant NATIVE_ASSET_ADDRESS =
         0x0000000000000000000000000000000000000000;
     //    address public constant BNC_ADDRESS =

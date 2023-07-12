@@ -11,7 +11,7 @@ const deployFunction: DeployFunction = async function ({
     network.name == "astar_local" ||
     network.name == "astar_rococo"
   ) {
-    console.log("Running AstarXcmAction deploy script");
+    console.log("Running AstarSlpx deploy script");
 
     const { deploy } = deployments;
     const { deployer } = await getNamedAccounts();
@@ -29,7 +29,7 @@ const deployFunction: DeployFunction = async function ({
       deterministicDeployment: false,
     });
 
-    await deploy("AstarXcmAction", {
+    await deploy("AstarSlpx", {
       from: deployer,
       log: true,
       deterministicDeployment: false,
@@ -54,4 +54,4 @@ export default deployFunction;
 
 deployFunction.dependencies = [""];
 
-deployFunction.tags = ["AstarXcmAction"];
+deployFunction.tags = ["AstarSlpx"];

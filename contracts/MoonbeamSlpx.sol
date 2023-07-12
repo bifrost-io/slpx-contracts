@@ -3,15 +3,15 @@ pragma solidity ^0.8.0;
 
 import "./interfaces/XcmTransactorV2.sol";
 import "./interfaces/Xtokens.sol";
-import "./interfaces/IXcmAction.sol";
+import "./interfaces/ISlpx.sol";
 import "./utils/AddressToAccount.sol";
 import "./utils/BuildCallData.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 
-contract MoonbeamXcmAction is
-    IXcmAction,
+contract MoonbeamSlpx is
+    ISlpx,
     OwnableUpgradeable,
     PausableUpgradeable
 {

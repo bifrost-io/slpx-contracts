@@ -67,13 +67,13 @@ describe("BifrostXcmAction", function () {
     const caller = await ethers.getSigner(
       "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
     );
-    const MoonbeamXcmAction = await ethers.getContractFactory(
-      "MoonbeamXcmAction",
+    const MoonbeamSlpx = await ethers.getContractFactory(
+      "MoonbeamSlpx",
       caller
     );
-    const moonriverXcmAction = await MoonbeamXcmAction.deploy();
-    console.log("Contract address:", moonriverXcmAction.address);
-    return moonriverXcmAction;
+    const moonriverSlpx = await MoonbeamSlpx.deploy();
+    console.log("Contract address:", moonriverSlpx.address);
+    return moonriverSlpx;
   }
 
   async function addWhitelist(
@@ -82,7 +82,7 @@ describe("BifrostXcmAction", function () {
     accountId: string
   ) {
     return new Promise((resolve) => {
-      api.tx.xcmAction
+      api.tx.slpx
         .addWhitelist("Moonriver", accountId)
         .signAndSend(signer, ({ status }) => {
           if (status.isFinalized) {
@@ -114,7 +114,7 @@ describe("BifrostXcmAction", function () {
   }
 
   let contract_address: string;
-  let moonriverXcmAction: any;
+  let moonriverSlpx: any;
   let test_account_public_key: string;
   let bifrost_api: ApiPromise;
   let astar_api: ApiPromise;
@@ -142,8 +142,8 @@ describe("BifrostXcmAction", function () {
 
     await waitFor(12 * 1000);
 
-    moonriverXcmAction = await hre.ethers.getContractFactory(
-      "MoonbeamXcmAction",
+    moonriverSlpx = await hre.ethers.getContractFactory(
+      "MoonbeamSlpx",
       {
         libraries: {
           AddressToAccount: addressToAccount.address,
@@ -151,15 +151,15 @@ describe("BifrostXcmAction", function () {
         },
       }
     );
-    moonriverXcmAction = await moonriverXcmAction.deploy(
+    moonriverSlpx = await moonriverSlpx.deploy(
       "0x01",
       "0xfFFFfFfF62a882bb647792832b9c360a67c1976d",
       "2030",
       "0x0801"
     );
-    await moonriverXcmAction.deployed();
-    console.log("AstarXcmAction deployed to:", moonriverXcmAction.address);
-    expect(await moonriverXcmAction.owner()).to.equal(Hardhat0);
+    await moonriverSlpx.deployed();
+    console.log("AstarSlpx deployed to:", moonriverSlpx.address);
+    expect(await moonriverSlpx.owner()).to.equal(Hardhat0);
 
     // init polkadot api
     // const wsProvider = new WsProvider("ws://127.0.0.1:9920")
@@ -170,7 +170,7 @@ describe("BifrostXcmAction", function () {
     // alice = keyring.addFromUri('//Alice')
     //
     // // xcm-action contract address -> xcm-action contract account_id
-    // const contract_account_id = polkadotCryptoUtils.evmToAddress(moonriverXcmAction.address)
+    // const contract_account_id = polkadotCryptoUtils.evmToAddress(moonriverSlpx.address)
     //
     // // xcm-action contract account_id -> xcm-action contract account_id public_key
     // const contract_public_key = u8aToHex(keyring.addFromAddress(contract_account_id).publicKey);
@@ -185,9 +185,9 @@ describe("BifrostXcmAction", function () {
     //
     // // add whitelist
     // const bifrost_set_up_calls = bifrost_api.tx.utility.batchAll([
-    //   bifrost_api.tx.xcmAction.addWhitelist("Astar",contract_derivative_account),
-    //   bifrost_api.tx.xcmAction.setExecutionFee(ASTR, 1n * ASTR_DECIMALS),
-    //   bifrost_api.tx.xcmAction.setExecutionFee(VASTR, 1n * ASTR_DECIMALS),
+    //   bifrost_api.tx.slpx.addWhitelist("Astar",contract_derivative_account),
+    //   bifrost_api.tx.slpx.setExecutionFee(ASTR, 1n * ASTR_DECIMALS),
+    //   bifrost_api.tx.slpx.setExecutionFee(VASTR, 1n * ASTR_DECIMALS),
     // ])
     //
     // await councilPropose(bifrost_api,alice,1,bifrost_set_up_calls,bifrost_set_up_calls.encodedLength)
@@ -199,15 +199,15 @@ describe("BifrostXcmAction", function () {
   //   this.timeout(1000 * 1000)
   //
   //   // bind caller publick_key
-  //   await moonriverXcmAction.bind(test_account_public_key)
+  //   await moonriverSlpx.bind(test_account_public_key)
   //   await waitFor(36 * 1000)
-  //   expect(await moonriverXcmAction.addressToSubstratePublickey("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266")).to.equal(test_account_public_key)
+  //   expect(await moonriverSlpx.addressToSubstratePublickey("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266")).to.equal(test_account_public_key)
   //
   //   const before_astr_balance:any = await astar_api.query.system.account(TEST_ACCOUNT)
   //   const before_vastr_balance:any = await astar_api.query.assets.account("18446744073709551624",TEST_ACCOUNT)
   //
   //   // mint 10 vastr
-  //   await moonriverXcmAction.mint_vastr({from:"0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266", value: 10n * ASTR_DECIMALS })
+  //   await moonriverSlpx.mint_vastr({from:"0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266", value: 10n * ASTR_DECIMALS })
   //   await waitFor(60 * 1000)
   //
   //   const after_astr_balance:any = await astar_api.query.system.account(TEST_ACCOUNT)
@@ -225,7 +225,7 @@ describe("BifrostXcmAction", function () {
   //   const before_vastr_balance:any = await astar_api.query.assets.account("18446744073709551624",TEST_ACCOUNT)
   //
   //   // Swap ASTR to vASTR
-  //   await moonriverXcmAction.swap_astr_for_exact_assets("0xFfFfFfff00000000000000010000000000000008",0,{value: 10n * ASTR_DECIMALS })
+  //   await moonriverSlpx.swap_astr_for_exact_assets("0xFfFfFfff00000000000000010000000000000008",0,{value: 10n * ASTR_DECIMALS })
   //   await waitFor(60 * 1000)
   //
   //   const after_astr_balance:any = await astar_api.query.system.account(TEST_ACCOUNT)
@@ -242,14 +242,14 @@ describe("BifrostXcmAction", function () {
   //   // Approve VASTR to contract
   //   const caller = await ethers.getSigner("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
   //   const vastr = await ethers.getContractAt("IERC20","0xFfFfFfff00000000000000010000000000000008",caller);
-  //   await vastr.approve(moonriverXcmAction.address,"100000000000000000000")
+  //   await vastr.approve(moonriverSlpx.address,"100000000000000000000")
   //   await waitFor(24 * 1000)
   //
   //   const before_astr_balance:any = await astar_api.query.system.account(TEST_ACCOUNT)
   //   const before_vastr_balance:any = await astar_api.query.assets.account("18446744073709551624",TEST_ACCOUNT)
   //
   //   // Swap vASTR to ASTR
-  //   await moonriverXcmAction.swap_assets_for_exact_astr("0xFfFfFfff00000000000000010000000000000008","5000000000000000000",0)
+  //   await moonriverSlpx.swap_assets_for_exact_astr("0xFfFfFfff00000000000000010000000000000008","5000000000000000000",0)
   //   await waitFor(60 * 1000)
   //
   //   const after_astr_balance:any = await astar_api.query.system.account(TEST_ACCOUNT)

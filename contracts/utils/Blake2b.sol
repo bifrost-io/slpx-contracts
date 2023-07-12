@@ -25,7 +25,7 @@ library Blake2b {
         bytes memory key,
         uint out_len
     ) internal view returns (Instance memory instance) {
-        require(key == hex"", "Invalid key");
+        require(key.length == 0, "Invalid key");
         require(out_len == 32, "Invalid out_len");
         reset(instance, key, out_len);
     }
