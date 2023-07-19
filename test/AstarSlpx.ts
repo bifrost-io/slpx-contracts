@@ -107,14 +107,9 @@ describe("AstarSlpx", function () {
       bifrost_api,
       alice,
       1,
-      bifrost_api.tx.slpx.addWhitelist(
-        "Astar",
-        contract_derivative_account
-      ),
-      bifrost_api.tx.slpx.addWhitelist(
-        "Astar",
-        contract_derivative_account
-      ).encodedLength
+      bifrost_api.tx.slpx.addWhitelist("Astar", contract_derivative_account),
+      bifrost_api.tx.slpx.addWhitelist("Astar", contract_derivative_account)
+        .encodedLength
     );
 
     // Approve

@@ -26,6 +26,8 @@ import {
   ASSET_VDOT_LOCATION,
   DOT,
   ASSET_DOT_LOCATION,
+  DOT_DECIMALS,
+  GLMR_DECIMALS,
 } from "./constants";
 import {
   addLiquidity,
@@ -187,13 +189,13 @@ const main = async () => {
     ),
   ]);
 
-  await councilPropose(
-    bifrost_api,
-    alice,
-    1,
-    bifrost_set_up_calls,
-    bifrost_set_up_calls.encodedLength
-  );
+  // await councilPropose(
+  //   bifrost_api,
+  //   alice,
+  //   1,
+  //   bifrost_set_up_calls,
+  //   bifrost_set_up_calls.encodedLength
+  // );
 
   // 165823357460190568952172802245839421906
   const calls = parachain_api.tx.utility.batchAll([
@@ -322,45 +324,69 @@ const main = async () => {
 
   // await sudo(parachain_api, alith, calls)
 
-  await cross_dot_to_bifrost(relaychain_api, alice, 1000n * KSM_DECIMALS);
-  await cross_dot_to_moonbeam(relaychain_api, alice, 1000n * KSM_DECIMALS);
-  await cross_glmr_to_bifrost(parachain_api, alith, 1000n * MOVR_DECIMALS);
+  // await cross_dot_to_bifrost(relaychain_api, alice, 1000n * KSM_DECIMALS);
+  // await cross_dot_to_moonbeam(relaychain_api, alice, 1000n * KSM_DECIMALS);
+  // await cross_glmr_to_bifrost(parachain_api, alith, 1000n * MOVR_DECIMALS);
+  //
+  // // wait for 24 seconds to make sure the xcm message is executed in polkadot
+  // await waitFor(24 * 1000);
+  //
+  // await mintVtoken(bifrost_api, alice, KSM, 500n * KSM_DECIMALS);
 
-  // wait for 24 seconds to make sure the xcm message is executed in polkadot
-  await waitFor(24 * 1000);
-
-  await mintVtoken(bifrost_api, alice, KSM, 500n * KSM_DECIMALS);
-
-  let ksm = {
-    chainId: 2001,
+  let dot = {
+    chainId: 2030,
     assetType: 2,
-    assetIndex: 516,
+    assetIndex: 2048,
   };
 
-  let vksm = {
-    chainId: 2001,
+  let vdot = {
+    chainId: 2030,
     assetType: 2,
-    assetIndex: 260,
+    assetIndex: 2304,
   };
   let bnc = {
-    chainId: 2001,
+    chainId: 2030,
     assetType: 0,
     assetIndex: 0,
   };
-  let movr = {
-    chainId: 2001,
+  let glmr = {
+    chainId: 2030,
     assetType: 2,
-    assetIndex: 522,
+    assetIndex: 2049,
   };
 
-  // await democracyForCallNeedRootOrigin(bifrost_api, alice, bifrost_api.tx.zenlinkProtocol.createPair(ksm,vksm))
-  // await democracyForCallNeedRootOrigin(bifrost_api, alice, bifrost_api.tx.zenlinkProtocol.createPair(bnc,ksm))
-  // await democracyForCallNeedRootOrigin(bifrost_api, alice, bifrost_api.tx.zenlinkProtocol.createPair(bnc,movr))
-  // await democracyForCallNeedRootOrigin(bifrost_api, alice, bifrost_api.tx.zenlinkProtocol.createPair(ksm,movr))
+  const s = bifrost_api.tx.utility.batchAll([
+    bifrost_api.tx.zenlinkProtocol.createPair(dot, vdot),
+    // bifrost_api, alice, bifrost_api.tx.zenlinkProtocol.createPair(bnc,ksm),
+    bifrost_api.tx.zenlinkProtocol.createPair(bnc, glmr),
+    bifrost_api.tx.zenlinkProtocol.createPair(dot, glmr),
+  ]);
+  await democracyForCallNeedRootOrigin(bifrost_api, alice, s);
 
-  // await addLiquidity(bifrost_api,alice,ksm,vksm,10n * KSM_DECIMALS,10n * KSM_DECIMALS);
-  // await addLiquidity(bifrost_api,alice,bnc,ksm,1000n * BNC_DECIMALS,10n * KSM_DECIMALS);
-  // await addLiquidity(bifrost_api,alice,bnc,movr,1000n * BNC_DECIMALS,10n * MOVR_DECIMALS);
+  await addLiquidity(
+    bifrost_api,
+    alice,
+    dot,
+    vdot,
+    10n * DOT_DECIMALS,
+    10n * DOT_DECIMALS
+  );
+  await addLiquidity(
+    bifrost_api,
+    alice,
+    bnc,
+    glmr,
+    1000n * BNC_DECIMALS,
+    10n * GLMR_DECIMALS
+  );
+  await addLiquidity(
+    bifrost_api,
+    alice,
+    dot,
+    glmr,
+    10n * DOT_DECIMALS,
+    10n * GLMR_DECIMALS
+  );
   // await addLiquidity(bifrost_api,alice,ksm,movr,10n * KSM_DECIMALS,10n * MOVR_DECIMALS);
 
   // await mint(bifrost_api, alice, MOVR, 100n * MOVR_DECIMALS)

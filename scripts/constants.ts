@@ -138,6 +138,7 @@ export const ASTR_DECIMALS = 1_000_000_000_000_000_000n;
 export const MOVR_DECIMALS = 1_000_000_000_000_000_000n;
 export const GLMR_DECIMALS = 1_000_000_000_000_000_000n;
 export const KSM_DECIMALS = 1_000_000_000_000n;
+export const DOT_DECIMALS = 10_000_000_000n;
 export const TEST_ACCOUNT = "aNhuaXEfaSiXJcC1YxssiHgNjCvoJbESD68KjycecaZvqpv";
 export const ALICE = "gXCcrjjFX3RPyhHYgwZDmw8oe4JFpd5anko3nTY8VrmnJpe";
 export const ALITH = "0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac";

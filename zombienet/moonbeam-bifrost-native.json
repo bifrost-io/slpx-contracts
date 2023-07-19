@@ -5,7 +5,7 @@
 	},
 	"relaychain": {
 		"chain": "polkadot-local",
-		"default_command": "polkadot-v0.9.38-fast-sudo",
+		"default_command": "polkadot-v0.9.42-fast-sudo",
 		"default_args": ["-lparachain=debug", "-lxcm=trace", "--state-pruning=archive", "--no-hardware-benchmarks"],
 		"nodes": [
 			{
@@ -57,7 +57,7 @@
 			],
 			"collators": [
 				{
-					"command": "moonbeam",
+					"command": "moonbeam-2401",
 					"name": "alith",
 					"ws_port": "{{PARACHAIN_WS_PORT}}",
 					"rpc_port": "{{PARACHAIN_RPC_PORT}}",
@@ -79,7 +79,7 @@
 			],
 			"collators": [
 				{
-					"command": "bifrost-xcm-action",
+					"command": "bifrost-v0.9.78",
 					"name": "alice",
 					"ws_port": "{{BIFROST_WS_PORT}}",
 					"rpc_port": "{{BIFROST_RPC_PORT}}",
