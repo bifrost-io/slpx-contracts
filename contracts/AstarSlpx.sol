@@ -131,13 +131,14 @@ contract AstarSlpx is ISlpx, OwnableUpgradeable, PausableUpgradeable {
         );
     }
 
-    function mintVNativeAsset() external payable override whenNotPaused {
+    function mintVNativeAsset(address receiver) external payable override whenNotPaused {
         xcmTransferNativeAsset(msg.value);
 
+        bytes memory targetChain = abi.encodePacked(ASTAR_CHAIN, AddressToAccount.AddressToSubstrateAccount(receiver));
         bytes memory callcode = BuildCallData.buildMintCallBytes(
             _msgSender(),
             ASTR_BYTES,
-            ASTAR_CHAIN
+            targetChain
         );
 
         // xcm transact
@@ -152,26 +153,28 @@ contract AstarSlpx is ISlpx, OwnableUpgradeable, PausableUpgradeable {
             ),
             "Failed to send xcm"
         );
-        emit Mint(_msgSender(), NATIVE_ASSET_ADDRESS, msg.value, callcode);
+        emit Mint(_msgSender(), NATIVE_ASSET_ADDRESS, msg.value, receiver,callcode);
     }
 
-    function mintVAsset(address, uint256) external pure override {
+    function mintVAsset(address, uint256, address) external pure override {
         require(false, "Not support");
     }
 
     function redeemAsset(
         address vAssetAddress,
-        uint256 amount
+        uint256 amount,
+        address receiver
     ) external override whenNotPaused {
         bytes2 vtoken = assetAddressToCurrencyId[vAssetAddress];
         require(vtoken == VASTR_BYTES, "Not support");
 
         xcmTransferAsset(vAssetAddress, amount);
 
+        bytes memory targetChain = abi.encodePacked(ASTAR_CHAIN, AddressToAccount.AddressToSubstrateAccount(receiver));
         bytes memory callcode = BuildCallData.buildRedeemCallBytes(
             _msgSender(),
             vtoken,
-            ASTAR_CHAIN
+            targetChain
         );
         // xcm transact
         require(
@@ -185,14 +188,15 @@ contract AstarSlpx is ISlpx, OwnableUpgradeable, PausableUpgradeable {
             ),
             "Failed to send xcm"
         );
-        emit Redeem(_msgSender(), vAssetAddress, amount, callcode);
+        emit Redeem(_msgSender(), vAssetAddress, amount, receiver,callcode);
     }
 
     function swapAssetsForExactAssets(
         address assetInAddress,
         address assetOutAddress,
         uint256 assetInAmount,
-        uint128 assetOutMin
+        uint128 assetOutMin,
+        address receiver
     ) external override whenNotPaused {
         bytes2 assetIn = assetAddressToCurrencyId[assetInAddress];
         bytes2 assetOut = assetAddressToCurrencyId[assetOutAddress];
@@ -203,12 +207,13 @@ contract AstarSlpx is ISlpx, OwnableUpgradeable, PausableUpgradeable {
 
         xcmTransferAsset(assetInAddress, assetInAmount);
 
+        bytes memory targetChain = abi.encodePacked(ASTAR_CHAIN, AddressToAccount.AddressToSubstrateAccount(receiver));
         bytes memory callcode = BuildCallData.buildSwapCallBytes(
             _msgSender(),
             assetIn,
             assetOut,
             assetOutMin,
-            ASTAR_CHAIN
+            targetChain
         );
         // xcm transact
         require(
@@ -228,6 +233,7 @@ contract AstarSlpx is ISlpx, OwnableUpgradeable, PausableUpgradeable {
             assetOutAddress,
             assetInAmount,
             assetOutMin,
+            receiver,
             callcode
         );
     }
@@ -235,19 +241,21 @@ contract AstarSlpx is ISlpx, OwnableUpgradeable, PausableUpgradeable {
     function swapAssetsForExactNativeAssets(
         address assetInAddress,
         uint256 assetInAmount,
-        uint128 assetOutMin
+        uint128 assetOutMin,
+        address receiver
     ) external override whenNotPaused {
         bytes2 assetIn = assetAddressToCurrencyId[assetInAddress];
         require(assetIn != bytes2(0), "Invalid assetIn");
 
         xcmTransferAsset(assetInAddress, assetInAmount);
 
+        bytes memory targetChain = abi.encodePacked(ASTAR_CHAIN, AddressToAccount.AddressToSubstrateAccount(receiver));
         bytes memory callcode = BuildCallData.buildSwapCallBytes(
             _msgSender(),
             assetIn,
             ASTR_BYTES,
             assetOutMin,
-            ASTAR_CHAIN
+            targetChain
         );
         // xcm transact
         require(
@@ -267,25 +275,28 @@ contract AstarSlpx is ISlpx, OwnableUpgradeable, PausableUpgradeable {
             NATIVE_ASSET_ADDRESS,
             assetInAmount,
             assetOutMin,
+            receiver,
             callcode
         );
     }
 
     function swapNativeAssetsForExactAssets(
         address assetOutAddress,
-        uint128 assetOutMin
+        uint128 assetOutMin,
+        address receiver
     ) external payable override whenNotPaused {
         bytes2 assetOut = assetAddressToCurrencyId[assetOutAddress];
         require(assetOut != bytes2(0), "Invalid assetOut");
 
         xcmTransferNativeAsset(msg.value);
 
+        bytes memory targetChain = abi.encodePacked(ASTAR_CHAIN, AddressToAccount.AddressToSubstrateAccount(receiver));
         bytes memory callcode = BuildCallData.buildSwapCallBytes(
             _msgSender(),
             ASTR_BYTES,
             assetOut,
             assetOutMin,
-            ASTAR_CHAIN
+            targetChain
         );
         // xcm transact
         require(
@@ -305,6 +316,7 @@ contract AstarSlpx is ISlpx, OwnableUpgradeable, PausableUpgradeable {
             assetOutAddress,
             msg.value,
             assetOutMin,
+            receiver,
             callcode
         );
     }

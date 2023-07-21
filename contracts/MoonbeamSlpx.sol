@@ -21,7 +21,7 @@ contract MoonbeamSlpx is
         0x000000000000000000000000000000000000080D;
     address public constant XTOKENS =
         0x0000000000000000000000000000000000000804;
-    bytes1 public constant TARGETCHAIN = 0x01;
+    bytes1 public constant MOONBEAM_CHAIN = 0x01;
 
     uint64 public xtokenWeight;
     uint64 public transactRequiredWeightAtMost;
@@ -157,15 +157,16 @@ contract MoonbeamSlpx is
         );
     }
 
-    function mintVNativeAsset() external payable override whenNotPaused {
+    function mintVNativeAsset(address receiver) external payable override whenNotPaused {
         // xtokens call
         xcmTransferNativeAsset(msg.value);
 
         // Build bifrost xcm-action mint call data
+        bytes memory targetChain = abi.encodePacked(MOONBEAM_CHAIN, receiver);
         bytes memory callData = BuildCallData.buildMintCallBytes(
             _msgSender(),
             nativeCurrencyId,
-            TARGETCHAIN
+            targetChain
         );
         // XCM Transact
         XcmTransactorV2(XCM_TRANSACTORV2_ADDRESS).transactThroughSigned(
@@ -176,12 +177,13 @@ contract MoonbeamSlpx is
             feeAmount,
             overallWeight
         );
-        emit Mint(_msgSender(), NATIVE_ASSET_ADDRESS, msg.value, callData);
+        emit Mint(_msgSender(), NATIVE_ASSET_ADDRESS, msg.value, receiver,callData);
     }
 
     function mintVAsset(
         address assetAddress,
-        uint256 amount
+        uint256 amount,
+        address receiver
     ) external override whenNotPaused {
         bytes2 token = assetAddressToCurrencyId[assetAddress];
         require(token != bytes2(0), "Invalid assetAddress");
@@ -190,10 +192,11 @@ contract MoonbeamSlpx is
         xcmTransferAsset(assetAddress, amount);
 
         // Build bifrost xcm-action mint call data
+        bytes memory targetChain = abi.encodePacked(MOONBEAM_CHAIN, receiver);
         bytes memory callData = BuildCallData.buildMintCallBytes(
             _msgSender(),
             token,
-            TARGETCHAIN
+            targetChain
         );
         // XCM Transact
         XcmTransactorV2(XCM_TRANSACTORV2_ADDRESS).transactThroughSigned(
@@ -204,12 +207,13 @@ contract MoonbeamSlpx is
             feeAmount,
             overallWeight
         );
-        emit Mint(_msgSender(), assetAddress, amount, callData);
+        emit Mint(_msgSender(), assetAddress, amount, receiver,callData);
     }
 
     function redeemAsset(
         address vAssetAddress,
-        uint256 amount
+        uint256 amount,
+        address receiver
     ) external override whenNotPaused {
         bytes2 vtoken = assetAddressToCurrencyId[vAssetAddress];
         require(vtoken != bytes2(0), "Invalid vAssetAddress");
@@ -218,10 +222,11 @@ contract MoonbeamSlpx is
         xcmTransferAsset(vAssetAddress, amount);
 
         // xcm transactor call
+        bytes memory targetChain = abi.encodePacked(MOONBEAM_CHAIN, receiver);
         bytes memory callData = BuildCallData.buildRedeemCallBytes(
             _msgSender(),
             vtoken,
-            TARGETCHAIN
+            targetChain
         );
         XcmTransactorV2(XCM_TRANSACTORV2_ADDRESS).transactThroughSigned(
             xcmTransactorDestination,
@@ -231,14 +236,15 @@ contract MoonbeamSlpx is
             feeAmount,
             overallWeight
         );
-        emit Redeem(_msgSender(), vAssetAddress, amount, callData);
+        emit Redeem(_msgSender(), vAssetAddress, amount, receiver,callData);
     }
 
     function swapAssetsForExactAssets(
         address assetInAddress,
         address assetOutAddress,
         uint256 assetInAmount,
-        uint128 assetOutMin
+        uint128 assetOutMin,
+        address receiver
     ) external override whenNotPaused {
         bytes2 assetIn = assetAddressToCurrencyId[assetInAddress];
         bytes2 assetOut = assetAddressToCurrencyId[assetOutAddress];
@@ -247,12 +253,13 @@ contract MoonbeamSlpx is
         xcmTransferAsset(assetInAddress, assetInAmount);
 
         // xcm transactor call
+        bytes memory targetChain = abi.encodePacked(MOONBEAM_CHAIN, receiver);
         bytes memory callData = BuildCallData.buildSwapCallBytes(
             _msgSender(),
             assetIn,
             assetOut,
             assetOutMin,
-            TARGETCHAIN
+            targetChain
         );
         XcmTransactorV2(XCM_TRANSACTORV2_ADDRESS).transactThroughSigned(
             xcmTransactorDestination,
@@ -268,6 +275,7 @@ contract MoonbeamSlpx is
             assetOutAddress,
             assetInAmount,
             assetOutMin,
+            receiver,
             callData
         );
     }
@@ -275,7 +283,8 @@ contract MoonbeamSlpx is
     function swapAssetsForExactNativeAssets(
         address assetInAddress,
         uint256 assetInAmount,
-        uint128 assetOutMin
+        uint128 assetOutMin,
+        address receiver
     ) external override whenNotPaused {
         bytes2 assetIn = assetAddressToCurrencyId[assetInAddress];
         require(assetIn != bytes2(0), "Invalid assetIn");
@@ -283,12 +292,13 @@ contract MoonbeamSlpx is
         xcmTransferAsset(assetInAddress, assetInAmount);
 
         // xcm transactor call
+        bytes memory targetChain = abi.encodePacked(MOONBEAM_CHAIN, receiver);
         bytes memory callData = BuildCallData.buildSwapCallBytes(
             _msgSender(),
             assetIn,
             nativeCurrencyId,
             assetOutMin,
-            TARGETCHAIN
+            targetChain
         );
         XcmTransactorV2(XCM_TRANSACTORV2_ADDRESS).transactThroughSigned(
             xcmTransactorDestination,
@@ -304,13 +314,15 @@ contract MoonbeamSlpx is
             NATIVE_ASSET_ADDRESS,
             assetInAmount,
             assetOutMin,
+            receiver,
             callData
         );
     }
 
     function swapNativeAssetsForExactAssets(
         address assetOutAddress,
-        uint128 assetOutMin
+        uint128 assetOutMin,
+        address receiver
     ) external payable override whenNotPaused {
         bytes2 assetOut = assetAddressToCurrencyId[assetOutAddress];
         require(assetOut != bytes2(0), "Invalid assetOut");
@@ -318,12 +330,13 @@ contract MoonbeamSlpx is
         xcmTransferNativeAsset(msg.value);
 
         // xcm transactor call
+        bytes memory targetChain = abi.encodePacked(MOONBEAM_CHAIN, receiver);
         bytes memory callData = BuildCallData.buildSwapCallBytes(
             _msgSender(),
             nativeCurrencyId,
             assetOut,
             assetOutMin,
-            TARGETCHAIN
+            targetChain
         );
         XcmTransactorV2(XCM_TRANSACTORV2_ADDRESS).transactThroughSigned(
             xcmTransactorDestination,
@@ -339,6 +352,7 @@ contract MoonbeamSlpx is
             assetOutAddress,
             msg.value,
             assetOutMin,
+            receiver,
             callData
         );
     }

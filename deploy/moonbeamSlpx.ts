@@ -44,7 +44,7 @@ const deployFunction: DeployFunction = async function ({
           init: {
             methodName: "initialize",
             args: [
-              "0xffffffff62a882bb647792832b9c360a67c1976d",
+              "0xffFfffff62a882BB647792832b9c360a67C1976d",
               2030,
               "0x0801",
             ],

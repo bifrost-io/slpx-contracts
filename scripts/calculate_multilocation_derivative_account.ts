@@ -67,8 +67,8 @@ const main = async () => {
 
   await calculate_multilocation_derivative_account(
     bifrost_api,
-    2023,
-    "0x9E545E3C0baAB3E08CdfD552C960A1050f373042"
+    1000,
+    "0x75693bB5d8D9ed1560882E60215E6Cb54676E8e1"
   );
   await calculate_multilocation_derivative_account(
     bifrost_api,

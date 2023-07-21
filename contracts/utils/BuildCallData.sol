@@ -10,7 +10,7 @@ library BuildCallData {
     function buildMintCallBytes(
         address caller,
         bytes2 token,
-        bytes1 targetChain
+        bytes memory targetChain
     ) public pure returns (bytes memory) {
         bytes memory prefix = new bytes(2);
         // storage pallet index
@@ -28,7 +28,7 @@ library BuildCallData {
         bytes2 currency_in,
         bytes2 currency_out,
         uint128 currency_out_min,
-        bytes1 targetChain
+        bytes memory targetChain
     ) public pure returns (bytes memory) {
         bytes memory prefix = new bytes(2);
         // storage pallet index
@@ -51,7 +51,7 @@ library BuildCallData {
     function buildRedeemCallBytes(
         address caller,
         bytes2 vtoken,
-        bytes1 targetChain
+        bytes memory targetChain
     ) public pure returns (bytes memory) {
         bytes memory prefix = new bytes(2);
         // storage pallet index
