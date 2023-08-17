@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity ^0.8.0;
+pragma solidity 0.8.10;
 
 import "./interfaces/XcmTransactorV2.sol";
 import "./interfaces/Xtokens.sol";
@@ -10,32 +10,62 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 
-contract MoonbeamSlpx is
-    ISlpx,
-    OwnableUpgradeable,
-    PausableUpgradeable
-{
-    address public constant NATIVE_ASSET_ADDRESS =
+contract MoonbeamSlpx is ISlpx, OwnableUpgradeable, PausableUpgradeable {
+    address internal constant NATIVE_ASSET_ADDRESS =
         0x0000000000000000000000000000000000000802;
-    address public constant XCM_TRANSACTORV2_ADDRESS =
+    address internal constant XCM_TRANSACTORV2_ADDRESS =
         0x000000000000000000000000000000000000080D;
-    address public constant XTOKENS =
+    address internal constant XTOKENS =
         0x0000000000000000000000000000000000000804;
-    bytes1 public constant TARGETCHAIN = 0x01;
+    bytes1 internal constant MOONBEAM_CHAIN = 0x01;
 
-    uint64 public xtokenWeight;
-    uint64 public transactRequiredWeightAtMost;
-    uint64 public overallWeight;
-    uint256 public feeAmount;
+    XcmTransactorV2.Multilocation internal xcmTransactorDestination;
 
     address public BNCAddress;
     uint32 public bifrostParaId;
-    bytes2 public nativeCurrencyId;
 
-    XcmTransactorV2.Multilocation public xcmTransactorDestination;
+    enum Operation {
+        Mint,
+        Redeem,
+        ZenlinkSwap,
+        StableSwap
+    }
 
-    mapping(address => bytes2) public assetAddressToCurrencyId;
-    mapping(address => uint256) public assetAddressToMinimumValue;
+    struct AssetInfo {
+        bytes2 currencyId;
+        uint256 operationalMin;
+    }
+
+    struct FeeInfo {
+        uint64 transactRequiredWeightAtMost;
+        uint256 feeAmount;
+        uint64 overallWeight;
+    }
+
+    mapping(address => AssetInfo) public addressToAssetInfo;
+    mapping(Operation => FeeInfo) public operationToFeeInfo;
+
+    function checkAssetIsExist(
+        address assetAddress
+    ) internal view returns (bytes2) {
+        AssetInfo memory assetInfo = addressToAssetInfo[assetAddress];
+        require(assetInfo.operationalMin > 0, "Asset is not exist");
+        require(assetInfo.currencyId != bytes2(0), "Invalid asset");
+        return assetInfo.currencyId;
+    }
+
+    function checkFeeInfo(
+        Operation operation
+    ) internal view returns (FeeInfo memory) {
+        FeeInfo memory feeInfo = operationToFeeInfo[operation];
+        require(
+            feeInfo.transactRequiredWeightAtMost > 0,
+            "Invalid transactRequiredWeightAtMost"
+        );
+        require(feeInfo.feeAmount > 0, "Invalid feeAmount");
+        require(feeInfo.overallWeight > 0, "Invalid overallWeight");
+        return feeInfo;
+    }
 
     function initialize(
         address _BNCAddress,
@@ -53,10 +83,39 @@ contract MoonbeamSlpx is
             _nativeCurrencyId == 0x020a || _nativeCurrencyId == 0x0801,
             "Invalid nativeCurrencyId"
         );
-        setFee(10000000000, 10000000000, 10000000000, 1000000000000);
+        setOperationToFeeInfo(
+            Operation.Mint,
+            10_000_000_000,
+            1_000_000_000_000,
+            10_000_000_000
+        );
+        setOperationToFeeInfo(
+            Operation.Redeem,
+            10_000_000_000,
+            1_000_000_000_000,
+            10_000_000_000
+        );
+        setOperationToFeeInfo(
+            Operation.ZenlinkSwap,
+            10_000_000_000,
+            1_000_000_000_000,
+            10_000_000_000
+        );
+        setOperationToFeeInfo(
+            Operation.StableSwap,
+            10_000_000_000,
+            1_000_000_000_000,
+            10_000_000_000
+        );
+        setAssetAddressInfo(_BNCAddress, 0x0001, 1_000_000_000_000);
+        setAssetAddressInfo(
+            NATIVE_ASSET_ADDRESS,
+            _nativeCurrencyId,
+            1_000_000_000_000_000_000
+        );
+
         BNCAddress = _BNCAddress;
         bifrostParaId = _bifrostParaId;
-        nativeCurrencyId = _nativeCurrencyId;
 
         // Init xcmTransactorDestination
         bytes[] memory interior = new bytes[](1);
@@ -68,35 +127,34 @@ contract MoonbeamSlpx is
         });
     }
 
-    function setFee(
-        uint64 _xtokenWeight,
+    function setOperationToFeeInfo(
+        Operation _operation,
         uint64 _transactRequiredWeightAtMost,
         uint64 _overallWeight,
         uint256 _feeAmount
     ) public onlyOwner {
-        require(_xtokenWeight <= 10000000000, "xtokenWeight too large");
         require(
             _transactRequiredWeightAtMost <= 10000000000,
             "transactRequiredWeightAtMost too large"
         );
-        require(_overallWeight <= 10000000000, "OverallWeight too large");
         require(_feeAmount <= 1000000000000, "feeAmount too large");
-        xtokenWeight = _xtokenWeight;
-        transactRequiredWeightAtMost = _transactRequiredWeightAtMost;
-        overallWeight = _overallWeight;
-        feeAmount = _feeAmount;
+        require(_overallWeight <= 10000000000, "OverallWeight too large");
+        operationToFeeInfo[_operation] = FeeInfo(
+            _transactRequiredWeightAtMost,
+            _feeAmount,
+            _overallWeight
+        );
     }
 
     function setAssetAddressInfo(
         address assetAddress,
-        uint256 minimumValue,
-        bytes2 currencyId
+        bytes2 currencyId,
+        uint256 minimumValue
     ) public onlyOwner {
         require(assetAddress != address(0), "Invalid assetAddress");
         require(minimumValue != 0, "Invalid minimumValue");
         require(currencyId != bytes2(0), "Invalid currencyId");
-        assetAddressToMinimumValue[assetAddress] = minimumValue;
-        assetAddressToCurrencyId[assetAddress] = currencyId;
+        addressToAssetInfo[assetAddress] = AssetInfo(currencyId, minimumValue);
     }
 
     function pause() external onlyOwner {
@@ -110,11 +168,7 @@ contract MoonbeamSlpx is
     function xcmTransferAsset(address assetAddress, uint256 amount) internal {
         require(assetAddress != address(0), "Invalid assetAddress");
         require(
-            assetAddressToMinimumValue[assetAddress] != 0,
-            "Not set MinimumValue"
-        );
-        require(
-            amount >= assetAddressToMinimumValue[assetAddress],
+            amount >= addressToAssetInfo[assetAddress].operationalMin,
             "Less than MinimumValue"
         );
         bytes32 publicKey = AddressToAccount.AddressToSubstrateAccount(
@@ -129,17 +183,13 @@ contract MoonbeamSlpx is
             assetAddress,
             amount,
             dest_account,
-            xtokenWeight
+            type(uint64).max
         );
     }
 
     function xcmTransferNativeAsset(uint256 amount) internal {
         require(
-            assetAddressToMinimumValue[NATIVE_ASSET_ADDRESS] != 0,
-            "Not set MinimumValue"
-        );
-        require(
-            amount >= assetAddressToMinimumValue[NATIVE_ASSET_ADDRESS],
+            amount >= addressToAssetInfo[NATIVE_ASSET_ADDRESS].operationalMin,
             "Less than MinimumValue"
         );
         bytes32 publicKey = AddressToAccount.AddressToSubstrateAccount(
@@ -153,114 +203,190 @@ contract MoonbeamSlpx is
             NATIVE_ASSET_ADDRESS,
             amount,
             dest_account,
-            xtokenWeight
+            type(uint64).max
         );
     }
 
-    function mintVNativeAsset() external payable override whenNotPaused {
+    function mintVNativeAsset(
+        address receiver,
+        string memory remark
+    ) external payable override whenNotPaused {
+        require(bytes(remark).length <= 32, "remark too long");
+        bytes2 nativeToken = checkAssetIsExist(NATIVE_ASSET_ADDRESS);
         // xtokens call
         xcmTransferNativeAsset(msg.value);
 
         // Build bifrost xcm-action mint call data
+        bytes memory targetChain = abi.encodePacked(MOONBEAM_CHAIN, receiver);
         bytes memory callData = BuildCallData.buildMintCallBytes(
             _msgSender(),
-            nativeCurrencyId,
-            TARGETCHAIN
+            nativeToken,
+            targetChain,
+            remark
         );
         // XCM Transact
+        FeeInfo memory feeInfo = checkFeeInfo(Operation.Mint);
         XcmTransactorV2(XCM_TRANSACTORV2_ADDRESS).transactThroughSigned(
             xcmTransactorDestination,
             BNCAddress,
-            transactRequiredWeightAtMost,
+            feeInfo.transactRequiredWeightAtMost,
             callData,
-            feeAmount,
-            overallWeight
+            feeInfo.feeAmount,
+            feeInfo.overallWeight
         );
-        emit Mint(_msgSender(), NATIVE_ASSET_ADDRESS, msg.value, callData);
+        emit Mint(
+            _msgSender(),
+            NATIVE_ASSET_ADDRESS,
+            msg.value,
+            receiver,
+            callData,
+            remark
+        );
     }
 
     function mintVAsset(
         address assetAddress,
-        uint256 amount
+        uint256 amount,
+        address receiver,
+        string memory remark
     ) external override whenNotPaused {
-        bytes2 token = assetAddressToCurrencyId[assetAddress];
-        require(token != bytes2(0), "Invalid assetAddress");
+        require(bytes(remark).length <= 32, "remark too long");
+
+        bytes2 token = checkAssetIsExist(assetAddress);
 
         // xtokens call
         xcmTransferAsset(assetAddress, amount);
 
         // Build bifrost xcm-action mint call data
+        bytes memory targetChain = abi.encodePacked(MOONBEAM_CHAIN, receiver);
         bytes memory callData = BuildCallData.buildMintCallBytes(
             _msgSender(),
             token,
-            TARGETCHAIN
+            targetChain,
+            remark
         );
         // XCM Transact
+        FeeInfo memory feeInfo = checkFeeInfo(Operation.Mint);
         XcmTransactorV2(XCM_TRANSACTORV2_ADDRESS).transactThroughSigned(
             xcmTransactorDestination,
             BNCAddress,
-            transactRequiredWeightAtMost,
+            feeInfo.transactRequiredWeightAtMost,
             callData,
-            feeAmount,
-            overallWeight
+            feeInfo.feeAmount,
+            feeInfo.overallWeight
         );
-        emit Mint(_msgSender(), assetAddress, amount, callData);
+        emit Mint(
+            _msgSender(),
+            assetAddress,
+            amount,
+            receiver,
+            callData,
+            remark
+        );
     }
 
     function redeemAsset(
         address vAssetAddress,
-        uint256 amount
+        uint256 amount,
+        address receiver
     ) external override whenNotPaused {
-        bytes2 vtoken = assetAddressToCurrencyId[vAssetAddress];
-        require(vtoken != bytes2(0), "Invalid vAssetAddress");
+        bytes2 vtoken = checkAssetIsExist(vAssetAddress);
 
         // xtokens call
         xcmTransferAsset(vAssetAddress, amount);
 
         // xcm transactor call
+        bytes memory targetChain = abi.encodePacked(MOONBEAM_CHAIN, receiver);
         bytes memory callData = BuildCallData.buildRedeemCallBytes(
             _msgSender(),
             vtoken,
-            TARGETCHAIN
+            targetChain
         );
+        FeeInfo memory feeInfo = checkFeeInfo(Operation.Redeem);
         XcmTransactorV2(XCM_TRANSACTORV2_ADDRESS).transactThroughSigned(
             xcmTransactorDestination,
             BNCAddress,
-            transactRequiredWeightAtMost,
+            feeInfo.transactRequiredWeightAtMost,
             callData,
-            feeAmount,
-            overallWeight
+            feeInfo.feeAmount,
+            feeInfo.overallWeight
         );
-        emit Redeem(_msgSender(), vAssetAddress, amount, callData);
+        emit Redeem(_msgSender(), vAssetAddress, amount, receiver, callData);
+    }
+
+    function stablePoolSwap(
+        uint32 poolId,
+        address assetInAddress,
+        address assetOutAddress,
+        uint256 assetInAmount,
+        uint128 minDy,
+        address receiver
+    ) external override whenNotPaused {
+        bytes2 assetIn = checkAssetIsExist(assetInAddress);
+        bytes2 assetOut = checkAssetIsExist(assetOutAddress);
+
+        xcmTransferAsset(assetInAddress, assetInAmount);
+
+        // xcm transactor call
+        bytes memory targetChain = abi.encodePacked(MOONBEAM_CHAIN, receiver);
+        bytes memory callData = BuildCallData.buildStablePoolSwapCallBytes(
+            _msgSender(),
+            poolId,
+            assetIn,
+            assetOut,
+            minDy,
+            targetChain
+        );
+        FeeInfo memory feeInfo = checkFeeInfo(Operation.StableSwap);
+        XcmTransactorV2(XCM_TRANSACTORV2_ADDRESS).transactThroughSigned(
+            xcmTransactorDestination,
+            BNCAddress,
+            feeInfo.transactRequiredWeightAtMost,
+            callData,
+            feeInfo.feeAmount,
+            feeInfo.overallWeight
+        );
+        emit StablePoolSwap(
+            _msgSender(),
+            poolId,
+            assetInAddress,
+            assetOutAddress,
+            assetInAmount,
+            minDy,
+            receiver,
+            callData
+        );
     }
 
     function swapAssetsForExactAssets(
         address assetInAddress,
         address assetOutAddress,
         uint256 assetInAmount,
-        uint128 assetOutMin
+        uint128 assetOutMin,
+        address receiver
     ) external override whenNotPaused {
-        bytes2 assetIn = assetAddressToCurrencyId[assetInAddress];
-        bytes2 assetOut = assetAddressToCurrencyId[assetOutAddress];
-        require(assetIn != bytes2(0) && assetOut != bytes2(0), "Invalid asset");
+        bytes2 assetIn = checkAssetIsExist(assetInAddress);
+        bytes2 assetOut = checkAssetIsExist(assetOutAddress);
 
         xcmTransferAsset(assetInAddress, assetInAmount);
 
         // xcm transactor call
+        bytes memory targetChain = abi.encodePacked(MOONBEAM_CHAIN, receiver);
         bytes memory callData = BuildCallData.buildSwapCallBytes(
             _msgSender(),
             assetIn,
             assetOut,
             assetOutMin,
-            TARGETCHAIN
+            targetChain
         );
+        FeeInfo memory feeInfo = checkFeeInfo(Operation.ZenlinkSwap);
         XcmTransactorV2(XCM_TRANSACTORV2_ADDRESS).transactThroughSigned(
             xcmTransactorDestination,
             BNCAddress,
-            transactRequiredWeightAtMost,
+            feeInfo.transactRequiredWeightAtMost,
             callData,
-            feeAmount,
-            overallWeight
+            feeInfo.feeAmount,
+            feeInfo.overallWeight
         );
         emit Swap(
             _msgSender(),
@@ -268,6 +394,7 @@ contract MoonbeamSlpx is
             assetOutAddress,
             assetInAmount,
             assetOutMin,
+            receiver,
             callData
         );
     }
@@ -275,28 +402,31 @@ contract MoonbeamSlpx is
     function swapAssetsForExactNativeAssets(
         address assetInAddress,
         uint256 assetInAmount,
-        uint128 assetOutMin
+        uint128 assetOutMin,
+        address receiver
     ) external override whenNotPaused {
-        bytes2 assetIn = assetAddressToCurrencyId[assetInAddress];
-        require(assetIn != bytes2(0), "Invalid assetIn");
+        bytes2 assetIn = checkAssetIsExist(assetInAddress);
+        bytes2 nativeToken = checkAssetIsExist(NATIVE_ASSET_ADDRESS);
 
         xcmTransferAsset(assetInAddress, assetInAmount);
 
         // xcm transactor call
+        bytes memory targetChain = abi.encodePacked(MOONBEAM_CHAIN, receiver);
         bytes memory callData = BuildCallData.buildSwapCallBytes(
             _msgSender(),
             assetIn,
-            nativeCurrencyId,
+            nativeToken,
             assetOutMin,
-            TARGETCHAIN
+            targetChain
         );
+        FeeInfo memory feeInfo = checkFeeInfo(Operation.ZenlinkSwap);
         XcmTransactorV2(XCM_TRANSACTORV2_ADDRESS).transactThroughSigned(
             xcmTransactorDestination,
             BNCAddress,
-            transactRequiredWeightAtMost,
+            feeInfo.transactRequiredWeightAtMost,
             callData,
-            feeAmount,
-            overallWeight
+            feeInfo.feeAmount,
+            feeInfo.overallWeight
         );
         emit Swap(
             _msgSender(),
@@ -304,34 +434,38 @@ contract MoonbeamSlpx is
             NATIVE_ASSET_ADDRESS,
             assetInAmount,
             assetOutMin,
+            receiver,
             callData
         );
     }
 
     function swapNativeAssetsForExactAssets(
         address assetOutAddress,
-        uint128 assetOutMin
+        uint128 assetOutMin,
+        address receiver
     ) external payable override whenNotPaused {
-        bytes2 assetOut = assetAddressToCurrencyId[assetOutAddress];
-        require(assetOut != bytes2(0), "Invalid assetOut");
+        bytes2 assetOut = checkAssetIsExist(assetOutAddress);
+        bytes2 nativeToken = checkAssetIsExist(NATIVE_ASSET_ADDRESS);
 
         xcmTransferNativeAsset(msg.value);
 
         // xcm transactor call
+        bytes memory targetChain = abi.encodePacked(MOONBEAM_CHAIN, receiver);
         bytes memory callData = BuildCallData.buildSwapCallBytes(
             _msgSender(),
-            nativeCurrencyId,
+            nativeToken,
             assetOut,
             assetOutMin,
-            TARGETCHAIN
+            targetChain
         );
+        FeeInfo memory feeInfo = checkFeeInfo(Operation.ZenlinkSwap);
         XcmTransactorV2(XCM_TRANSACTORV2_ADDRESS).transactThroughSigned(
             xcmTransactorDestination,
             BNCAddress,
-            transactRequiredWeightAtMost,
+            feeInfo.transactRequiredWeightAtMost,
             callData,
-            feeAmount,
-            overallWeight
+            feeInfo.feeAmount,
+            feeInfo.overallWeight
         );
         emit Swap(
             _msgSender(),
@@ -339,6 +473,7 @@ contract MoonbeamSlpx is
             assetOutAddress,
             msg.value,
             assetOutMin,
+            receiver,
             callData
         );
     }

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity ^0.8.0;
+pragma solidity 0.8.10;
 
 /// @dev The Xtokens contract's address.
 address constant XTOKENS_ADDRESS = 0x0000000000000000000000000000000000000804;
