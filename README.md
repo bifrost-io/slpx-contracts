@@ -4,8 +4,8 @@
 
 ```shell
 cp .env.example .env
-yarn deployMoonbeam
-yarn deployMoonriver
+yarn deployToMoonbeam
+yarn deployToMoonriver
 ```
 
 | Network        | Slpx Address |

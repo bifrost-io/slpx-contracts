@@ -23,8 +23,8 @@
   "scripts": {
     "build": "hardhat compile",
     "deployAstar": "hardhat --network astar deploy",
-    "deployMoonbeam": "hardhat --network moonbeam deploy",
-    "deployMoonriver": "hardhat --network moonriver deploy",
+    "deployToMoonbeam": "hardhat --network moonbeam deploy",
+    "deployToMoonriver": "hardhat --network moonriver deploy",
     "deployMoonbaseAlpha": "hardhat --network moonbase_alpha deploy",
     "deployAstarRococo": "hardhat --network astar_rococo deploy",
     "lint:solidity": "solhint 'contracts/**/*.sol'",
