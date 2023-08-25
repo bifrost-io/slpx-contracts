@@ -10,7 +10,9 @@ yarn deployToMoonriver
 
 | Network        | Slpx Address |
 |----------------|--------------|
-| Astar Rococo   | 0x82745827D0B8972eC0583B3100eCb30b81Db0072          |
+| Moonrbeam      | 0xF1d4797E51a4640a76769A50b57abE7479ADd3d8          |
+| Moonriver      | 0x82745827D0B8972eC0583B3100eCb30b81Db0072          |
+| Astar Rococo   | 0x6b0A44c64190279f7034b77c13a566E914FE5Ec4          |
 | Moonbase Alpha | 0xA3C7AE227B41CcDF34f38D408Fb7fFD37395553A          |
 
 ## Contract info
