@@ -142,6 +142,9 @@ export async function cross_movr_to_bifrost(
 }
 
 const main = async () => {
+  // const relaychain_api = await getWsProviderInstance("wss://kusama-rpc.devnet.liebi.com/ws");
+  // const parachain_api = await getWsProviderInstance("wss://moonriver-rpc.devnet.liebi.com/ws");
+  // const bifrost_api = await getWsProviderInstance("wss://bifrost-rpc.devnet.liebi.com/ws");
   const relaychain_api = await getWsProviderInstance("ws://127.0.0.1:9900");
   const parachain_api = await getWsProviderInstance("ws://127.0.0.1:9910");
   const bifrost_api = await getWsProviderInstance("ws://127.0.0.1:9920");
@@ -175,13 +178,13 @@ const main = async () => {
     ),
   ]);
 
-  // await councilPropose(
-  //   bifrost_api,
-  //   alice,
-  //   1,
-  //   bifrost_set_up_calls,
-  //   bifrost_set_up_calls.encodedLength
-  // );
+  await councilPropose(
+    bifrost_api,
+    alice,
+    1,
+    bifrost_set_up_calls,
+    bifrost_set_up_calls.encodedLength
+  );
 
   // 165823357460190568952172802245839421906
   const calls = parachain_api.tx.utility.batchAll([
@@ -338,12 +341,13 @@ const main = async () => {
   //
   // await cross_ksm_to_bifrost(relaychain_api, alice, 1000n * KSM_DECIMALS);
   // await cross_ksm_to_moonriver(relaychain_api, alice, 1000n * KSM_DECIMALS);
-  // await cross_movr_to_bifrost(parachain_api, alith, 1000n * MOVR_DECIMALS);
+  await cross_movr_to_bifrost(parachain_api, alith, 1000n * MOVR_DECIMALS);
   //
   // // wait for 24 seconds to make sure the xcm message is executed in polkadot
   // await waitFor(24 * 1000);
   //
   // await mintVtoken(bifrost_api, alice, KSM, 500n * KSM_DECIMALS);
+  // await mintVtoken(bifrost_api, alice, MOVR, 500n * MOVR_DECIMALS);
 
   let ksm = {
     chainId: 2001,
@@ -373,36 +377,36 @@ const main = async () => {
     bifrost_api.tx.zenlinkProtocol.createPair(bnc, movr),
     bifrost_api.tx.zenlinkProtocol.createPair(ksm, movr),
   ]);
-  await democracyForCallNeedRootOrigin(bifrost_api, alice, s);
+  // await democracyForCallNeedRootOrigin(bifrost_api, alice, s);
   // await democracyForCallNeedRootOrigin(bifrost_api, alice, bifrost_api.tx.zenlinkProtocol.createPair(bnc,ksm))
   // await democracyForCallNeedRootOrigin(bifrost_api, alice, bifrost_api.tx.zenlinkProtocol.createPair(bnc,movr))
   // await democracyForCallNeedRootOrigin(bifrost_api, alice, bifrost_api.tx.zenlinkProtocol.createPair(ksm,movr))
 
-  await addLiquidity(
-    bifrost_api,
-    alice,
-    ksm,
-    vksm,
-    10n * KSM_DECIMALS,
-    10n * KSM_DECIMALS
-  );
+  // await addLiquidity(
+  //   bifrost_api,
+  //   alice,
+  //   ksm,
+  //   vksm,
+  //   10n * KSM_DECIMALS,
+  //   10n * KSM_DECIMALS
+  // );
   // await addLiquidity(bifrost_api,alice,bnc,ksm,1000n * BNC_DECIMALS,10n * KSM_DECIMALS);
-  await addLiquidity(
-    bifrost_api,
-    alice,
-    bnc,
-    movr,
-    1000n * BNC_DECIMALS,
-    10n * MOVR_DECIMALS
-  );
-  await addLiquidity(
-    bifrost_api,
-    alice,
-    ksm,
-    movr,
-    10n * KSM_DECIMALS,
-    10n * MOVR_DECIMALS
-  );
+  // await addLiquidity(
+  //   bifrost_api,
+  //   alice,
+  //   bnc,
+  //   movr,
+  //   1000n * BNC_DECIMALS,
+  //   10n * MOVR_DECIMALS
+  // );
+  // await addLiquidity(
+  //   bifrost_api,
+  //   alice,
+  //   ksm,
+  //   movr,
+  //   10n * KSM_DECIMALS,
+  //   10n * MOVR_DECIMALS
+  // );
 
   // await mint(bifrost_api, alice, MOVR, 100n * MOVR_DECIMALS)
   //

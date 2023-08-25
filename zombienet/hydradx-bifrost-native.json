@@ -4,49 +4,34 @@
 		"timeout": 1800
 	},
 	"relaychain": {
-		"chain": "kusama-local",
-		"default_command": "polkadot-v0.9.42-fast-sudo",
-		"default_args": ["-lparachain=debug", "-lxcm=trace", "--state-pruning=archive", "--no-hardware-benchmarks"],
+		"chain": "polkadot-local",
+		"default_command": "polkadot-v0.9.43-fast-sudo",
+		"default_args": ["-lparachain=debug", "--state-pruning=archive", "--no-hardware-benchmarks"],
 		"nodes": [
 			{
 				"name": "alice",
 				"validator": true,
-				"env": [
-					{
-						"name": "RUST_LOG",
-						"value": "trace"
-					}
-				],
+				"env": [{ "name": "RUST_LOG", "value": "trace" }],
 				"ws_port": "{{RELAY_WS_PORT}}",
 				"rpc_port": "{{RELAY_RPC_PORT}}"
 			},
 			{
 				"name": "bob",
 				"validator": true,
-				"env": [
-					{
-						"name": "RUST_LOG",
-						"value": "trace"
-					}
-				]
+				"env": [{ "name": "RUST_LOG", "value": "trace" }]
 			},
 			{
 				"name": "charlie",
 				"validator": true,
-				"env": [
-					{
-						"name": "RUST_LOG",
-						"value": "trace"
-					}
-				]
+				"env": [{ "name": "RUST_LOG", "value": "trace" }]
 			}
 		]
 	},
 	"parachains": [
 		{
 			"cumulus_based": true,
-			"id": 2023,
-			"chain": "moonriver-local",
+			"id": 2034,
+			"chain": "local",
 			"default_args": [
 				"--trie-cache-size=0",
 				"--state-pruning=archive",
@@ -57,18 +42,17 @@
 			],
 			"collators": [
 				{
-					"command": "moonbeam-2401",
-					"name": "alith",
+					"command": "hydradx",
+					"name": "alice",
 					"ws_port": "{{PARACHAIN_WS_PORT}}",
-					"rpc_port": "{{PARACHAIN_RPC_PORT}}",
-					"args": ["-lparachain=debug", "-lxcm=trace"]
+					"rpc_port": "{{PARACHAIN_RPC_PORT}}"
 				}
 			]
 		},
 		{
 			"cumulus_based": true,
-			"id": 2001,
-			"chain": "bifrost-kusama-local",
+			"id": 2030,
+			"chain": "bifrost-polkadot-local",
 			"default_args": [
 				"--trie-cache-size=0",
 				"--state-pruning=archive",
@@ -83,21 +67,21 @@
 					"name": "alice",
 					"ws_port": "{{BIFROST_WS_PORT}}",
 					"rpc_port": "{{BIFROST_RPC_PORT}}",
-					"args": ["-lparachain=debug,slpx=info", "-lxcm=trace","-llog=info"]
+					"args": ["-lparachain=debug", "-lxcm=trace"]
 				}
 			]
 		}
 	],
 	"hrmp_channels": [
 		{
-			"sender": 2023,
-			"recipient": 2001,
+			"sender": 2034,
+			"recipient": 2030,
 			"max_capacity": 8,
 			"max_message_size": 512
 		},
 		{
-			"sender": 2001,
-			"recipient": 2023,
+			"sender": 2030,
+			"recipient": 2034,
 			"max_capacity": 8,
 			"max_message_size": 512
 		}

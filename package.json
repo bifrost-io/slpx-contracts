@@ -28,7 +28,8 @@
     "deployMoonbaseAlpha": "hardhat --network moonbase_alpha deploy",
     "deployAstarRococo": "hardhat --network astar_rococo deploy",
     "lint:solidity": "solhint 'contracts/**/*.sol'",
-    "format": "prettier --write contracts/**/*.sol contracts/*.sol deploy/**/*.ts test/*.ts scripts/*.ts hardhat.config.ts"
+    "format_sol": "prettier --write --plugin=prettier-plugin-solidity contracts/**/*.sol contracts/*.sol",
+    "format_ts": "prettier --write deploy/**/*.ts test/*.ts scripts/*.ts hardhat.config.ts"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "^2.0.1",

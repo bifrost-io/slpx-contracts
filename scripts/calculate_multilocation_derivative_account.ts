@@ -10,6 +10,10 @@ export async function calculate_multilocation_derivative_account(
   let interior;
   if (para_id == 2006) {
     interior = {
+      //X2: [
+      //         { Parachain: 2034 },
+      //         { AccountId32: { network: null, id: publicKey } },
+      //       ],
       X2: [
         { Parachain: 2006 },
         { AccountId32: { network: { polkadot: null }, id: publicKey } },

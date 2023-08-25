@@ -82,7 +82,7 @@ export async function mintVtoken(
 ) {
   return new Promise((resolve) => {
     api.tx.vtokenMinting
-      .mint(token, amount)
+      .mint(token, amount,"Hello")
       .signAndSend(signer, ({ status }) => {
         if (status.isFinalized) {
           console.log(
@@ -384,7 +384,7 @@ export async function addLiquidity(
         token_out_amount,
         0n,
         0n,
-        10000n
+        200000n
       )
       .signAndSend(signer, ({ status }) => {
         if (status.isFinalized) {

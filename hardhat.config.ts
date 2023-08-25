@@ -44,13 +44,13 @@ const config: HardhatUserConfig = {
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
     moonbeam_local: {
-      url: "http://127.0.0.1:8910",
+      url: "https://moonbeam-rpc.devnet.liebi.com",
       chainId: 1280,
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
     moonriver_local: {
-      url: "http://127.0.0.1:8910",
+      url: "https://moonriver-rpc.devnet.liebi.com",
       chainId: 1280,
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],

@@ -83,30 +83,7 @@ contract MoonbeamSlpx is ISlpx, OwnableUpgradeable, PausableUpgradeable {
             _nativeCurrencyId == 0x020a || _nativeCurrencyId == 0x0801,
             "Invalid nativeCurrencyId"
         );
-        setOperationToFeeInfo(
-            Operation.Mint,
-            10_000_000_000,
-            1_000_000_000_000,
-            10_000_000_000
-        );
-        setOperationToFeeInfo(
-            Operation.Redeem,
-            10_000_000_000,
-            1_000_000_000_000,
-            10_000_000_000
-        );
-        setOperationToFeeInfo(
-            Operation.ZenlinkSwap,
-            10_000_000_000,
-            1_000_000_000_000,
-            10_000_000_000
-        );
-        setOperationToFeeInfo(
-            Operation.StableSwap,
-            10_000_000_000,
-            1_000_000_000_000,
-            10_000_000_000
-        );
+
         setAssetAddressInfo(_BNCAddress, 0x0001, 1_000_000_000_000);
         setAssetAddressInfo(
             NATIVE_ASSET_ADDRESS,

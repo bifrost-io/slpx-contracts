@@ -154,9 +154,10 @@ export async function cross_glmr_to_bifrost(
 }
 
 const main = async () => {
-  const relaychain_api = await getWsProviderInstance("ws://127.0.0.1:9900");
-  const parachain_api = await getWsProviderInstance("ws://127.0.0.1:9910");
-  const bifrost_api = await getWsProviderInstance("ws://127.0.0.1:9920");
+  // const relaychain_api = await getWsProviderInstance("ws://127.0.0.1:9900");
+  // const parachain_api = await getWsProviderInstance("ws://127.0.0.1:9910");
+  // const bifrost_api = await getWsProviderInstance("ws://127.0.0.1:9920");
+  const bifrost_api = await getWsProviderInstance("wss://bifrost-polkadot-rpc.devnet.liebi.com/ws");
   const keyring = new Keyring({ type: "sr25519", ss58Format: 6 });
   const alice = keyring.addFromUri("//Alice");
   const keyringEth = new Keyring({ type: "ethereum" });
@@ -198,129 +199,129 @@ const main = async () => {
   // );
 
   // 165823357460190568952172802245839421906
-  const calls = parachain_api.tx.utility.batchAll([
-    parachain_api.tx.assetManager.registerForeignAsset(
-      {
-        Xcm: {
-          parents: 1,
-          interior: {
-            X2: [
-              { Parachain: 2030n },
-              {
-                GeneralKey: {
-                  length: 2,
-                  data: "0x0001000000000000000000000000000000000000000000000000000000000000",
-                },
-              },
-            ],
-          },
-        },
-      },
-      {
-        name: "xcBNC",
-        symbol: "xcBNC",
-        decimals: 12,
-        isFrozen: false,
-      },
-      1n,
-      false
-    ),
-    parachain_api.tx.assetManager.setAssetUnitsPerSecond(
-      {
-        Xcm: {
-          parents: 1,
-          interior: {
-            X2: [
-              { Parachain: 2030n },
-              {
-                GeneralKey: {
-                  length: 2,
-                  data: "0x0001000000000000000000000000000000000000000000000000000000000000",
-                },
-              },
-            ],
-          },
-        },
-      },
-      1n,
-      1n
-    ),
-
-    // 92952664215507824241621286735706447981
-    parachain_api.tx.assetManager.registerForeignAsset(
-      {
-        Xcm: {
-          parents: 1,
-          interior: {
-            X2: [
-              { Parachain: 2030n },
-              {
-                GeneralKey: {
-                  length: 2,
-                  data: "0x0901000000000000000000000000000000000000000000000000000000000000",
-                },
-              },
-            ],
-          },
-        },
-      },
-      {
-        name: "vGLMR",
-        symbol: "vGLMR",
-        decimals: 18,
-        isFrozen: false,
-      },
-      1n,
-      false
-    ),
-    parachain_api.tx.assetManager.registerForeignAsset(
-      {
-        Xcm: {
-          parents: 1,
-          interior: {
-            X2: [
-              { Parachain: 2030n },
-              {
-                GeneralKey: {
-                  length: 2,
-                  data: "0x0900000000000000000000000000000000000000000000000000000000000000",
-                },
-              },
-            ],
-          },
-        },
-      },
-      {
-        name: "vDOT",
-        symbol: "vDOT",
-        decimals: 10,
-        isFrozen: false,
-      },
-      1n,
-      false
-    ),
-    parachain_api.tx.assetManager.registerForeignAsset(
-      { Xcm: { parents: 1, interior: "Here" } },
-      {
-        name: "xcDOT",
-        symbol: "xcDOT",
-        decimals: 10,
-        isFrozen: false,
-      },
-      1n,
-      false
-    ),
-    parachain_api.tx.assetManager.setAssetUnitsPerSecond(
-      {
-        Xcm: {
-          parents: 1,
-          interior: "Here",
-        },
-      },
-      1n,
-      1n
-    ),
-  ]);
+  // const calls = parachain_api.tx.utility.batchAll([
+  //   parachain_api.tx.assetManager.registerForeignAsset(
+  //     {
+  //       Xcm: {
+  //         parents: 1,
+  //         interior: {
+  //           X2: [
+  //             { Parachain: 2030n },
+  //             {
+  //               GeneralKey: {
+  //                 length: 2,
+  //                 data: "0x0001000000000000000000000000000000000000000000000000000000000000",
+  //               },
+  //             },
+  //           ],
+  //         },
+  //       },
+  //     },
+  //     {
+  //       name: "xcBNC",
+  //       symbol: "xcBNC",
+  //       decimals: 12,
+  //       isFrozen: false,
+  //     },
+  //     1n,
+  //     false
+  //   ),
+  //   parachain_api.tx.assetManager.setAssetUnitsPerSecond(
+  //     {
+  //       Xcm: {
+  //         parents: 1,
+  //         interior: {
+  //           X2: [
+  //             { Parachain: 2030n },
+  //             {
+  //               GeneralKey: {
+  //                 length: 2,
+  //                 data: "0x0001000000000000000000000000000000000000000000000000000000000000",
+  //               },
+  //             },
+  //           ],
+  //         },
+  //       },
+  //     },
+  //     1n,
+  //     1n
+  //   ),
+  //
+  //   // 92952664215507824241621286735706447981
+  //   parachain_api.tx.assetManager.registerForeignAsset(
+  //     {
+  //       Xcm: {
+  //         parents: 1,
+  //         interior: {
+  //           X2: [
+  //             { Parachain: 2030n },
+  //             {
+  //               GeneralKey: {
+  //                 length: 2,
+  //                 data: "0x0901000000000000000000000000000000000000000000000000000000000000",
+  //               },
+  //             },
+  //           ],
+  //         },
+  //       },
+  //     },
+  //     {
+  //       name: "vGLMR",
+  //       symbol: "vGLMR",
+  //       decimals: 18,
+  //       isFrozen: false,
+  //     },
+  //     1n,
+  //     false
+  //   ),
+  //   parachain_api.tx.assetManager.registerForeignAsset(
+  //     {
+  //       Xcm: {
+  //         parents: 1,
+  //         interior: {
+  //           X2: [
+  //             { Parachain: 2030n },
+  //             {
+  //               GeneralKey: {
+  //                 length: 2,
+  //                 data: "0x0900000000000000000000000000000000000000000000000000000000000000",
+  //               },
+  //             },
+  //           ],
+  //         },
+  //       },
+  //     },
+  //     {
+  //       name: "vDOT",
+  //       symbol: "vDOT",
+  //       decimals: 10,
+  //       isFrozen: false,
+  //     },
+  //     1n,
+  //     false
+  //   ),
+  //   parachain_api.tx.assetManager.registerForeignAsset(
+  //     { Xcm: { parents: 1, interior: "Here" } },
+  //     {
+  //       name: "xcDOT",
+  //       symbol: "xcDOT",
+  //       decimals: 10,
+  //       isFrozen: false,
+  //     },
+  //     1n,
+  //     false
+  //   ),
+  //   parachain_api.tx.assetManager.setAssetUnitsPerSecond(
+  //     {
+  //       Xcm: {
+  //         parents: 1,
+  //         interior: "Here",
+  //       },
+  //     },
+  //     1n,
+  //     1n
+  //   ),
+  // ]);
 
   // await sudo(parachain_api, alith, calls)
 
@@ -361,7 +362,7 @@ const main = async () => {
     bifrost_api.tx.zenlinkProtocol.createPair(bnc, glmr),
     bifrost_api.tx.zenlinkProtocol.createPair(dot, glmr),
   ]);
-  await democracyForCallNeedRootOrigin(bifrost_api, alice, s);
+  // await democracyForCallNeedRootOrigin(bifrost_api, alice, s);
 
   await addLiquidity(
     bifrost_api,
