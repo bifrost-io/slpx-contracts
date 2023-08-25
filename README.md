@@ -1,5 +1,13 @@
 # Slpx contracts
 
+## Depoly contracts
+
+```shell
+cp .env.example .env
+yarn deployMoonbeam
+yarn deployMoonriver
+```
+
 Slpx contracts contract to do xcm call to Bifrost's xcm-action pallet.
 
 | Network        | Slpx Address |
@@ -14,22 +22,36 @@ Slpx contracts contract to do xcm call to Bifrost's xcm-action pallet.
 - swapAssetsForExactNativeAssets(address assetInAddress, uint256 assetInAmount, uint128 assetOutMin) external: Swap a Token into a parachain native Token, such as BNC Swap into GLMR
 - swapNativeAssetsForExactAssets(address assetOutAddress, uint128 assetOutMin) payable external: Swap the original Token of the parachain into other Tokens, such as GLMR Swap into BNC
 
-## Astar precompiled contracts
+## FeeInfo
 
-* [XCM.sol](https://github.com/AstarNetwork/astar-frame/blob/polkadot-v0.9.39/precompiles/xcm/XCM.sol) - xcm precompiled contract.
+| Operation   | transactRequiredWeightAtMost | feeAmount       | overallWeight  |
+| ----------- | ---------------------------- | --------------- | -------------- |
+| Mint        | 10_000_000_000               | 100_000_000_000 | 10_000_000_000 |
+| Redeem      | 10_000_000_000               | 100_000_000_000 | 10_000_000_000 |
+| ZenlinkSwap | 10_000_000_000               | 100_000_000_000 | 10_000_000_000 |
+| StableSwap  | 10_000_000_000               | 100_000_000_000 | 10_000_000_000 |
 
-## Moonbeam precompiled contracts
+## CurrencyId
 
-* [XcmTransactorV2.sol](https://github.com/PureStake/moonbeam/blob/master/precompiles/xcm-transactor/src/v2/XcmTransactorV2.sol) - xcm-transactorV2 precompiled contract.
-* [Xtokens.sol](https://github.com/PureStake/moonbeam/blob/master/precompiles/xtokens/Xtokens.sol) - xtokens precompiled contract.
-* [Batch.sol](https://github.com/PureStake/moonbeam/blob/master/precompiles/batch/Batch.sol) - batch precompiled contract.
+### Moonbeam
 
-## Hardhat tasks
+| Token                         | Address                                    | CurrencyId | operationalMin            |
+| ----------------------------- | ------------------------------------------ | ---------- | ------------------------- |
+| Bifrost Voucher DOT           | 0xFFFfffFf15e1b7E3dF971DD813Bc394deB899aBf | 0x0900     | 100_000_000_000           |
+| Bifrost Voucher GLMR          | 0xFfFfFFff99dABE1a8De0EA22bAa6FD48fdE96F6c | 0x0901     | 1_000_000_000_000_000_000 |
+| Bifrost Filecoin Native Token | 0xfFFfFFFF6C57e17D210DF507c82807149fFd70B2 | 0x0804     | 1_000_000_000_000_000_000 |
+| Bifrost Voucher FIL           | 0xFffffFffCd0aD0EA6576B7b285295c85E94cf4c1 | 0x0904     | 1_000_000_000_000_000_000 |
+| BNC                           | 0xFFffffFf7cC06abdF7201b350A1265c62C8601d2 | 0x0001     | 1_000_000_000_000         |
+| xcDOT                         | 0xFfFFfFff1FcaCBd218EDc0EbA20Fc2308C778080 | 0x0800     | 100_000_000_000           |
+| GLMR                          | 0x0000000000000000000000000000000000000802 | 0x0801     | 1_000_000_000_000_000_000 |
 
-```sh
-npx hardhat help
-npx hardhat test
-REPORT_GAS=true npx hardhat test
-npx hardhat node
-npx hardhat run scripts/deploy.ts
-```
+## Moonriver
+
+| Token                | Address                                    | CurrencyId | operationalMin            |
+| -------------------- | ------------------------------------------ | ---------- | ------------------------- |
+| Bifrost Voucher KSM  | 0xFFffffFFC6DEec7Fc8B11A2C8ddE9a59F8c62EFe | 0x0104     | 1_000_000_000_000         |
+| Bifrost Voucher MOVR | 0xfFfffFfF98e37bF6a393504b5aDC5B53B4D0ba11 | 0x010a     | 1_000_000_000_000_000_000 |
+| Bifrost Voucher BNC  | 0xFFffffff3646A00f78caDf8883c5A2791BfCDdc4 | 0x0101     | 1_000_000_000_000         |
+| xcBNC                | 0xFFfFFfFFF075423be54811EcB478e911F22dDe7D | 0x0001     | 1_000_000_000_000         |
+| xcKSM                | 0xFfFFfFff1FcaCBd218EDc0EbA20Fc2308C778080 | 0x0204     | 1_000_000_000_000         |
+| MOVR                 | 0x0000000000000000000000000000000000000802 | 0x020a     | 1_000_000_000_000_000_000 |

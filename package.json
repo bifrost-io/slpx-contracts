@@ -22,9 +22,9 @@
   "license": "Apache-2.0",
   "scripts": {
     "build": "hardhat compile",
-    "deployAstar": "hardhat run deploy/astarSlpx.ts --network astar",
-    "deployMoonbeam": "hardhat run deploy/moonbeamSlpx.ts --network moonbeam",
-    "deployMoonriver": "hardhat run deploy/moonriverSlpx.ts --network moonriver",
+    "deployAstar": "hardhat --network astar deploy",
+    "deployMoonbeam": "hardhat --network moonbeam deploy",
+    "deployMoonriver": "hardhat --network moonriver deploy",
     "deployMoonbaseAlpha": "hardhat --network moonbase_alpha deploy",
     "deployAstarRococo": "hardhat --network astar_rococo deploy",
     "lint:solidity": "solhint 'contracts/**/*.sol'",
