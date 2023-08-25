@@ -8,8 +8,6 @@ yarn deployMoonbeam
 yarn deployMoonriver
 ```
 
-Slpx contracts contract to do xcm call to Bifrost's xcm-action pallet.
-
 | Network        | Slpx Address |
 |----------------|--------------|
 | Astar Rococo   | 0x82745827D0B8972eC0583B3100eCb30b81Db0072          |
