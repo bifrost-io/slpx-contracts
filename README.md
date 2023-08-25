@@ -36,22 +36,22 @@ yarn deployMoonriver
 ### Moonbeam
 
 |             Token             |                  Address                   | CurrencyId |      operationalMin       |
-| :---------------------------: | :----------------------------------------: | :--------: | :-----------------------: |
+|:-----------------------------:| :----------------------------------------: | :--------: | :-----------------------: |
 |              BNC              | 0xFFffffFf7cC06abdF7201b350A1265c62C8601d2 |   0x0001   |     1_000_000_000_000     |
 |             xcDOT             | 0xFfFFfFff1FcaCBd218EDc0EbA20Fc2308C778080 |   0x0800   |      10_000_000_000       |
 |             GLMR              | 0x0000000000000000000000000000000000000802 |   0x0801   | 5_000_000_000_000_000_000 |
-| Bifrost Filecoin Native Token | 0xfFFfFFFF6C57e17D210DF507c82807149fFd70B2 |   0x0804   | 1_000_000_000_000_000_000 |
-|      Bifrost Voucher DOT      | 0xFFFfffFf15e1b7E3dF971DD813Bc394deB899aBf |   0x0900   |       8_000_000_000       |
-|     Bifrost Voucher GLMR      | 0xFfFfFFff99dABE1a8De0EA22bAa6FD48fdE96F6c |   0x0901   | 4_000_000_000_000_000_000 |
-|      Bifrost Voucher FIL      | 0xFffffFffCd0aD0EA6576B7b285295c85E94cf4c1 |   0x0904   |  800_000_000_000_000_000  |
+| Bifrost_Filecoin_Native_Token | 0xfFFfFFFF6C57e17D210DF507c82807149fFd70B2 |   0x0804   | 1_000_000_000_000_000_000 |
+|      Bifrost_Voucher_DOT      | 0xFFFfffFf15e1b7E3dF971DD813Bc394deB899aBf |   0x0900   |       8_000_000_000       |
+|     Bifrost_Voucher_GLMR      | 0xFfFfFFff99dABE1a8De0EA22bAa6FD48fdE96F6c |   0x0901   | 4_000_000_000_000_000_000 |
+|      Bifrost_Voucher_FIL      | 0xFffffFffCd0aD0EA6576B7b285295c85E94cf4c1 |   0x0904   |  800_000_000_000_000_000  |
 
 ## Moonriver
 
 |        Token         |                  Address                   | CurrencyId |     operationalMin      |
-| :------------------: | :----------------------------------------: | :--------: | :---------------------: |
+|:--------------------:| :----------------------------------------: | :--------: | :---------------------: |
 |        xcBNC         | 0xFFfFFfFFF075423be54811EcB478e911F22dDe7D |   0x0001   |    1_000_000_000_000    |
 |        xcKSM         | 0xFfFFfFff1FcaCBd218EDc0EbA20Fc2308C778080 |   0x0204   |     500_000_000_000     |
 |         MOVR         | 0x0000000000000000000000000000000000000802 |   0x020a   | 500_000_000_000_000_000 |
-| Bifrost Voucher BNC  | 0xFFffffff3646A00f78caDf8883c5A2791BfCDdc4 |   0x0101   |     800_000_000_000     |
-| Bifrost Voucher KSM  | 0xFFffffFFC6DEec7Fc8B11A2C8ddE9a59F8c62EFe |   0x0104   |     400_000_000_000     |
-| Bifrost Voucher MOVR | 0xfFfffFfF98e37bF6a393504b5aDC5B53B4D0ba11 |   0x010a   | 400_000_000_000_000_000 |
+| Bifrost_Voucher_BNC  | 0xFFffffff3646A00f78caDf8883c5A2791BfCDdc4 |   0x0101   |     800_000_000_000     |
+| Bifrost_Voucher_KSM  | 0xFFffffFFC6DEec7Fc8B11A2C8ddE9a59F8c62EFe |   0x0104   |     400_000_000_000     |
+| Bifrost_Voucher_MOVR | 0xfFfffFfF98e37bF6a393504b5aDC5B53B4D0ba11 |   0x010a   | 400_000_000_000_000_000 |
