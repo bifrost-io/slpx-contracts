@@ -15,6 +15,8 @@ Slpx contracts contract to do xcm call to Bifrost's xcm-action pallet.
 | Astar Rococo   | 0x82745827D0B8972eC0583B3100eCb30b81Db0072          |
 | Moonbase Alpha | 0xA3C7AE227B41CcDF34f38D408Fb7fFD37395553A          |
 
+## Contract info
+
 - mintVNativeAsset() payable external: Cast the original Token on the parachain into VToken
 - mintVAsset(address assetAddress,uint256 amount) external: Cast the non-native Token on the parachain into VToken, such as DOT->vDOT
 - redeemAsset(address vAssetAddress, uint256 amount) external: Redeem your own VToken into Token. The redemption period varies according to the Token. For example, vDOT redemption is 0-28 days
