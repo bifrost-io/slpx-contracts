@@ -10,6 +10,7 @@ yarn deployToMoonriver
 
 | Network        | Slpx Address |
 |----------------|--------------|
+| Astar          | 0xc6bf0C5C78686f1D0E2E54b97D6de6e2cEFAe9fD          |
 | Moonrbeam      | 0xF1d4797E51a4640a76769A50b57abE7479ADd3d8          |
 | Moonriver      | 0x6b0A44c64190279f7034b77c13a566E914FE5Ec4          |
 | Astar Rococo   | 0x6b0A44c64190279f7034b77c13a566E914FE5Ec4          |
@@ -34,6 +35,13 @@ yarn deployToMoonriver
 | StableSwap  | 10_000_000_000               | 100_000_000_000 | 10_000_000_000 |
 
 ## CurrencyId
+
+### Astar
+
+| Token                         | Address                                    | CurrencyId | operationalMin            |
+| :---------------------------- | :----------------------------------------- |:-----------|:--------------------------|
+| BNC                           | 0xfFffFffF00000000000000010000000000000007 | 0x0001     | 1_000_000_000_000         |
+| Bifrost_Voucher_ASTR           | 0xfffFffff00000000000000010000000000000010 | 0x0903     | 1_000_000_000_000_000_000 |
 
 ### Moonbeam
 

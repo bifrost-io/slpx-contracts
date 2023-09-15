@@ -56,8 +56,8 @@ const config: HardhatUserConfig = {
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
     astar_local: {
-      url: "http://127.0.0.1:8910",
-      chainId: 692,
+      url: "https://astar-rpc.devnet.liebi.com/ws",
+      chainId: 592,
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },

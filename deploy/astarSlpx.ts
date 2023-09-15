@@ -42,7 +42,7 @@ const deployFunction: DeployFunction = async function ({
         execute: {
           init: {
             methodName: "initialize",
-            args: [100000000000, 10000000000],
+            args: [],
           },
         },
       },
