@@ -4,6 +4,7 @@
 
 ```shell
 cp .env.example .env
+yarn deployToAstar
 yarn deployToMoonbeam
 yarn deployToMoonriver
 ```
