@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "./interfaces/XCM.sol";
+import "./interfaces/XCM_v2.sol";
 import "./interfaces/ISlpx.sol";
 import "./utils/BuildCallData.sol";
 import "./utils/AddressToAccount.sol";
@@ -89,7 +90,9 @@ contract AstarSlpx is ISlpx, OwnableUpgradeable, PausableUpgradeable {
     ) public onlyOwner {
         require(minimumValue != 0, "Invalid minimumValue");
         require(currencyId != bytes2(0), "Invalid currencyId");
-        addressToAssetInfo[assetAddress] = AssetInfo(currencyId, minimumValue);
+        AssetInfo storage assetInfo = addressToAssetInfo[assetAddress];
+        assetInfo.currencyId = currencyId;
+        assetInfo.operationalMin = minimumValue;
     }
 
     function pause() external onlyOwner {
@@ -98,34 +101,6 @@ contract AstarSlpx is ISlpx, OwnableUpgradeable, PausableUpgradeable {
 
     function unpause() external onlyOwner {
         _unpause();
-    }
-
-    function xcmTransferAsset(address assetAddress, uint256 amount) internal {
-        require(assetAddress != address(0), "Invalid assetAddress");
-        require(
-            amount >= addressToAssetInfo[assetAddress].operationalMin,
-            "Less than MinimumValue"
-        );
-        bytes32 publicKey = AddressToAccount.AddressToSubstrateAccount(
-            _msgSender()
-        );
-        address[] memory assetId = new address[](1);
-        uint256[] memory assetAmount = new uint256[](1);
-        IERC20 erc20 = IERC20(assetAddress);
-        erc20.transferFrom(_msgSender(), address(this), amount);
-        assetId[0] = assetAddress;
-        assetAmount[0] = amount;
-        require(
-            XCM(XCM_ADDRESS).assets_withdraw(
-                assetId,
-                assetAmount,
-                publicKey,
-                false,
-                BIFROST_PARA_ID,
-                0
-            ),
-            "Failed to send xcm"
-        );
     }
 
     function xcmTransferNativeAsset(uint256 amount) internal {
@@ -148,6 +123,32 @@ contract AstarSlpx is ISlpx, OwnableUpgradeable, PausableUpgradeable {
                 false,
                 BIFROST_PARA_ID,
                 0
+            ),
+            "Failed to send xcm"
+        );
+    }
+
+    function xcmTransferAsset(address assetAddress, uint256 amount) internal {
+        require(assetAddress != address(0), "Invalid assetAddress");
+        require(
+            amount >= addressToAssetInfo[assetAddress].operationalMin,
+            "Less than MinimumValue"
+        );
+        bytes32 publicKey = AddressToAccount.AddressToSubstrateAccount(
+            _msgSender()
+        );
+
+        XCM_v2.Multilocation memory dest_account = getXtokensDestination(
+            publicKey
+        );
+        IERC20 asset = IERC20(assetAddress);
+        asset.transferFrom(_msgSender(), address(this), amount);
+        require(
+            XCM_v2(XCM_ADDRESS).transfer(
+                assetAddress,
+                amount,
+                dest_account,
+                XCM_v2.WeightV2(0,0)
             ),
             "Failed to send xcm"
         );
@@ -194,12 +195,47 @@ contract AstarSlpx is ISlpx, OwnableUpgradeable, PausableUpgradeable {
     }
 
     function mintVAsset(
-        address,
-        uint256,
-        address,
-        string memory
-    ) external pure override {
-        require(false, "Not support");
+        address assetAddress,
+        uint256 amount,
+        address receiver,
+        string memory remark
+    ) external override {
+        require(bytes(remark).length <= 32, "remark too long");
+
+        bytes2 token = checkAssetIsExist(assetAddress);
+
+        // xtokens call
+        xcmTransferAsset(assetAddress, amount);
+
+        bytes memory targetChain = abi.encodePacked(ASTAR_CHAIN, receiver);
+        bytes memory callData = BuildCallData.buildMintCallBytes(
+            _msgSender(),
+            token,
+            targetChain,
+            remark
+        );
+
+        // xcm transact
+        FeeInfo memory feeInfo = checkFeeInfo(Operation.Mint);
+        require(
+            XCM(XCM_ADDRESS).remote_transact(
+                BIFROST_PARA_ID,
+                false,
+                BNC_ADDRESS,
+                feeInfo.feeAmount,
+                callData,
+                feeInfo.transactRequiredWeightAtMost
+            ),
+            "Failed to send xcm"
+        );
+        emit Mint(
+            _msgSender(),
+            assetAddress,
+            amount,
+            receiver,
+            callData,
+            remark
+        );
     }
 
     function redeemAsset(
@@ -375,5 +411,21 @@ contract AstarSlpx is ISlpx, OwnableUpgradeable, PausableUpgradeable {
             receiver,
             callData
         );
+    }
+
+    function getXtokensDestination(
+        bytes32 publicKey
+    ) internal pure returns (XCM_v2.Multilocation memory) {
+        bytes[] memory interior = new bytes[](2);
+        // Parachain: 2001/2030
+        interior[0] = bytes.concat(hex"00", bytes4(BIFROST_PARA_ID));
+        // AccountId32: { id: public_key , network: any }
+        interior[1] = bytes.concat(hex"01", publicKey, hex"00");
+        XCM_v2.Multilocation memory dest = XCM_v2.Multilocation({
+            parents: 1,
+            interior: interior
+        });
+
+        return dest;
     }
 }
