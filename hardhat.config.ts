@@ -43,26 +43,8 @@ const config: HardhatUserConfig = {
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
-    moonbeam_local: {
-      url: "https://moonbeam-rpc.devnet.liebi.com",
-      chainId: 1280,
-      accounts:
-        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
-    },
-    moonriver_local: {
-      url: "https://moonriver-rpc.devnet.liebi.com",
-      chainId: 1280,
-      accounts:
-        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
-    },
-    astar_local: {
-      url: "https://astar-rpc.devnet.liebi.com/ws",
-      chainId: 592,
-      accounts:
-        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
-    },
     astar_rococo: {
-      url: "https://evm.rocstar.astar.network",
+      url: "https://rocstar.astar.network",
       chainId: 692,
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
@@ -81,6 +63,13 @@ const config: HardhatUserConfig = {
       },
     },
   },
+  etherscan: {
+    apiKey: {
+      moonbeam: process.env.MOONBEAM_API_KEY !== undefined ? process.env.MOONBEAM_API_KEY : '' ,
+      moonriver: process.env.MOONRIVER_API_KEY !== undefined ? process.env.MOONRIVER_API_KEY : '' ,
+      moonbaseAlpha: 'INSERT_MOONSCAN_API_KEY', // Moonbeam Moonscan API Key
+    }
+  }
 };
 
 export default config;
