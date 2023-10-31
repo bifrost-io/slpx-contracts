@@ -14,35 +14,28 @@ yarn deployToMoonriver
 | Astar          | 0xc6bf0C5C78686f1D0E2E54b97D6de6e2cEFAe9fD          |
 | Moonrbeam      | 0xF1d4797E51a4640a76769A50b57abE7479ADd3d8          |
 | Moonriver      | 0x6b0A44c64190279f7034b77c13a566E914FE5Ec4          |
-| Astar Rococo   | 0x6b0A44c64190279f7034b77c13a566E914FE5Ec4          |
-| Moonbase Alpha | 0xA3C7AE227B41CcDF34f38D408Fb7fFD37395553A          |
+| Astar Rococo   | 0xf8B6c4Ec654e4fDCB8f5B58094D93BE268B18fAc          |
 
 ## Contract info
 
-- mintVNativeAsset() payable external: Cast the original Token on the parachain into VToken
-- mintVAsset(address assetAddress,uint256 amount) external: Cast the non-native Token on the parachain into VToken, such as DOT->vDOT
+- mintVNativeAsset(address receiver, string memory remark) payable external: Cast the original Token on the parachain into VToken
+- mintVAsset(address assetAddress,uint256 amount, address receiver, string memory remark) external: Cast the non-native Token on the parachain into VToken, such as DOT->vDOT
 - redeemAsset(address vAssetAddress, uint256 amount) external: Redeem your own VToken into Token. The redemption period varies according to the Token. For example, vDOT redemption is 0-28 days
-- swapAssetsForExactAssets(address assetInAddress, address assetOutAddress,uint256 assetInAmount, uint128 assetOutMin) external：Swap one Token into another Token, such as BNC Swap into DOT
-- swapAssetsForExactNativeAssets(address assetInAddress, uint256 assetInAmount, uint128 assetOutMin) external: Swap a Token into a parachain native Token, such as BNC Swap into GLMR
-- swapNativeAssetsForExactAssets(address assetOutAddress, uint128 assetOutMin) payable external: Swap the original Token of the parachain into other Tokens, such as GLMR Swap into BNC
-
-## FeeInfo
-
-| Operation   | transactRequiredWeightAtMost | feeAmount       | overallWeight  |
-| :---------- | :--------------------------- | :-------------- | -------------- |
-| Mint        | 10_000_000_000               | 100_000_000_000 | 10_000_000_000 |
-| Redeem      | 10_000_000_000               | 100_000_000_000 | 10_000_000_000 |
-| ZenlinkSwap | 10_000_000_000               | 100_000_000_000 | 10_000_000_000 |
-| StableSwap  | 10_000_000_000               | 100_000_000_000 | 10_000_000_000 |
+- swapAssetsForExactAssets(address assetInAddress, address assetOutAddress,uint256 assetInAmount, uint128 assetOutMin, address receiver) external：Swap one Token into another Token, such as BNC Swap into DOT
+- swapAssetsForExactNativeAssets(address assetInAddress, uint256 assetInAmount, uint128 assetOutMin, address receiver) external: Swap a Token into a parachain native Token, such as BNC Swap into GLMR
+- swapNativeAssetsForExactAssets(address assetOutAddress, uint128 assetOutMin, address receiver) payable external: Swap the original Token of the parachain into other Tokens, such as GLMR Swap into BNC
 
 ## CurrencyId
 
 ### Astar
 
-| Token                         | Address                                    | CurrencyId | operationalMin          |
-| :---------------------------- | :----------------------------------------- |:-----------|:------------------------|
-| BNC                           | 0xfFffFffF00000000000000010000000000000007 | 0x0001     | 1_000_000_000_000       |
-| Bifrost_Voucher_ASTR           | 0xfffFffff00000000000000010000000000000010 | 0x0903     | 800_000_000_000_000_000 |
+| Token                | Address                                    | CurrencyId | operationalMin          |
+|:---------------------| :----------------------------------------- |:-----------|:------------------------|
+| BNC                  | 0xfFffFffF00000000000000010000000000000007 | 0x0001     | 1_000_000_000_000       |
+| DOT                  | 0xFFfFfFffFFfffFFfFFfFFFFFffFFFffffFfFFFfF | 0x0800     | 1_000_000_000_000       |
+| Bifrost_Voucher_DOT  | 0xFfFfFfff00000000000000010000000000000008 | 0x0900     | 6_000_000_000           |
+| Bifrost_Voucher_ASTR | 0xfffFffff00000000000000010000000000000010 | 0x0903     | 800_000_000_000_000_000 |
+
 
 ### Moonbeam
 
