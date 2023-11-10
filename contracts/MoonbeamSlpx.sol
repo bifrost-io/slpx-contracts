@@ -131,7 +131,9 @@ contract MoonbeamSlpx is ISlpx, OwnableUpgradeable, PausableUpgradeable {
         require(assetAddress != address(0), "Invalid assetAddress");
         require(minimumValue != 0, "Invalid minimumValue");
         require(currencyId != bytes2(0), "Invalid currencyId");
-        addressToAssetInfo[assetAddress] = AssetInfo(currencyId, minimumValue);
+        AssetInfo storage assetInfo = addressToAssetInfo[assetAddress];
+        assetInfo.currencyId = currencyId;
+        assetInfo.operationalMin = minimumValue;
     }
 
     function pause() external onlyOwner {
