@@ -1,131 +1,79 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
 import "@nomiclabs/hardhat-ethers";
-import { ApiPromise, Keyring, WsProvider } from "@polkadot/api";
-import { BNC_DECIMALS, MOVR_DECIMALS } from "../scripts/constants";
-import { KeyringPair } from "@polkadot/keyring/types";
-import { balanceTransfer, councilPropose, waitFor } from "../scripts/utils";
-import { calculate_multilocation_derivative_account } from "../scripts/calculate_multilocation_derivative_account";
+import { MOVR_DECIMALS, XC_KSM } from "../scripts/constants";
+import { waitFor } from "../scripts/utils";
 
-//aNhuaXEfaSiXJcC1YxssiHgNjCvoJbESD68KjycecaZvqpv
-//0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
-
-describe("BifrostXcmAction", function () {
+describe("Bifrost Slpx", function () {
   let moonriverSlpx: any;
-  let bifrost_api: ApiPromise;
-  let astar_api: ApiPromise;
-  let alice: KeyringPair;
 
-  it("Setup env", async function () {
-    this.timeout(1000 * 1000);
-    // Deploy xcm-action contract
-    const AddressToAccount = await ethers.getContractFactory(
-      "AddressToAccount"
+  it("init", async function () {
+    const [deployer] = await ethers.getSigners();
+    console.log("Test account address:", deployer.address);
+    moonriverSlpx = await ethers.getContractAt(
+      "MoonbeamSlpx",
+      process.env.MOONRIVER_SLPX_ADDRESS
     );
-    const addressToAccount = await AddressToAccount.deploy();
-    await addressToAccount.deployed();
-    console.log("AddressToAccount deployed to:", addressToAccount.address);
+  });
 
-    const BuildCallData = await ethers.getContractFactory("BuildCallData");
-    const buildCallData = await BuildCallData.deploy();
-    await buildCallData.deployed();
-    console.log("BuildCallData deployed to:", buildCallData.address);
+  // it("setOperationToFeeInfo", async function () {
+  //   await moonriverSlpx.setOperationToFeeInfo(0, "10000000000", "10000000000", "80000000000");
+  //   await waitFor(24000);
+  //
+  //   const feeInfo = await moonriverSlpx.operationToFeeInfo("0")
+  //   expect(feeInfo["transactRequiredWeightAtMost"]).to.equal("10000000000")
+  //   expect(feeInfo["feeAmount"]).to.equal("100000000000")
+  //   expect(feeInfo["overallWeight"]).to.equal("10000000000")
+  // });
+  //
 
-    await waitFor(12 * 1000);
-
-    moonriverSlpx = await ethers.getContractFactory("MoonbeamSlpx", {
-      libraries: {
-        AddressToAccount: addressToAccount.address,
-        BuildCallData: buildCallData.address,
-      },
-    });
-    moonriverSlpx = await moonriverSlpx.deploy();
-    await moonriverSlpx.deployed();
-    console.log("moonriverSlpx deployed to:", moonriverSlpx.address);
-    await moonriverSlpx.initialize(
-      "0xfFFFfFfF006cD1E2a35Acdb1786cAF7893547b75",
-      "2001",
-      "0x020a"
+  it("setAssetAddressInfo", async function () {
+    await moonriverSlpx.setAssetAddressInfo(
+      "0x0000000000000000000000000000000000000802",
+      "0x020a",
+      "100000000000000000"
     );
-    // expect(await moonriverSlpx.owner()).to.equal(Hardhat0);
+    await moonriverSlpx.setAssetAddressInfo(XC_KSM, "0x0204", "1000000000000");
+    await waitFor(24000);
 
-    // init polkadot api
-    const wsProvider = new WsProvider("ws://127.0.0.1:9920");
-    bifrost_api = await ApiPromise.create({ provider: wsProvider });
-    const wsProvider1 = new WsProvider("ws://127.0.0.1:9910");
-    astar_api = await ApiPromise.create({ provider: wsProvider1 });
-    const keyring = new Keyring({ type: "sr25519", ss58Format: 6 });
-    alice = keyring.addFromUri("//Alice");
-
-    // calculate multilocation derivative account (xcm-action contract)
-    const contract_derivative_account =
-      await calculate_multilocation_derivative_account(
-        bifrost_api,
-        2023,
-        moonriverSlpx.address
-      );
-    console.log("contract_derivative_account", contract_derivative_account);
-
-    // Recharge BNC to contract_derivative_account
-    await balanceTransfer(
-      bifrost_api,
-      alice,
-      contract_derivative_account,
-      100n * BNC_DECIMALS
+    // mint 10 vmovr
+    const assetInfo = await moonriverSlpx.addressToAssetInfo(
+      "0x0000000000000000000000000000000000000802"
     );
-    // transfer some astr to contract_account_id to activate the account
-    // await balanceTransfer(astar_api, alice, contract_account_id, 1n * ASTR_DECIMALS)
-
-    // add whitelist
-    const bifrost_set_up_calls = bifrost_api.tx.utility.batchAll([
-      bifrost_api.tx.slpx.addWhitelist("Moonbeam", contract_derivative_account),
-    ]);
-
-    await councilPropose(
-      bifrost_api,
-      alice,
-      1,
-      bifrost_set_up_calls,
-      bifrost_set_up_calls.encodedLength
-    );
-    // Set execuation fee
-    await waitFor(12 * 1000);
+    expect(assetInfo["currencyId"]).to.equal("0x020a");
+    expect(assetInfo["operationalMin"]).to.equal("100000000000000000");
   });
 
   it("mint vmovr", async function () {
-    this.timeout(1000 * 1000);
-    await moonriverSlpx.setAssetAddressInfo(
-      "0x0000000000000000000000000000000000000802",
-      "100000000000000000",
-      "0x020a"
-    );
-    await waitFor(36 * 1000);
-
     // mint 10 vmovr
-    await moonriverSlpx.mintVNativeAsset({ value: 10n * MOVR_DECIMALS });
+    await moonriverSlpx.mintVNativeAsset(
+      "0x4597C97a43dFBb4a398E2b16AA9cE61f90d801DD",
+      "Hello",
+      { value: 10n * MOVR_DECIMALS }
+    );
   });
 
-  it("mint vksm", async function () {
-    this.timeout(1000 * 1000);
-    await moonriverSlpx.setAssetAddressInfo(
-      "0xFfFFfFff1FcaCBd218EDc0EbA20Fc2308C778080",
-      "100000000000",
-      "0x0204"
-    );
-
-    const vastr = await ethers.getContractAt(
-      "IERC20",
-      "0xFfFFfFff1FcaCBd218EDc0EbA20Fc2308C778080"
-    );
-    await vastr.approve(moonriverSlpx.address, "100000000000000000000");
-    await waitFor(24 * 1000);
-
-    // mint 10 vmovr
-    await moonriverSlpx.mintVAsset(
-      "0xFfFFfFff1FcaCBd218EDc0EbA20Fc2308C778080",
-      "10000000000000"
-    );
-  });
+  // it("mint vksm", async function () {
+  //   this.timeout(1000 * 1000);
+  //   await moonriverSlpx.setAssetAddressInfo(
+  //     "0xFfFFfFff1FcaCBd218EDc0EbA20Fc2308C778080",
+  //     "100000000000",
+  //     "0x0204"
+  //   );
+  //
+  //   const vastr = await ethers.getContractAt(
+  //     "IERC20",
+  //     "0xFfFFfFff1FcaCBd218EDc0EbA20Fc2308C778080"
+  //   );
+  //   await vastr.approve(moonriverSlpx.address, "100000000000000000000");
+  //   await waitFor(24 * 1000);
+  //
+  //   // mint 10 vmovr
+  //   await moonriverSlpx.mintVAsset(
+  //     "0xFfFFfFff1FcaCBd218EDc0EbA20Fc2308C778080",
+  //     "10000000000000"
+  //   );
+  // });
 
   // it("Swap ASTR to vASTR", async function() {
   //   this.timeout(1000 * 1000)

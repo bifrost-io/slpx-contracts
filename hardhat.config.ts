@@ -43,6 +43,12 @@ const config: HardhatUserConfig = {
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
+    moonriver_local: {
+      url: "http://127.0.0.1:9910",
+      chainId: 1280,
+      accounts:
+        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
     astar_rococo: {
       url: "https://rocstar.astar.network",
       chainId: 692,
@@ -65,11 +71,17 @@ const config: HardhatUserConfig = {
   },
   etherscan: {
     apiKey: {
-      moonbeam: process.env.MOONBEAM_API_KEY !== undefined ? process.env.MOONBEAM_API_KEY : '' ,
-      moonriver: process.env.MOONRIVER_API_KEY !== undefined ? process.env.MOONRIVER_API_KEY : '' ,
-      moonbaseAlpha: 'INSERT_MOONSCAN_API_KEY', // Moonbeam Moonscan API Key
-    }
-  }
+      moonbeam:
+        process.env.MOONBEAM_API_KEY !== undefined
+          ? process.env.MOONBEAM_API_KEY
+          : "",
+      moonriver:
+        process.env.MOONRIVER_API_KEY !== undefined
+          ? process.env.MOONRIVER_API_KEY
+          : "",
+      moonbaseAlpha: "INSERT_MOONSCAN_API_KEY", // Moonbeam Moonscan API Key
+    },
+  },
 };
 
 export default config;
