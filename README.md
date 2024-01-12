@@ -1,27 +1,10 @@
-# Slpx contracts
+# Slpx
 
-## Depoly && Upgrade contracts
-
-```shell
-cp .env.example .env
-yarn deployToAstar
-yarn deployToMoonbeam
-yarn deployToMoonriver
-```
-
-| Network        | Slpx Address |
-|----------------|--------------|
-| Astar          | 0xc6bf0C5C78686f1D0E2E54b97D6de6e2cEFAe9fD          |
-| Moonrbeam      | 0xF1d4797E51a4640a76769A50b57abE7479ADd3d8          |
-| Moonriver      | 0x6b0A44c64190279f7034b77c13a566E914FE5Ec4          |
-| Astar Rococo   | 0xf8B6c4Ec654e4fDCB8f5B58094D93BE268B18fAc          |
-
-
-| Network        | XcmOracle Address                          |
-|----------------|--------------------------------------------|
-| Moonrbeam      | 0xEF81930Aa8ed07C17948B2E26b7bfAF20144eF2a |
-| Moonriver      | 0x682D05cD8D96b9904eC2b1B97BD1eb640B10fC2d |
-
+| Network       | Slpx Address |
+|---------------|--------------|
+| Astar         | 0xc6bf0C5C78686f1D0E2E54b97D6de6e2cEFAe9fD          |
+| Moonbeam      | 0xF1d4797E51a4640a76769A50b57abE7479ADd3d8          |
+| Moonriver     | 0x6b0A44c64190279f7034b77c13a566E914FE5Ec4          |
 
 ## Contract info
 
@@ -32,6 +15,22 @@ yarn deployToMoonriver
 - swapAssetsForExactNativeAssets(address assetInAddress, uint256 assetInAmount, uint128 assetOutMin, address receiver) external: Swap a Token into a parachain native Token, such as BNC Swap into GLMR
 - swapNativeAssetsForExactAssets(address assetOutAddress, uint128 assetOutMin, address receiver) payable external: Swap the original Token of the parachain into other Tokens, such as GLMR Swap into BNC
 
+# XcmOracle
+
+| Network       | XcmOracle Address                          | Support Asset    |
+|---------------|--------------------------------------------|------------------|
+| Moonbeam      | 0xEF81930Aa8ed07C17948B2E26b7bfAF20144eF2a | DOT / GLMR / FIL |
+| Moonriver     | 0x682D05cD8D96b9904eC2b1B97BD1eb640B10fC2d | KSM / MOVR / BNC |
+
+## Contract info
+
+```solidity
+// _assetAddress: Asset address, e.g. DOT, KSM
+// _assetAmount: Input asset amount, get vAsset amount
+// _vAssetAmount: Input vAsset amount, get asset amount
+function getVTokenByToken(address _assetAddress, uint256 _assetAmount) public view returns (uint256);
+function getTokenByVToken(address _assetAddress, uint256 _vAssetAmount) public view returns (uint256);
+```
 ## CurrencyId
 
 ### Astar
