@@ -18,19 +18,22 @@ export async function waitFor(ms: any) {
 }
 
 export async function calculate_multilocation_derivative_account(
-  api: ApiPromise,
-  para_id: number,
-  publicKey: string
+    api: ApiPromise,
+    para_id: number,
+    publicKey: string
 ) {
   let interior;
   if (para_id == 2006) {
     interior = {
-      //X2: [
-      //         { Parachain: 2034 },
-      //         { AccountId32: { network: null, id: publicKey } },
-      //       ],
       X2: [
         { Parachain: 2006 },
+        { AccountId32: { network: { polkadot: null }, id: publicKey } },
+      ],
+    };
+  } else if(para_id == 2034) {
+    interior = {
+      X2: [
+        { Parachain: 2034 },
         { AccountId32: { network: { polkadot: null }, id: publicKey } },
       ],
     };
@@ -43,13 +46,13 @@ export async function calculate_multilocation_derivative_account(
     };
   }
   const multilocation: MultiLocation = api.createType(
-    "XcmV3MultiLocation",
-    JSON.parse(
-      JSON.stringify({
-        parents: 1,
-        interior: interior,
-      })
-    )
+      "StagingXcmV3MultiLocation",
+      JSON.parse(
+          JSON.stringify({
+            parents: 1,
+            interior: interior,
+          })
+      )
   );
   console.log("Multilocation for calculation", multilocation.toString());
 
@@ -60,16 +63,16 @@ export async function calculate_multilocation_derivative_account(
   ]);
 
   const DescendOriginAddress32 = u8aToHex(
-    api.registry.hash(toHash).slice(0, 32)
+      api.registry.hash(toHash).slice(0, 32)
   );
   const DescendOriginAddress20 = u8aToHex(
-    api.registry.hash(toHash).slice(0, 20)
+      api.registry.hash(toHash).slice(0, 20)
   );
   const keyring = new Keyring({ type: "sr25519", ss58Format: 6 });
 
   console.log(
-    "bifrost account id is %s",
-    keyring.addFromAddress(DescendOriginAddress32).address
+      "bifrost account id is %s",
+      keyring.addFromAddress(DescendOriginAddress32).address
   );
 
   console.log("32 byte address is %s", DescendOriginAddress32);

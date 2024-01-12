@@ -16,6 +16,13 @@ yarn deployToMoonriver
 | Moonriver      | 0x6b0A44c64190279f7034b77c13a566E914FE5Ec4          |
 | Astar Rococo   | 0xf8B6c4Ec654e4fDCB8f5B58094D93BE268B18fAc          |
 
+
+| Network        | XcmOracle Address                          |
+|----------------|--------------------------------------------|
+| Moonrbeam      | 0xEF81930Aa8ed07C17948B2E26b7bfAF20144eF2a |
+| Moonriver      | 0x682D05cD8D96b9904eC2b1B97BD1eb640B10fC2d |
+
+
 ## Contract info
 
 - mintVNativeAsset(address receiver, string memory remark) payable external: Cast the original Token on the parachain into VToken

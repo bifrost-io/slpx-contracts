@@ -32,19 +32,19 @@ const config: HardhatUserConfig = {
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
     moonbeam: {
-      url: "https://moonbeam.api.onfinality.io/public",
+      url: "https://rpc.api.moonbeam.network",
       chainId: 1284,
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
     moonriver: {
-      url: "https://moonriver.api.onfinality.io/public",
+      url: "https://moonriver.unitedbloc.com:2000",
       chainId: 1285,
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
     moonriver_local: {
-      url: "http://127.0.0.1:9910",
+      url: "https://moonriver-rpc.devnet.liebi.com/ws",
       chainId: 1280,
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
