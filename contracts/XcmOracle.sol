@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.0;
+// SPDX-License-Identifier: Apache-2.0
+pragma solidity 0.8.10;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
@@ -26,11 +26,14 @@ contract XcmOracle is OwnableUpgradeable, PausableUpgradeable {
         sovereignAddress = _SovereignAddress;
     }
 
+    /// Bifrost will set a fee and the data will be consistent with Bifrost Chain.
     function setRate(uint8 _mintRate, uint8 _redeemRate) onlyOwner public {
         rateInfo.mintRate = _mintRate;
         rateInfo.redeemRate = _redeemRate;
     }
 
+    /// Setting up data with XCM.
+    /// Multi-signature is used to monitor XCM after an error to set up data.
     function setTokenAmount(bytes2 _currencyId, uint256 _assetAmount, uint256 _vAssetAmount) public {
         require(_msgSender() == sovereignAddress || _msgSender() == owner(), "No permission");
         PoolInfo storage poolInfo = tokenPool[_currencyId];
