@@ -8,15 +8,15 @@ export async function calculate_multilocation_derivative_account(
   publicKey: string
 ) {
   let interior;
-  if (para_id == 2006) {
+  if (para_id == 1000) {
     interior = {
       //X2: [
       //         { Parachain: 2034 },
       //         { AccountId32: { network: null, id: publicKey } },
       //       ],
       X2: [
-        { Parachain: 2006 },
-        { AccountId32: { network: { polkadot: null }, id: publicKey } },
+        { Parachain: 1000 },
+        { AccountId32: { network: { rococo: null }, id: publicKey } },
       ],
     };
   } else {
@@ -28,7 +28,7 @@ export async function calculate_multilocation_derivative_account(
     };
   }
   const multilocation: MultiLocation = api.createType(
-    "XcmV3MultiLocation",
+    "StagingXcmV3MultiLocation",
     JSON.parse(
       JSON.stringify({
         parents: 1,
@@ -63,21 +63,18 @@ export async function calculate_multilocation_derivative_account(
 }
 
 const main = async () => {
-  const wsProvider = new WsProvider(
-    "wss://bifrost-polkadot-rpc.devnet.liebi.com/ws"
-  );
-  // const wsProvider = new WsProvider("wss://bifrost-rpc.dwellir.com")
+  const wsProvider = new WsProvider("wss://bifrost-rpc.dwellir.com")
   const bifrost_api = await ApiPromise.create({ provider: wsProvider });
 
+  // await calculate_multilocation_derivative_account(
+  //   bifrost_api,
+  //   2023,
+  //   "0x9E545E3C0baAB3E08CdfD552C960A1050f373042"
+  // );
   await calculate_multilocation_derivative_account(
     bifrost_api,
-    2023,
-    "0x9E545E3C0baAB3E08CdfD552C960A1050f373042"
-  );
-  await calculate_multilocation_derivative_account(
-    bifrost_api,
-    2006,
-    "0xd29cb42ddeadb24907612a1e6466fee7594ccf14690ab9f51d6e94b0be99353b"
+    1000,
+    "0x05dc1098d0cfab4e451e7be345f75f6e03977ce24ed2e5eb76bf6cc4ea00de9c"
   );
 };
 main()
