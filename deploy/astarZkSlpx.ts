@@ -6,18 +6,18 @@ const deployFunction: DeployFunction = async function ({
   getNamedAccounts,
   network,
 }: HardhatRuntimeEnvironment) {
-    console.log("Running vAstrOFT deploy script");
+  console.log("Running vAstrOFT deploy script");
 
-    const { deploy } = deployments;
-    const { deployer } = await getNamedAccounts();
+  const { deploy } = deployments;
+  const { deployer } = await getNamedAccounts();
 
-    console.log("Deployer is :", deployer);
+  console.log("Deployer is :", deployer);
 
-    await deploy("AstarZkSlpx", {
-      from: deployer,
-      log: true,
-      deterministicDeployment: false
-    });
+  await deploy("AstarZkSlpx", {
+    from: deployer,
+    log: true,
+    deterministicDeployment: false,
+  });
 };
 
 export default deployFunction;

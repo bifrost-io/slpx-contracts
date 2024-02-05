@@ -63,7 +63,7 @@ export async function calculate_multilocation_derivative_account(
 }
 
 const main = async () => {
-  const wsProvider = new WsProvider("wss://bifrost-rpc.dwellir.com")
+  const wsProvider = new WsProvider("wss://bifrost-rpc.dwellir.com");
   const bifrost_api = await ApiPromise.create({ provider: wsProvider });
 
   // await calculate_multilocation_derivative_account(

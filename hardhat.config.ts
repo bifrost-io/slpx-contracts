@@ -3,9 +3,9 @@ import "@nomicfoundation/hardhat-toolbox";
 import "@nomiclabs/hardhat-ethers";
 import "@openzeppelin/hardhat-upgrades";
 import "hardhat-deploy";
-import 'hardhat-deploy-ethers';
+import "hardhat-deploy-ethers";
 import * as dotenv from "dotenv";
-import "./tasks"
+import "./tasks";
 
 dotenv.config();
 
@@ -37,12 +37,13 @@ const config: HardhatUserConfig = {
       url: "https://evm.shibuya.astar.network",
       chainId: 81,
       accounts:
-          process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
     zkatana: {
       url: "https://rpc.zkatana.gelato.digital",
       chainId: 1261120,
-      accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+      accounts:
+        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
     moonbeam: {
       url: "https://rpc.api.moonbeam.network",

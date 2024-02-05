@@ -16,10 +16,15 @@ describe("Bifrost Slpx", function () {
     // const feeInfo = await moonriverSlpx.getTokenByVToken("0xFFfFFfFFF075423be54811EcB478e911F22dDe7D",0)
     // console.log(feeInfo.toString())
     //
-    await moonriverSlpx.getCurrencyIdByAssetAddress("0xFFfFFfFFF075423be54811EcB478e911F22dDe7D")
+    await moonriverSlpx.getCurrencyIdByAssetAddress(
+      "0xFFfFFfFFF075423be54811EcB478e911F22dDe7D"
+    );
 
     await moonriverSlpx.tokenPool("0x0204");
 
-    await moonriverSlpx.getTokenByVToken("0xFFfFFfFFF075423be54811EcB478e911F22dDe7D",0);
+    await moonriverSlpx.getTokenByVToken(
+      "0xFFfFFfFFF075423be54811EcB478e911F22dDe7D",
+      0
+    );
   });
 });

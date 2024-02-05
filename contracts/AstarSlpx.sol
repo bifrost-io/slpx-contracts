@@ -148,7 +148,7 @@ contract AstarSlpx is ISlpx, OwnableUpgradeable, PausableUpgradeable {
                 assetAddress,
                 amount,
                 dest_account,
-                XCM_v2.WeightV2(0,0)
+                XCM_v2.WeightV2(0, 0)
             ),
             "Failed to send xcm"
         );

@@ -27,11 +27,15 @@ contract AstarZkSlpx is Ownable {
         minAmount[_action] = _minAmount;
     }
 
-    function mint(uint256 _amount, uint64 _dstGasForCall, bytes calldata _adapterParams) external payable {
+    function mint(
+        uint256 _amount,
+        uint64 _dstGasForCall,
+        bytes calldata _adapterParams
+    ) external payable {
         require(_amount >= minAmount[MINT], "amount too small");
         ICommonOFT.LzCallParams memory callParams = ICommonOFT.LzCallParams(
-            payable(msg.sender), 
-            address(0), 
+            payable(msg.sender),
+            address(0),
             _adapterParams
         );
 
@@ -49,7 +53,11 @@ contract AstarZkSlpx is Ownable {
         emit Mint(msg.sender, _amount);
     }
 
-    function redeem(uint256 _amount, uint64 _dstGasForCall, bytes calldata _adapterParams) external payable {
+    function redeem(
+        uint256 _amount,
+        uint64 _dstGasForCall,
+        bytes calldata _adapterParams
+    ) external payable {
         require(_amount >= minAmount[REDEEM], "amount too small");
         ICommonOFT.LzCallParams memory callParams = ICommonOFT.LzCallParams(
             payable(msg.sender),

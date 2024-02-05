@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.0;
 
-
 /**
  * @title XCM interface.
  */
@@ -12,7 +11,7 @@ interface XCM_v2 {
         bytes[] interior;
     }
 
-    struct WeightV2{
+    struct WeightV2 {
         uint64 ref_time;
         uint64 proof_size;
     }
@@ -35,7 +34,7 @@ interface XCM_v2 {
     /// @param currencyAddress The ERC20 address of the currency we want to transfer
     /// @param amount The amount of tokens we want to transfer
     /// @param destination The Multilocation to which we want to send the tokens
-    /// @param weight The weight we want to buy in the destination chain, to set the 
+    /// @param weight The weight we want to buy in the destination chain, to set the
     /// weightlimit to Unlimited, you should use the value 0 for ref_time
     function transfer(
         address currencyAddress,
@@ -51,7 +50,7 @@ interface XCM_v2 {
     /// @param amount The amount of tokens we want to transfer
     /// @param fee The amount to be spent to pay for execution in destination chain
     /// @param destination The Multilocation to which we want to send the tokens
-    /// @param weight The weight we want to buy in the destination chain, to set the 
+    /// @param weight The weight we want to buy in the destination chain, to set the
     /// weightlimit to Unlimited, you should use the value 0 for ref_time
     function transfer_with_fee(
         address currencyAddress,
@@ -68,7 +67,7 @@ interface XCM_v2 {
     /// Currently only Concrete Fungible assets
     /// @param amount The amount of tokens we want to transfer
     /// @param destination The Multilocation to which we want to send the tokens
-    /// @param weight The weight we want to buy in the destination chain, to set the 
+    /// @param weight The weight we want to buy in the destination chain, to set the
     /// weightlimit to Unlimited, you should use the value 0 for ref_time
     function transfer_multiasset(
         Multilocation memory asset,
@@ -85,7 +84,7 @@ interface XCM_v2 {
     /// @param amount The amount of tokens we want to transfer
     /// @param fee The amount to be spent to pay for execution in destination chain
     /// @param destination The Multilocation to which we want to send the tokens
-    /// @param weight The weight we want to buy in the destination chain, to set the 
+    /// @param weight The weight we want to buy in the destination chain, to set the
     /// weightlimit to Unlimited, you should use the value 0 for ref_time
     function transfer_multiasset_with_fee(
         Multilocation memory asset,
@@ -101,7 +100,7 @@ interface XCM_v2 {
     /// @param currencies The currencies we want to transfer, defined by their address and amount.
     /// @param feeItem Which of the currencies to be used as fee
     /// @param destination The Multilocation to which we want to send the tokens
-    /// @param weight The weight we want to buy in the destination chain, to set the 
+    /// @param weight The weight we want to buy in the destination chain, to set the
     /// weightlimit to Unlimited, you should use the value 0 for ref_time
     function transfer_multi_currencies(
         Currency[] memory currencies,
@@ -116,7 +115,7 @@ interface XCM_v2 {
     /// @param assets The assets we want to transfer, defined by their location and amount.
     /// @param feeItem Which of the currencies to be used as fee
     /// @param destination The Multilocation to which we want to send the tokens
-    /// @param weight The weight we want to buy in the destination chain, to set the 
+    /// @param weight The weight we want to buy in the destination chain, to set the
     /// weightlimit to Unlimited, you should use the value 0 for ref_time
     function transfer_multi_assets(
         MultiAsset[] memory assets,
