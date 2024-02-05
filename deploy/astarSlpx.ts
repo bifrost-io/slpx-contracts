@@ -9,7 +9,8 @@ const deployFunction: DeployFunction = async function ({
   if (
     network.name == "astar" ||
     network.name == "astar_local" ||
-    network.name == "astar_rococo"
+    network.name == "astar_rococo" ||
+    network.name == "shibuya"
   ) {
     console.log("Running AstarSlpx deploy script");
 
