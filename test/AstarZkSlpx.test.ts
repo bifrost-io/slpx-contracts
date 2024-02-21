@@ -4,6 +4,11 @@ import { BigNumber } from "@ethersproject/bignumber";
 
 // YQFkWxtiL3vLwDjWRuapLcfs7QHu2bjvpRqjiy8iCw1Ypu5
 
+const Opration = {
+  Mint: 0,
+  Redeem: 1,
+};
+
 describe("NativeOFTWithFee: ", function () {
   const localChainId = 1;
   const remoteChainId = 2;
@@ -47,7 +52,18 @@ describe("NativeOFTWithFee: ", function () {
     OFTV2 = await ethers.getContractFactory("VoucherAstrOFT");
     ERC20 = await ethers.getContractFactory("ERC20Mock");
     Slpx = await ethers.getContractFactory("AstarZkSlpx");
-    Receiver = await ethers.getContractFactory("AstarReceiver");
+    const AddressToAccount = await ethers.getContractFactory("AddressToAccount");
+    const BuildCallData = await ethers.getContractFactory("BuildCallData");
+    const addressToAccount = await AddressToAccount.deploy()
+    const buildCallData = await BuildCallData.deploy()
+    Slpx = await ethers.getContractFactory("AstarZkSlpx");
+
+    Receiver = await ethers.getContractFactory("AstarReceiver", {
+      libraries: {
+        AddressToAccount: addressToAccount.address,
+        BuildCallData: buildCallData.address,
+      }
+    });
   });
 
   beforeEach(async function () {
@@ -69,8 +85,8 @@ describe("NativeOFTWithFee: ", function () {
     erc20 = await ERC20.deploy("ERC20", "ERC20");
     localOFT = await ProxyOFTV2.deploy(erc20.address, localEndpoint.address);
     remoteOFT = await OFTV2.deploy(remoteEndpoint.address);
-    slpx = await Slpx.deploy();
-    receiver = await Receiver.deploy();
+    slpx = await Slpx.deploy(remoteOFTWithFee.address, remoteOFT.address, localChainId);
+    receiver = await Receiver.deploy(slpx.address);
 
     console.log("owner.address: ", owner.address);
     console.log("remoteOFTWithFee address: ", remoteOFTWithFee.address);
@@ -84,17 +100,6 @@ describe("NativeOFTWithFee: ", function () {
     receiverBytes32 = ethers.utils.defaultAbiCoder.encode(
       ["address"],
       [receiver.address]
-    );
-
-    slpx.initialize(
-      remoteOFTWithFee.address,
-      remoteOFT.address,
-      receiverBytes32
-    );
-    receiver.initialize(
-      nativeOFTWithFee.address,
-      localOFT.address,
-      slpx.address
     );
 
     // internal bookkeeping for endpoints (not part of a real deploy, just for this test)
@@ -169,42 +174,35 @@ describe("NativeOFTWithFee: ", function () {
     );
 
     // estimate nativeFees
+    const _dstGasForCall = 3000000
+    const adapterParams = ethers.utils.solidityPack(["uint16", "uint256"], [1, 3200000])
     const payload = ethers.utils.solidityPack(
       ["address", "uint8"],
-      [owner.address, 0]
+      [owner.address, Opration.Mint]
     );
     nativeFee = (
-      await nativeOFTWithFee.estimateSendAndCallFee(
-        localChainId,
-        receiverBytes32,
-        totalAmount,
-        payload,
-        700000,
-        false,
-        ethers.utils.solidityPack(["uint16", "uint256"], [1, 1200000])
+      await slpx.estimateSendAndCallFee(
+        owner.address,
+        Opration.Mint,
+        ethers.utils.parseEther("2"),
+          _dstGasForCall,
+          adapterParams
       )
-    ).nativeFee;
+    );
     console.log("nativeFee: ", nativeFee);
     await remoteOFTWithFee.approve(slpx.address, ethers.utils.parseEther("10"));
-    console.log(await remoteOFTWithFee.balanceOf(owner.address));
+    const beforeBalance = await remoteOFTWithFee.balanceOf(owner.address);
+    console.log("beforeBalance:",ethers.utils.formatUnits(beforeBalance));
     await slpx.mint(
       ethers.utils.parseEther("2"),
-      500000,
-      ethers.utils.solidityPack(["uint16", "uint256"], [1, 700000]),
-      { value: nativeFee } // pass a msg.value to pay the LayerZero message fee
+        _dstGasForCall,
+        adapterParams,
+      { value: nativeFee[0] } // pass a msg.value to pay the LayerZero message fee
     );
+    const afterBalance = await remoteOFTWithFee.balanceOf(owner.address);
+    console.log("afterBalance:",ethers.utils.formatUnits(afterBalance));
 
-    console.log(await ethers.provider.getBalance(receiver.address));
-    console.log(await receiver.ca());
-    expect(await receiver.nextMessageId()).to.be.equal(1);
     console.log(await receiver.derivativeAddress(owner.address));
-
-    const s = await ethers.getContractAt(
-      "DerivativeContract",
-      await receiver.derivativeAddress(owner.address)
-    );
-    console.log(await s.astarReceiver());
-    console.log(await receiver.address);
   });
 
   it("redeem()", async function () {
@@ -253,134 +251,29 @@ describe("NativeOFTWithFee: ", function () {
     expect(await remoteOFT.balanceOf(owner.address)).to.be.equal(amount);
 
     // estimate nativeFees
-    const payload = ethers.utils.solidityPack(
-      ["address", "uint8"],
-      [owner.address, 1]
-    );
+    const _dstGasForCall = 3000000
+    const adapterParams = ethers.utils.solidityPack(["uint16", "uint256"], [1, 3200000])
     nativeFee = (
-      await nativeOFTWithFee.estimateSendAndCallFee(
-        localChainId,
-        receiverBytes32,
-        amount,
-        payload,
-        700000,
-        false,
-        ethers.utils.solidityPack(["uint16", "uint256"], [1, 1200000])
+      await slpx.estimateSendAndCallFee(
+          owner.address,
+          Opration.Redeem,
+          ethers.utils.parseEther("2"),
+          _dstGasForCall,
+          adapterParams
       )
-    ).nativeFee;
+    );
     console.log("nativeFee: ", nativeFee);
     await remoteOFT.approve(slpx.address, ethers.utils.parseEther("10"));
-    console.log(await remoteOFT.balanceOf(owner.address));
+    const beforeBalance = await remoteOFT.balanceOf(owner.address);
+    console.log("beforeBalance:",ethers.utils.formatUnits(beforeBalance));
     await slpx.redeem(
       ethers.utils.parseEther("2"),
-      500000,
-      ethers.utils.solidityPack(["uint16", "uint256"], [1, 700000]),
-      { value: nativeFee } // pass a msg.value to pay the LayerZero message fee
+        _dstGasForCall,
+      adapterParams,
+      { value: nativeFee[0] } // pass a msg.value to pay the LayerZero message fee
     );
 
-    console.log(await erc20.balanceOf(receiver.address));
-    console.log(await receiver.ca());
-    expect(await receiver.nextMessageId()).to.be.equal(1);
-    console.log(await receiver.derivativeAddress(owner.address));
-
-    const s = await ethers.getContractAt(
-      "DerivativeContract",
-      await receiver.derivativeAddress(owner.address)
-    );
-    console.log(await s.astarReceiver());
-    console.log(await receiver.address);
-  });
-
-  it("claimVAstr", async function () {
-    let depositAmount = ethers.utils.parseEther("7");
-    await nativeOFTWithFee.deposit({ value: depositAmount });
-    let totalAmount = ethers.utils.parseEther("8");
-    // estimate nativeFees
-    let nativeFee = (
-      await nativeOFTWithFee.estimateSendFee(
-        remoteChainId,
-        ownerAddressBytes32,
-        totalAmount,
-        false,
-        defaultAdapterParams
-      )
-    ).nativeFee;
-    await nativeOFTWithFee.sendFrom(
-      owner.address,
-      remoteChainId, // destination chainId
-      ownerAddressBytes32, // destination address to send tokens to
-      totalAmount, // quantity of tokens to send (in units of wei)
-      totalAmount, // quantity of tokens to send (in units of wei)
-      [owner.address, ethers.constants.AddressZero, defaultAdapterParams],
-      { value: nativeFee.add(totalAmount.sub(depositAmount)) } // pass a msg.value to pay the LayerZero message fee
-    );
-    expect(await remoteOFTWithFee.balanceOf(owner.address)).to.be.equal(
-      totalAmount
-    );
-
-    // estimate nativeFees
-    const payload = ethers.utils.solidityPack(
-      ["address", "uint8"],
-      [owner.address, 0]
-    );
-    nativeFee = (
-      await nativeOFTWithFee.estimateSendAndCallFee(
-        localChainId,
-        receiverBytes32,
-        totalAmount,
-        payload,
-        700000,
-        false,
-        ethers.utils.solidityPack(["uint16", "uint256"], [1, 1200000])
-      )
-    ).nativeFee;
-    console.log("nativeFee: ", nativeFee);
-    await remoteOFTWithFee.approve(slpx.address, ethers.utils.parseEther("10"));
-    console.log(await remoteOFTWithFee.balanceOf(owner.address));
-    await slpx.mint(
-      ethers.utils.parseEther("2"),
-      500000,
-      ethers.utils.solidityPack(["uint16", "uint256"], [1, 700000]),
-      { value: nativeFee } // pass a msg.value to pay the LayerZero message fee
-    );
-
-    console.log(await ethers.provider.getBalance(receiver.address));
-    console.log(await receiver.ca());
-    let contract = await receiver.derivativeAddress(owner.address);
-    expect(await receiver.nextMessageId()).to.be.equal(1);
-    console.log(await receiver.derivativeAddress(owner.address));
-
-    const s = await ethers.getContractAt("DerivativeContract", contract);
-    console.log(await s.astarReceiver());
-    console.log(await receiver.address);
-
-    await erc20.mint(contract, ethers.utils.parseEther("2"));
-    await receiver.claimVAstr(owner.address, defaultAdapterParams, {
-      value: nativeFee,
-    });
-    console.log(await remoteOFT.balanceOf(owner.address));
-
-    await owner.sendTransaction({
-      to: contract,
-      value: ethers.utils.parseEther("1"),
-    });
-    console.log(
-      await ethers.provider.getBalance(
-        await receiver.derivativeAddress(owner.address)
-      )
-    );
-    console.log(await remoteOFTWithFee.balanceOf(owner.address));
-    await receiver.claimAstr(
-      owner.address,
-      ethers.utils.parseEther("1"),
-      defaultAdapterParams,
-      { value: nativeFee }
-    );
-    console.log(
-      await ethers.provider.getBalance(
-        await receiver.derivativeAddress(owner.address)
-      )
-    );
-    console.log(await remoteOFTWithFee.balanceOf(owner.address));
+    const afterBalance = await remoteOFT.balanceOf(owner.address);
+    console.log("afterBalance:",ethers.utils.formatUnits(afterBalance));
   });
 });

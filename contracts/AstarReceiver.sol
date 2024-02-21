@@ -4,29 +4,36 @@ pragma solidity 0.8.10;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/utils/Create2.sol";
 import "./interfaces/IOFTReceiverV2.sol";
 import "./interfaces/IOFTV2.sol";
 import "./interfaces/IOFTWithFee.sol";
 import "./interfaces/XCM.sol";
 import "./interfaces/XCM_v2.sol";
+import "./interfaces/Types.sol";
 import "./utils/BuildCallData.sol";
 import "./utils/AddressToAccount.sol";
 import "./AstarSlpx.sol";
+import "./DerivativeContract.sol";
 
 contract AstarReceiver is Ownable, IOFTReceiverV2 {
     bytes1 private constant ASTAR_CHAIN_TYPE = 0x00;
     bytes2 private constant ASTR_CURRENCY_ID = 0x0803;
     bytes2 private constant VASTR_CURRENCY_ID = 0x0903;
     uint256 private constant BIFROST_PARA_ID = 2030;
+    uint16 public constant destChainId = 10220;
     bool private constant IS_RELAY_CHAIN = false;
-    address public VASTR = 0xfffFffff00000000000000010000000000000010;
-    address public BNC = 0xfFffFffF00000000000000010000000000000007;
-    address public astarSlpx = 0x2fD8bbF5dc8b342C09ABF34f211b3488e2d9d691;
-    address public polkadotXcm = 0x0000000000000000000000000000000000005004;
-    address public astrNativeOFT = 0xEaFAF3EDA029A62bCbE8a0C9a4549ef0fEd5a400;
-    address public vAstrProxyOFT = 0xF1d4797E51a4640a76769A50b57abE7479ADd3d8;
+    address public constant VASTR = 0xfffFffff00000000000000010000000000000010;
+    address public constant BNC = 0xfFffFffF00000000000000010000000000000007;
+    address public constant astarSlpx =
+        0x2fD8bbF5dc8b342C09ABF34f211b3488e2d9d691;
+    address public constant polkadotXcm =
+        0x0000000000000000000000000000000000005004;
+    address public constant astrNativeOFT =
+        0xEaFAF3EDA029A62bCbE8a0C9a4549ef0fEd5a400;
+    address public constant vAstrProxyOFT =
+        0xF1d4797E51a4640a76769A50b57abE7479ADd3d8;
     address public astarZkSlpx;
-    uint16 public destChainId = 10220;
     mapping(address => address) public derivativeAddress;
 
     event Mint(address caller, address derivativeAddress, uint256 amount);
@@ -37,9 +44,9 @@ contract AstarReceiver is Ownable, IOFTReceiverV2 {
     }
 
     function zkSlpxMint(address _from, address _to, uint256 _amount) internal {
-        require(_from != address(0), "Mint: _from != address(0)");
-        require(_to != address(0), "Mint: _to != address(0)");
-        require(_amount != 0, "Mint: _amount != 0");
+        require(_from != address(0), "Invalid from");
+        require(_to != address(0), "Invalid to");
+        require(_amount != 0, "Invalid amount");
         xcmTransferNativeAsset(_from, _amount);
 
         bytes memory targetChain = abi.encodePacked(ASTAR_CHAIN_TYPE, _to);
@@ -72,9 +79,9 @@ contract AstarReceiver is Ownable, IOFTReceiverV2 {
         address _to,
         uint256 _amount
     ) internal {
-        require(_from != address(0), "Redeem: _from != address(0)");
-        require(_to != address(0), "Redeem: _to != address(0)");
-        require(_amount != 0, "Redeem: _amount != 0");
+        require(_from != address(0), "Invalid from");
+        require(_to != address(0), "Invalid to");
+        require(_amount != 0, "Invalid amount");
         xcmTransferAsset(VASTR, _from, _amount);
 
         bytes memory targetChain = abi.encodePacked(ASTAR_CHAIN_TYPE, _to);
@@ -98,7 +105,7 @@ contract AstarReceiver is Ownable, IOFTReceiverV2 {
             ),
             "Failed to send xcm"
         );
-        emit Mint(_from, _to, _amount);
+        emit Redeem(_from, _to, _amount);
     }
 
     function onOFTReceived(
@@ -117,18 +124,18 @@ contract AstarReceiver is Ownable, IOFTReceiverV2 {
             address(uint160(uint(_from))) == astarZkSlpx,
             "only receive msg from astarZkSlpx"
         );
-        (address caller, uint8 actionId) = abi.decode(
+        (address caller, Types.Operation operation) = abi.decode(
             _payload,
-            (address, uint8)
+            (address, Types.Operation)
         );
         if (derivativeAddress[caller] == address(0)) {
             setDerivativeAddress(caller);
         }
 
-        if (actionId == 0) {
+        if (operation == Types.Operation.Mint) {
             IOFTWithFee(astrNativeOFT).withdraw(_amount);
             zkSlpxMint(caller, derivativeAddress[caller], _amount);
-        } else if (actionId == 1) {
+        } else if (operation == Types.Operation.Redeem) {
             zkSlpxRedeem(caller, derivativeAddress[caller], _amount);
         }
     }
@@ -145,10 +152,19 @@ contract AstarReceiver is Ownable, IOFTReceiverV2 {
             address(0),
             _adapterParams
         );
+        bytes32 toAddress = bytes32(uint256(uint160(addr)));
+        (uint nativeFee, uint _zroFee) = IOFTV2(vAstrProxyOFT).estimateSendFee(
+            destChainId,
+            toAddress,
+            amount,
+            false,
+            _adapterParams
+        );
+        require(msg.value <= nativeFee, "Too much fee");
         IOFTV2(vAstrProxyOFT).sendFrom{value: msg.value}(
             address(this),
             destChainId,
-            bytes32(uint(uint160(addr))),
+            toAddress,
             amount,
             callParams
         );
@@ -168,30 +184,30 @@ contract AstarReceiver is Ownable, IOFTReceiverV2 {
             address(0),
             _adapterParams
         );
+        bytes32 toAddress = bytes32(uint256(uint160(addr)));
+        (uint nativeFee, uint _zroFee) = IOFTWithFee(astrNativeOFT)
+            .estimateSendFee(
+                destChainId,
+                toAddress,
+                _amount,
+                false,
+                _adapterParams
+            );
+        require(msg.value <= nativeFee, "Too much fee");
         IOFTWithFee(astrNativeOFT).sendFrom{value: _amount + msg.value}(
             address(this),
             destChainId,
-            bytes32(uint(uint160(addr))),
+            toAddress,
             _amount,
             _minAmount,
             callParams
         );
     }
 
-    function setDerivativeAddress(address addr) internal {
+    function setDerivativeAddress(address addr) public {
         bytes memory bytecode = type(DerivativeContract).creationCode;
         bytes32 salt = bytes32(uint256(uint160(addr)));
-        bytes memory deploymentData = abi.encodePacked(bytecode, salt);
-        address contractAddress;
-        assembly {
-            contractAddress := create2(
-                0,
-                add(deploymentData, 32),
-                mload(deploymentData),
-                salt
-            )
-        }
-
+        address contractAddress = Create2.deploy(0, salt, bytecode);
         derivativeAddress[addr] = contractAddress;
     }
 
@@ -250,36 +266,6 @@ contract AstarReceiver is Ownable, IOFTReceiverV2 {
             interior: interior
         });
         return dest;
-    }
-
-    receive() external payable {}
-}
-
-contract DerivativeContract is ReentrancyGuard {
-    address public astarReceiver;
-    address public VASTR = 0xfffFffff00000000000000010000000000000010;
-
-    constructor() {
-        astarReceiver = msg.sender;
-    }
-
-    function balanceOf() public view returns (uint) {
-        return IERC20(VASTR).balanceOf(address(this));
-    }
-
-    function withdrawVAstr() external nonReentrant returns (uint256) {
-        require(msg.sender == astarReceiver, "DerivativeContract: forbidden");
-        uint256 balance = balanceOf();
-        require(balance != 0, "DerivativeContract: balance to low");
-        IERC20(VASTR).transfer(astarReceiver, balance);
-        return balance;
-    }
-
-    function withdrawAstr(uint256 _amount) external nonReentrant {
-        require(msg.sender == astarReceiver, "DerivativeContract: forbidden");
-        require(_amount != 0, "DerivativeContract: balance to low");
-        (bool success, ) = msg.sender.call{value: _amount}("");
-        require(success, "DerivativeContract: failed to withdrawAstr");
     }
 
     receive() external payable {}

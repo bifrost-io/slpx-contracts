@@ -50,7 +50,7 @@ export async function calculate_multilocation_derivative_account(
   const DescendOriginAddress20 = u8aToHex(
     api.registry.hash(toHash).slice(0, 20)
   );
-  const keyring = new Keyring({ type: "sr25519", ss58Format: 5 });
+  const keyring = new Keyring({ type: "sr25519", ss58Format: 6 });
 
   console.log(
     "bifrost account id is %s",
@@ -66,16 +66,16 @@ const main = async () => {
   const wsProvider = new WsProvider("wss://bifrost-rpc.dwellir.com");
   const bifrost_api = await ApiPromise.create({ provider: wsProvider });
 
-  // await calculate_multilocation_derivative_account(
-  //   bifrost_api,
-  //   2023,
-  //   "0x9E545E3C0baAB3E08CdfD552C960A1050f373042"
-  // );
   await calculate_multilocation_derivative_account(
     bifrost_api,
-    1000,
-    "0x05dc1098d0cfab4e451e7be345f75f6e03977ce24ed2e5eb76bf6cc4ea00de9c"
+    2004,
+    "0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"
   );
+  // await calculate_multilocation_derivative_account(
+  //   bifrost_api,
+  //   1000,
+  //   "0x05dc1098d0cfab4e451e7be345f75f6e03977ce24ed2e5eb76bf6cc4ea00de9c"
+  // );
 };
 main()
   .then()
