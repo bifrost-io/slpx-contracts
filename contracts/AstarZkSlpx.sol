@@ -15,8 +15,8 @@ contract AstarZkSlpx is Ownable {
 
     mapping(Types.Operation => uint256) public minAmount;
 
-    event Mint(address caller, uint256 amount);
-    event Redeem(address caller, uint256 amount);
+    event Mint(address indexed caller, uint256 indexed amount);
+    event Redeem(address indexed caller, uint256 indexed amount);
 
     constructor(
         address _astrOFTWithFee,

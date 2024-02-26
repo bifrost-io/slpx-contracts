@@ -37,8 +37,21 @@ contract AstarReceiver is Ownable, IOFTReceiverV2 {
     mapping(address => address) public callerToDerivativeAddress;
     mapping(address => bool) public isDerivativeAddress;
 
-    event Mint(address caller, address derivativeAddress, uint256 amount);
-    event Redeem(address caller, address derivativeAddress, uint256 amount);
+    event Mint(
+        address indexed caller,
+        address indexed derivativeAddress,
+        uint256 indexed amount
+    );
+    event Redeem(
+        address indexed caller,
+        address indexed derivativeAddress,
+        uint256 indexed amount
+    );
+    event SetDerivativeAddress(
+        address indexed caller,
+        address indexed derivativeAddress
+    );
+    event Receive(address indexed sender, uint256 indexed amount);
 
     constructor(address _astarZkSlpx, address vastr, uint16 _destChainId) {
         require(_astarZkSlpx != address(0), "Invalid _astarZkSlpx");
@@ -227,6 +240,7 @@ contract AstarReceiver is Ownable, IOFTReceiverV2 {
         address derivativeAddress = Create2.deploy(0, salt, bytecode);
         callerToDerivativeAddress[addr] = derivativeAddress;
         isDerivativeAddress[derivativeAddress] = true;
+        emit SetDerivativeAddress(addr, derivativeAddress);
     }
 
     function xcmTransferNativeAsset(address to, uint256 amount) internal {
@@ -291,5 +305,6 @@ contract AstarReceiver is Ownable, IOFTReceiverV2 {
             isDerivativeAddress[_msgSender()],
             "sender is not a derivativeAddress"
         );
+        emit Receive(_msgSender(), msg.value);
     }
 }
