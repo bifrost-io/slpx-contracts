@@ -21,9 +21,7 @@ contract AstarReceiver is Ownable, IOFTReceiverV2 {
     bytes2 private constant ASTR_CURRENCY_ID = 0x0803;
     bytes2 private constant VASTR_CURRENCY_ID = 0x0903;
     uint256 private constant BIFROST_PARA_ID = 2030;
-    uint16 public constant destChainId = 10220;
     bool private constant IS_RELAY_CHAIN = false;
-    address public constant VASTR = 0xfffFffff00000000000000010000000000000010;
     address public constant BNC = 0xfFffFffF00000000000000010000000000000007;
     address public constant astarSlpx =
         0x2fD8bbF5dc8b342C09ABF34f211b3488e2d9d691;
@@ -34,13 +32,20 @@ contract AstarReceiver is Ownable, IOFTReceiverV2 {
     address public constant vAstrProxyOFT =
         0xF1d4797E51a4640a76769A50b57abE7479ADd3d8;
     address public astarZkSlpx;
-    mapping(address => address) public derivativeAddress;
+    address public VASTR;
+    uint16 public destChainId;
+    mapping(address => address) public callerToDerivativeAddress;
+    mapping(address => bool) public isDerivativeAddress;
 
     event Mint(address caller, address derivativeAddress, uint256 amount);
     event Redeem(address caller, address derivativeAddress, uint256 amount);
 
-    constructor(address _astarZkSlpx) {
+    constructor(address _astarZkSlpx, address vastr, uint16 _destChainId) {
+        require(_astarZkSlpx != address(0), "Invalid _astarZkSlpx");
+        require(vastr != address(0), "Invalid vastr");
         astarZkSlpx = _astarZkSlpx;
+        VASTR = vastr;
+        destChainId = _destChainId;
     }
 
     function zkSlpxMint(address _from, address _to, uint256 _amount) internal {
@@ -128,15 +133,15 @@ contract AstarReceiver is Ownable, IOFTReceiverV2 {
             _payload,
             (address, Types.Operation)
         );
-        if (derivativeAddress[caller] == address(0)) {
+        if (callerToDerivativeAddress[caller] == address(0)) {
             setDerivativeAddress(caller);
         }
 
         if (operation == Types.Operation.Mint) {
             IOFTWithFee(astrNativeOFT).withdraw(_amount);
-            zkSlpxMint(caller, derivativeAddress[caller], _amount);
+            zkSlpxMint(caller, callerToDerivativeAddress[caller], _amount);
         } else if (operation == Types.Operation.Redeem) {
-            zkSlpxRedeem(caller, derivativeAddress[caller], _amount);
+            zkSlpxRedeem(caller, callerToDerivativeAddress[caller], _amount);
         }
     }
 
@@ -144,8 +149,9 @@ contract AstarReceiver is Ownable, IOFTReceiverV2 {
         address addr,
         bytes calldata _adapterParams
     ) external payable {
-        uint256 amount = DerivativeContract(payable(derivativeAddress[addr]))
-            .withdrawVAstr();
+        address derivativeAddress = callerToDerivativeAddress[addr];
+        require(derivativeAddress != address(0), "invalid address");
+        uint256 amount = DerivativeContract(derivativeAddress).withdraw(VASTR);
         IERC20(VASTR).approve(vAstrProxyOFT, amount);
         ICommonOFT.LzCallParams memory callParams = ICommonOFT.LzCallParams(
             payable(_msgSender()),
@@ -153,15 +159,19 @@ contract AstarReceiver is Ownable, IOFTReceiverV2 {
             _adapterParams
         );
         bytes32 toAddress = bytes32(uint256(uint160(addr)));
-        (uint nativeFee, uint _zroFee) = IOFTV2(vAstrProxyOFT).estimateSendFee(
+        (uint256 estimateFee, ) = IOFTV2(vAstrProxyOFT).estimateSendFee(
             destChainId,
             toAddress,
             amount,
             false,
             _adapterParams
         );
-        require(msg.value <= nativeFee, "Too much fee");
-        IOFTV2(vAstrProxyOFT).sendFrom{value: msg.value}(
+        require(msg.value >= estimateFee, "too small fee");
+        if (msg.value != estimateFee) {
+            uint256 refundAmount = msg.value - estimateFee;
+            payable(_msgSender()).transfer(refundAmount);
+        }
+        IOFTV2(vAstrProxyOFT).sendFrom{value: estimateFee}(
             address(this),
             destChainId,
             toAddress,
@@ -176,7 +186,7 @@ contract AstarReceiver is Ownable, IOFTReceiverV2 {
         uint256 _minAmount,
         bytes calldata _adapterParams
     ) external payable {
-        DerivativeContract(payable(derivativeAddress[addr])).withdrawAstr(
+        DerivativeContract(callerToDerivativeAddress[addr]).withdrawAstr(
             _amount
         );
         ICommonOFT.LzCallParams memory callParams = ICommonOFT.LzCallParams(
@@ -185,16 +195,19 @@ contract AstarReceiver is Ownable, IOFTReceiverV2 {
             _adapterParams
         );
         bytes32 toAddress = bytes32(uint256(uint160(addr)));
-        (uint nativeFee, uint _zroFee) = IOFTWithFee(astrNativeOFT)
-            .estimateSendFee(
-                destChainId,
-                toAddress,
-                _amount,
-                false,
-                _adapterParams
-            );
-        require(msg.value <= nativeFee, "Too much fee");
-        IOFTWithFee(astrNativeOFT).sendFrom{value: _amount + msg.value}(
+        (uint256 estimateFee, ) = IOFTWithFee(astrNativeOFT).estimateSendFee(
+            destChainId,
+            toAddress,
+            _amount,
+            false,
+            _adapterParams
+        );
+        require(msg.value >= estimateFee, "too small fee");
+        if (msg.value != estimateFee) {
+            uint256 refundAmount = msg.value - estimateFee;
+            payable(_msgSender()).transfer(refundAmount);
+        }
+        IOFTWithFee(astrNativeOFT).sendFrom{value: _amount + estimateFee}(
             address(this),
             destChainId,
             toAddress,
@@ -205,10 +218,15 @@ contract AstarReceiver is Ownable, IOFTReceiverV2 {
     }
 
     function setDerivativeAddress(address addr) public {
+        require(
+            callerToDerivativeAddress[addr] == address(0),
+            "already set derivativeAddress"
+        );
         bytes memory bytecode = type(DerivativeContract).creationCode;
         bytes32 salt = bytes32(uint256(uint160(addr)));
-        address contractAddress = Create2.deploy(0, salt, bytecode);
-        derivativeAddress[addr] = contractAddress;
+        address derivativeAddress = Create2.deploy(0, salt, bytecode);
+        callerToDerivativeAddress[addr] = derivativeAddress;
+        isDerivativeAddress[derivativeAddress] = true;
     }
 
     function xcmTransferNativeAsset(address to, uint256 amount) internal {
@@ -268,5 +286,10 @@ contract AstarReceiver is Ownable, IOFTReceiverV2 {
         return dest;
     }
 
-    receive() external payable {}
+    receive() external payable {
+        require(
+            isDerivativeAddress[_msgSender()],
+            "sender is not a derivativeAddress"
+        );
+    }
 }

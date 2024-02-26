@@ -24,7 +24,7 @@ contract AstarZkSlpx is Ownable {
         uint16 _destChainId
     ) {
         require(_astrOFTWithFee != address(0), "Invalid astrOFTWithFee");
-        require(_vAstrOFT != address(0), "Invalid astrOFTWithFee");
+        require(_vAstrOFT != address(0), "Invalid vAstrOFT");
         astrOFTWithFee = _astrOFTWithFee;
         vAstrOFT = _vAstrOFT;
         destChainId = _destChainId;
@@ -62,9 +62,13 @@ contract AstarZkSlpx is Ownable {
             _dstGasForCall,
             _adapterParams
         );
-        require(msg.value <= estimateFee, "Too much fee");
+        require(msg.value >= estimateFee, "too small fee");
+        if (msg.value != estimateFee) {
+            uint256 refundAmount = msg.value - estimateFee;
+            payable(_msgSender()).transfer(refundAmount);
+        }
 
-        IOFTWithFee(astrOFTWithFee).sendAndCall{value: msg.value}(
+        IOFTWithFee(astrOFTWithFee).sendAndCall{value: estimateFee}(
             _msgSender(),
             destChainId,
             remoteContract,
@@ -100,9 +104,13 @@ contract AstarZkSlpx is Ownable {
             _dstGasForCall,
             _adapterParams
         );
-        require(msg.value <= estimateFee, "Too much fee");
+        require(msg.value >= estimateFee, "too small fee");
+        if (msg.value != estimateFee) {
+            uint256 refundAmount = msg.value - estimateFee;
+            payable(_msgSender()).transfer(refundAmount);
+        }
 
-        IOFTV2(vAstrOFT).sendAndCall{value: msg.value}(
+        IOFTV2(vAstrOFT).sendAndCall{value: estimateFee}(
             _msgSender(),
             destChainId,
             remoteContract,
@@ -124,7 +132,7 @@ contract AstarZkSlpx is Ownable {
     ) public view returns (uint256, bytes memory) {
         if (operation == Types.Operation.Mint) {
             bytes memory payload = abi.encode(caller, Types.Operation.Mint);
-            (uint256 estimateFee, uint256 _useZro) = IOFTWithFee(astrOFTWithFee)
+            (uint256 estimateFee, ) = IOFTWithFee(astrOFTWithFee)
                 .estimateSendAndCallFee(
                     destChainId,
                     remoteContract,
@@ -137,16 +145,15 @@ contract AstarZkSlpx is Ownable {
             return (estimateFee, payload);
         } else {
             bytes memory payload = abi.encode(caller, Types.Operation.Redeem);
-            (uint256 estimateFee, uint256 _useZro) = IOFTV2(vAstrOFT)
-                .estimateSendAndCallFee(
-                    destChainId,
-                    remoteContract,
-                    _amount,
-                    payload,
-                    _dstGasForCall,
-                    false,
-                    _adapterParams
-                );
+            (uint256 estimateFee, ) = IOFTV2(vAstrOFT).estimateSendAndCallFee(
+                destChainId,
+                remoteContract,
+                _amount,
+                payload,
+                _dstGasForCall,
+                false,
+                _adapterParams
+            );
             return (estimateFee, payload);
         }
     }

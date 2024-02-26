@@ -7,7 +7,7 @@ import {ethers} from "hardhat";
 
 const remoteChainId = 10220
 const contractName = "AstarReceiver";
-const contractAddress = "0x6F8895a9270f81D0a0838644A57F639eB49f02Ca";
+const contractAddress = "0x09B8D18d97B5CDF222136E7D72A5A03c8B23889A";
 
 task("balanceVAstr", "Bridge vASTR")
     .setAction(async (taskArgs, hre) => {
@@ -39,7 +39,7 @@ task("claimVAstr", "Bridge vASTR")
         console.log("toAddressBytes32",toAddressBytes32)
         console.log("adapterParams",adapterParams)
 
-        const derivativeAddress = await localContractInstance.derivativeAddress(owner.address)
+        const derivativeAddress = await localContractInstance.callerToDerivativeAddress(owner.address)
         console.log("derivativeAddress: ",derivativeAddress);
 
         const balance = await IERC20Instance.balanceOf(derivativeAddress);
@@ -49,8 +49,8 @@ task("claimVAstr", "Bridge vASTR")
         const fees = await vAstrContractInstance.estimateSendFee(remoteChainId, toAddressBytes32, balance, false, adapterParams)
         console.log("fee: ",hre.ethers.utils.formatUnits(fees[0]))
 
-        const tx = await localContractInstance.claimVAstr(owner.address, adapterParams, { value: fees[0] })
-        console.log(`✅ Message Sent [${hre.network.name}] claimVAstr() to : ${tx.hash}`)
+        // const tx = await localContractInstance.claimVAstr(owner.address, adapterParams, { value: fees[0] })
+        // console.log(`✅ Message Sent [${hre.network.name}] claimVAstr() to : ${tx.hash}`)
     });
 
 task("claimAstr", "Bridge vASTR")
@@ -66,7 +66,7 @@ task("claimAstr", "Bridge vASTR")
         // convert to address to bytes32
         const toAddressBytes32 = hre.ethers.utils.defaultAbiCoder.encode(['address'], [owner.address])
 
-        const derivativeAddress = await localContractInstance.derivativeAddress(owner.address)
+        const derivativeAddress = await localContractInstance.callerToDerivativeAddress(owner.address)
         console.log("owner.address: ",owner.address);
         console.log("derivativeAddress: ",derivativeAddress);
 
@@ -79,6 +79,6 @@ task("claimAstr", "Bridge vASTR")
 
         // const minAmount = balance / BigInt(2);
 
-        const tx = await localContractInstance.claimAstr(owner.address, balance, 1000, adapterParams, { value: fees[0] })
-        console.log(`✅ Message Sent [${hre.network.name}] claimVAstr() to : ${tx.hash}`)
+        // const tx = await localContractInstance.claimAstr(owner.address, balance, 1000, adapterParams, { value: fees[0] })
+        // console.log(`✅ Message Sent [${hre.network.name}] claimVAstr() to : ${tx.hash}`)
     });
