@@ -182,7 +182,8 @@ contract AstarReceiver is Ownable, IOFTReceiverV2 {
         require(msg.value >= estimateFee, "too small fee");
         if (msg.value != estimateFee) {
             uint256 refundAmount = msg.value - estimateFee;
-            payable(_msgSender()).transfer(refundAmount);
+            (bool success, ) = _msgSender().call{value: refundAmount}("");
+            require(success, "failed to refund");
         }
         IOFTV2(vAstrProxyOFT).sendFrom{value: estimateFee}(
             address(this),
@@ -218,7 +219,8 @@ contract AstarReceiver is Ownable, IOFTReceiverV2 {
         require(msg.value >= estimateFee, "too small fee");
         if (msg.value != estimateFee) {
             uint256 refundAmount = msg.value - estimateFee;
-            payable(_msgSender()).transfer(refundAmount);
+            (bool success, ) = _msgSender().call{value: refundAmount}("");
+            require(success, "failed to refund");
         }
         IOFTWithFee(astrNativeOFT).sendFrom{value: _amount + estimateFee}(
             address(this),
