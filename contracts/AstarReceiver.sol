@@ -304,8 +304,8 @@ contract AstarReceiver is Ownable, IOFTReceiverV2 {
 
     receive() external payable {
         require(
-            isDerivativeAddress[_msgSender()],
-            "sender is not a derivativeAddress"
+            isDerivativeAddress[_msgSender()] || _msgSender() == astrNativeOFT,
+            "sender is not a derivativeAddress or astrNativeOFT"
         );
         emit Receive(_msgSender(), msg.value);
     }

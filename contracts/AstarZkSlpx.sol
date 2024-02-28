@@ -57,7 +57,7 @@ contract AstarZkSlpx is Ownable {
 
         (uint256 estimateFee, bytes memory payload) = estimateSendAndCallFee(
             _msgSender(),
-            Types.Operation.Redeem,
+            Types.Operation.Mint,
             _amount,
             _dstGasForCall,
             _adapterParams
