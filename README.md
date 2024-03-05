@@ -15,6 +15,11 @@
 - swapAssetsForExactNativeAssets(address assetInAddress, uint256 assetInAmount, uint128 assetOutMin, address receiver) external: Swap a Token into a parachain native Token, such as BNC Swap into GLMR
 - swapNativeAssetsForExactAssets(address assetOutAddress, uint128 assetOutMin, address receiver) payable external: Swap the original Token of the parachain into other Tokens, such as GLMR Swap into BNC
 
+# Astar ZkSlpx
+Astar ZkSlpx -> AstarReceiver -> Bifrost -> AstarReceiver -> Astar ZkSlpx
+* function mint(uint256 _amount, uint64 _dstGasForCall, bytes calldata _adapterParams) external payable
+* function redeem(uint256 _amount, uint64 _dstGasForCall, bytes calldata _adapterParams) external payable
+
 # XcmOracle
 
 | Network       | XcmOracle Address                          | Support Asset    |
