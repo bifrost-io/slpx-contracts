@@ -33,6 +33,11 @@ const config: HardhatUserConfig = {
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
+    "astar-zk": {
+      url: `https://rpc.startale.com/astar-zkevm`,
+      chainId: 3776,
+      accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
     shibuya: {
       url: "https://evm.shibuya.astar.network",
       chainId: 81,
