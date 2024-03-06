@@ -18,9 +18,9 @@ const deployFunction: DeployFunction = async function ({
     log: true,
     deterministicDeployment: false,
     args: [
-      "0xEaFAF3EDA029A62bCbE8a0C9a4549ef0fEd5a400",
-      "0x051713fD66845a13BF23BACa008C5C22C27Ccb58",
-      "10210"
+      "0xdf41220C7e322bFEF933D85D01821ad277f90172",
+      "0x7746ef546d562b443AE4B4145541a3b1a3D75717",
+      "210"
     ],
   });
 };

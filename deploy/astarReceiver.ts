@@ -18,13 +18,13 @@ const deployFunction: DeployFunction = async function ({
     log: true,
     deterministicDeployment: false,
     libraries: {
-      AddressToAccount: "0x4238Ea4AdFa2bD6a5fC9B5E245dc1900cF0258aa",
-      BuildCallData: "0x051713fD66845a13BF23BACa008C5C22C27Ccb58",
+      AddressToAccount: "0x8F8F6B104190a4A24CcFf7B4006Ea7A59baeAf81",
+      BuildCallData: "0x3311A4609cdD0C7Ce8D2Dfa592BA4aDD23FeC578",
     },
     args: [
-        "0x4e1A1FdE10494d714D2620aAF7B27B878458459c",
+        "0x2fD8bbF5dc8b342C09ABF34f211b3488e2d9d691",
         "0xfffFffff00000000000000010000000000000010",
-        "10220"
+        "257"
     ],
   });
 };

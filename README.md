@@ -20,12 +20,14 @@ Astar ZkSlpx -> AstarReceiver -> Bifrost -> AstarReceiver -> Astar ZkSlpx
 * function mint(uint256 _amount, uint64 _dstGasForCall, bytes calldata _adapterParams) external payable
 * function redeem(uint256 _amount, uint64 _dstGasForCall, bytes calldata _adapterParams) external payable
 
-| Name                           | Address                                    | 
-|--------------------------------|--------------------------------------------|
-| ASTR Native OFT                | 0x112cA47f9c891aB3813d8196ca7530D3cE26336C | 
-| ASTR OFT                      | 0xebF4772c800CA56504A8695D657Da3901d05948b | 
-| Bifrost Voucher ASTR Proxy OFT | 0xba273b7Fa296614019c71Dcc54DCa6C922A93BcF | 
-| Bifrost Voucher ASTR OFT                      | 0x7746ef546d562b443AE4B4145541a3b1a3D75717 |
+| Name                           | Address                                                                                                                             | 
+|--------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
+| Astar Receiver                 | [0xC9fb7DC52b0FB92C417D481442D2641637483881](https://astar.blockscout.com/address/0xdf41220C7e322bFEF933D85D01821ad277f90172) | 
+| Astar ZK Slpx                  | [0x2fD8bbF5dc8b342C09ABF34f211b3488e2d9d691](https://astar-zkevm.blockscout.com/address/0xdf41220C7e322bFEF933D85D01821ad277f90172) | 
+| ASTR Native OFT                | [0xdf41220C7e322bFEF933D85D01821ad277f90172](https://astar.blockscout.com/address/0xdf41220C7e322bFEF933D85D01821ad277f90172) | 
+| ASTR OFT                       | [0xdf41220C7e322bFEF933D85D01821ad277f90172](https://astar-zkevm.blockscout.com/address/0xdf41220C7e322bFEF933D85D01821ad277f90172)                                                                                      |
+| Bifrost Voucher ASTR Proxy OFT | [0xba273b7Fa296614019c71Dcc54DCa6C922A93BcF](https://astar.blockscout.com/address/0xba273b7Fa296614019c71Dcc54DCa6C922A93BcF)            | 
+| Bifrost Voucher ASTR OFT       | [0x7746ef546d562b443AE4B4145541a3b1a3D75717](https://astar-zkevm.blockscout.com/address/0x7746ef546d562b443AE4B4145541a3b1a3D75717) |
 
 # XcmOracle
 
