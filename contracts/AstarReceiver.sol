@@ -24,13 +24,13 @@ contract AstarReceiver is Ownable, IOFTReceiverV2 {
     bool private constant IS_RELAY_CHAIN = false;
     address public constant BNC = 0xfFffFffF00000000000000010000000000000007;
     address public constant astarSlpx =
-        0x2fD8bbF5dc8b342C09ABF34f211b3488e2d9d691;
+        0xc6bf0C5C78686f1D0E2E54b97D6de6e2cEFAe9fD;
     address public constant polkadotXcm =
         0x0000000000000000000000000000000000005004;
     address public constant astrNativeOFT =
-        0xEaFAF3EDA029A62bCbE8a0C9a4549ef0fEd5a400;
+        0xdf41220C7e322bFEF933D85D01821ad277f90172;
     address public constant vAstrProxyOFT =
-        0xF1d4797E51a4640a76769A50b57abE7479ADd3d8;
+        0xba273b7Fa296614019c71Dcc54DCa6C922A93BcF;
     address public astarZkSlpx;
     address public VASTR;
     uint16 public destChainId;
