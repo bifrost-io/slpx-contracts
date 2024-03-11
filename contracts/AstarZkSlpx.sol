@@ -74,7 +74,7 @@ contract AstarZkSlpx is Ownable {
             destChainId,
             remoteContract,
             _amount,
-            _amount,
+            _amount / 2,
             payload,
             _dstGasForCall,
             callParams
