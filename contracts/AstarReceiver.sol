@@ -171,6 +171,7 @@ contract AstarReceiver is Ownable, IOFTReceiverV2 {
         address addr,
         bytes calldata _adapterParams
     ) external payable {
+        require(_msgSender() == scriptTrigger, "must be scriptTrigger");
         address derivativeAddress = callerToDerivativeAddress[addr];
         require(derivativeAddress != address(0), "invalid address");
         uint256 amount = DerivativeContract(derivativeAddress).withdraw(VASTR);
@@ -209,6 +210,7 @@ contract AstarReceiver is Ownable, IOFTReceiverV2 {
         uint256 _minAmount,
         bytes calldata _adapterParams
     ) external payable {
+        require(_msgSender() == scriptTrigger, "must be scriptTrigger");
         DerivativeContract(callerToDerivativeAddress[addr]).withdrawAstr(
             _amount
         );
