@@ -334,19 +334,6 @@ contract AstarReceiver is Ownable, IOFTReceiverV2 {
         );
     }
 
-    function getXtokensDestination(
-        bytes32 publicKey
-    ) internal pure returns (XCM_v2.Multilocation memory) {
-        bytes[] memory interior = new bytes[](2);
-        interior[0] = bytes.concat(hex"00", bytes4(uint32(2030)));
-        interior[1] = bytes.concat(hex"01", publicKey, hex"00");
-        XCM_v2.Multilocation memory dest = XCM_v2.Multilocation({
-            parents: 1,
-            interior: interior
-        });
-        return dest;
-    }
-
     receive() external payable {
         require(
             isDerivativeAddress[_msgSender()] || _msgSender() == astrNativeOFT,
