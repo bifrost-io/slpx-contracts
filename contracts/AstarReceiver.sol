@@ -129,13 +129,16 @@ contract AstarReceiver is Ownable, IOFTReceiverV2 {
     }
 
     function onOFTReceived(
-        uint16,
+        uint16 _srcChainId,
         bytes calldata,
         uint64,
         bytes32 _from,
         uint _amount,
         bytes calldata _payload
     ) external override {
+        require(
+            _srcChainId == destChainId, "only receive msg from astar-zk"
+        );
         require(
             _msgSender() == astrNativeOFT || _msgSender() == vAstrProxyOFT,
             "only native oft can call"
