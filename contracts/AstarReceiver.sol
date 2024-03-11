@@ -34,6 +34,9 @@ contract AstarReceiver is Ownable, IOFTReceiverV2 {
     address public astarZkSlpx;
     address public VASTR;
     uint16 public destChainId;
+    uint256 public astrLayerZeroFee;
+    uint256 public vastrLayerZeroFee;
+    address public scriptTrigger;
     mapping(address => address) public callerToDerivativeAddress;
     mapping(address => bool) public isDerivativeAddress;
 
@@ -52,6 +55,8 @@ contract AstarReceiver is Ownable, IOFTReceiverV2 {
         address indexed derivativeAddress
     );
     event Receive(address indexed sender, uint256 indexed amount);
+    event SetLayerZeroFee(address indexed scriptTrigger, uint256 indexed astrFee, uint256 indexed vastrFee);
+    event SetScriptTrigger(address indexed scriptTrigger);
 
     constructor(address _astarZkSlpx, address vastr, uint16 _destChainId) {
         require(_astarZkSlpx != address(0), "Invalid _astarZkSlpx");
@@ -152,9 +157,13 @@ contract AstarReceiver is Ownable, IOFTReceiverV2 {
 
         if (operation == Types.Operation.Mint) {
             IOFTWithFee(astrNativeOFT).withdraw(_amount);
-            zkSlpxMint(caller, callerToDerivativeAddress[caller], _amount);
+            (bool success, ) = scriptTrigger.call{value: astrLayerZeroFee}("");
+            require(success, "failed to charge");
+            zkSlpxMint(caller, callerToDerivativeAddress[caller], _amount - astrLayerZeroFee);
         } else if (operation == Types.Operation.Redeem) {
-            zkSlpxRedeem(caller, callerToDerivativeAddress[caller], _amount);
+            bool success = IERC20(VASTR).transfer(scriptTrigger, vastrLayerZeroFee);
+            require(success, "failed to charge");
+            zkSlpxRedeem(caller, callerToDerivativeAddress[caller], _amount - vastrLayerZeroFee);
         }
     }
 
@@ -243,6 +252,40 @@ contract AstarReceiver is Ownable, IOFTReceiverV2 {
         callerToDerivativeAddress[addr] = derivativeAddress;
         isDerivativeAddress[derivativeAddress] = true;
         emit SetDerivativeAddress(addr, derivativeAddress);
+    }
+
+    function setLayerZeroFee() external {
+        require(_msgSender() == _scriptTrigger, "must be scriptTrigger");
+        bytes32 toAddress = bytes32(uint256(uint160(scriptTrigger)));
+        uint256 amount = 1000 ether;
+        bytes memory adapterParams = abi.encodePacked(uint16(1), uint256(100000));
+
+        (uint256 vastrFee, ) = IOFTV2(vAstrProxyOFT).estimateSendFee(
+            destChainId,
+            toAddress,
+            amount,
+            false,
+            adapterParams
+        );
+
+        (uint256 astrFee, ) = IOFTWithFee(astrNativeOFT).estimateSendFee(
+            destChainId,
+            toAddress,
+            amount,
+            false,
+            adapterParams
+        );
+
+        astrLayerZeroFee = astrFee;
+        vastrLayerZeroFee = vastrFee;
+
+        emit SetLayerZeroFee(scriptTrigger, astrLayerZeroFee, vastrLayerZeroFee);
+    }
+
+    function setScriptTrigger(address _scriptTrigger) external onlyOwner {
+        require(_scriptTrigger != address(0), "invalid address");
+        scriptTrigger = _scriptTrigger;
+        emit SetScriptTrigger(_scriptTrigger);
     }
 
     function xcmTransferNativeAsset(address to, uint256 amount) internal {
