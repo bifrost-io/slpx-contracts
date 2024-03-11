@@ -8,27 +8,15 @@ import "./interfaces/IOFTV2.sol";
 import "./interfaces/Types.sol";
 
 contract AstarZkSlpx is Ownable {
-    address public astrOFTWithFee;
-    address public vAstrOFT;
-    uint16 public destChainId;
+    address public constant astrOFTWithFee = 0xdf41220C7e322bFEF933D85D01821ad277f90172;
+    address public constant vAstrOFT = 0x7746ef546d562b443AE4B4145541a3b1a3D75717;
+    uint16 public constant destChainId = 210;
     bytes32 public remoteContract;
 
     mapping(Types.Operation => uint256) public minAmount;
 
     event Mint(address indexed caller, uint256 indexed amount);
     event Redeem(address indexed caller, uint256 indexed amount);
-
-    constructor(
-        address _astrOFTWithFee,
-        address _vAstrOFT,
-        uint16 _destChainId
-    ) {
-        require(_astrOFTWithFee != address(0), "Invalid astrOFTWithFee");
-        require(_vAstrOFT != address(0), "Invalid vAstrOFT");
-        astrOFTWithFee = _astrOFTWithFee;
-        vAstrOFT = _vAstrOFT;
-        destChainId = _destChainId;
-    }
 
     function setRemoteContract(address _remoteContract) public onlyOwner {
         require(_remoteContract != address(0), "Invalid remoteContract");

@@ -22,7 +22,9 @@ contract AstarReceiver is Ownable, IOFTReceiverV2 {
     bytes2 private constant VASTR_CURRENCY_ID = 0x0903;
     uint256 private constant BIFROST_PARA_ID = 2030;
     bool private constant IS_RELAY_CHAIN = false;
+    uint16 public constant destChainId = 257;
     address public constant BNC = 0xfFffFffF00000000000000010000000000000007;
+    address public constant VASTR = 0xfffFffff00000000000000010000000000000010;
     address public constant astarSlpx =
         0xc6bf0C5C78686f1D0E2E54b97D6de6e2cEFAe9fD;
     address public constant polkadotXcm =
@@ -32,8 +34,6 @@ contract AstarReceiver is Ownable, IOFTReceiverV2 {
     address public constant vAstrProxyOFT =
         0xba273b7Fa296614019c71Dcc54DCa6C922A93BcF;
     address public astarZkSlpx;
-    address public VASTR;
-    uint16 public destChainId;
     uint256 public astrLayerZeroFee;
     uint256 public vastrLayerZeroFee;
     address public scriptTrigger;
@@ -58,12 +58,9 @@ contract AstarReceiver is Ownable, IOFTReceiverV2 {
     event SetLayerZeroFee(address indexed scriptTrigger, uint256 indexed astrFee, uint256 indexed vastrFee);
     event SetScriptTrigger(address indexed scriptTrigger);
 
-    constructor(address _astarZkSlpx, address vastr, uint16 _destChainId) {
-        require(_astarZkSlpx != address(0), "Invalid _astarZkSlpx");
-        require(vastr != address(0), "Invalid vastr");
+    constructor(address _astarZkSlpx) {
+        require(_astarZkSlpx != address(0), "Invalid astarZkSlpx");
         astarZkSlpx = _astarZkSlpx;
-        VASTR = vastr;
-        destChainId = _destChainId;
     }
 
     function zkSlpxMint(address _from, address _to, uint256 _amount) internal {
