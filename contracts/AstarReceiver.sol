@@ -55,7 +55,11 @@ contract AstarReceiver is Ownable, IOFTReceiverV2 {
         address indexed derivativeAddress
     );
     event Receive(address indexed sender, uint256 indexed amount);
-    event SetLayerZeroFee(address indexed scriptTrigger, uint256 indexed astrFee, uint256 indexed vastrFee);
+    event SetLayerZeroFee(
+        address indexed scriptTrigger,
+        uint256 indexed astrFee,
+        uint256 indexed vastrFee
+    );
     event SetScriptTrigger(address indexed scriptTrigger);
 
     constructor(address _astarZkSlpx) {
@@ -136,9 +140,7 @@ contract AstarReceiver is Ownable, IOFTReceiverV2 {
         uint _amount,
         bytes calldata _payload
     ) external override {
-        require(
-            _srcChainId == destChainId, "only receive msg from astar-zk"
-        );
+        require(_srcChainId == destChainId, "only receive msg from astar-zk");
         require(
             _msgSender() == astrNativeOFT || _msgSender() == vAstrProxyOFT,
             "only native oft can call"
@@ -159,11 +161,22 @@ contract AstarReceiver is Ownable, IOFTReceiverV2 {
             IOFTWithFee(astrNativeOFT).withdraw(_amount);
             (bool success, ) = scriptTrigger.call{value: astrLayerZeroFee}("");
             require(success, "failed to charge");
-            zkSlpxMint(caller, callerToDerivativeAddress[caller], _amount - astrLayerZeroFee);
+            zkSlpxMint(
+                caller,
+                callerToDerivativeAddress[caller],
+                _amount - astrLayerZeroFee
+            );
         } else if (operation == Types.Operation.Redeem) {
-            bool success = IERC20(VASTR).transfer(scriptTrigger, vastrLayerZeroFee);
+            bool success = IERC20(VASTR).transfer(
+                scriptTrigger,
+                vastrLayerZeroFee
+            );
             require(success, "failed to charge");
-            zkSlpxRedeem(caller, callerToDerivativeAddress[caller], _amount - vastrLayerZeroFee);
+            zkSlpxRedeem(
+                caller,
+                callerToDerivativeAddress[caller],
+                _amount - vastrLayerZeroFee
+            );
         }
     }
 
@@ -257,10 +270,13 @@ contract AstarReceiver is Ownable, IOFTReceiverV2 {
     }
 
     function setLayerZeroFee() external {
-        require(_msgSender() == _scriptTrigger, "must be scriptTrigger");
+        require(_msgSender() == scriptTrigger, "must be scriptTrigger");
         bytes32 toAddress = bytes32(uint256(uint160(scriptTrigger)));
         uint256 amount = 1000 ether;
-        bytes memory adapterParams = abi.encodePacked(uint16(1), uint256(100000));
+        bytes memory adapterParams = abi.encodePacked(
+            uint16(1),
+            uint256(100000)
+        );
 
         (uint256 vastrFee, ) = IOFTV2(vAstrProxyOFT).estimateSendFee(
             destChainId,
@@ -281,7 +297,11 @@ contract AstarReceiver is Ownable, IOFTReceiverV2 {
         astrLayerZeroFee = astrFee;
         vastrLayerZeroFee = vastrFee;
 
-        emit SetLayerZeroFee(scriptTrigger, astrLayerZeroFee, vastrLayerZeroFee);
+        emit SetLayerZeroFee(
+            scriptTrigger,
+            astrLayerZeroFee,
+            vastrLayerZeroFee
+        );
     }
 
     function setScriptTrigger(address _scriptTrigger) external onlyOwner {

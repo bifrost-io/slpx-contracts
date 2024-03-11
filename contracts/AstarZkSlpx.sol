@@ -8,8 +8,10 @@ import "./interfaces/IOFTV2.sol";
 import "./interfaces/Types.sol";
 
 contract AstarZkSlpx is Ownable {
-    address public constant astrOFTWithFee = 0xdf41220C7e322bFEF933D85D01821ad277f90172;
-    address public constant vAstrOFT = 0x7746ef546d562b443AE4B4145541a3b1a3D75717;
+    address public constant astrOFTWithFee =
+        0xdf41220C7e322bFEF933D85D01821ad277f90172;
+    address public constant vAstrOFT =
+        0x7746ef546d562b443AE4B4145541a3b1a3D75717;
     uint16 public constant destChainId = 210;
     bytes32 public remoteContract;
 
