@@ -28,6 +28,10 @@ Astar ZkSlpx -> AstarReceiver -> Bifrost -> AstarReceiver -> Astar ZkSlpx
 | ASTR OFT                       | [0xdf41220C7e322bFEF933D85D01821ad277f90172](https://astar-zkevm.blockscout.com/address/0xdf41220C7e322bFEF933D85D01821ad277f90172)                                                                                      |
 | Bifrost Voucher ASTR Proxy OFT | [0xba273b7Fa296614019c71Dcc54DCa6C922A93BcF](https://astar.blockscout.com/address/0xba273b7Fa296614019c71Dcc54DCa6C922A93BcF)            | 
 | Bifrost Voucher ASTR OFT       | [0x7746ef546d562b443AE4B4145541a3b1a3D75717](https://astar-zkevm.blockscout.com/address/0x7746ef546d562b443AE4B4145541a3b1a3D75717) |
+| Bifrost Voucher DOT Proxy OFT  | [0x523c134B054d3cd8fd075bf3672A127E38C0a344](https://astar.blockscout.com/address/0x523c134B054d3cd8fd075bf3672A127E38C0a344)            | 
+| Bifrost Voucher DOT OFT        | [0x3239C38d7eD39EA24Bcf30A6CFAF2E38c87a79EB](https://astar-zkevm.blockscout.com/address/0x3239C38d7eD39EA24Bcf30A6CFAF2E38c87a79EB) |
+| Bifrost Native Coin Proxy OFT  | [0xDf2217C883C01b027D71b801Bb484D851BbE92bd](https://astar.blockscout.com/address/0xDf2217C883C01b027D71b801Bb484D851BbE92bd)            | 
+| Bifrost Native Coin OFT       | [0xBa6F3053D3E1eaB84a8237A46409DF6C2D569ab9](https://astar-zkevm.blockscout.com/address/0xBa6F3053D3E1eaB84a8237A46409DF6C2D569ab9) |
 
 # XcmOracle
 
