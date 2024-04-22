@@ -27,6 +27,12 @@ const config: HardhatUserConfig = {
     deployer: 0,
   },
   networks: {
+    manta: {
+      url: "https://pacific-rpc.manta.network/http",
+      chainId: 169,
+      accounts:
+          process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
     astar: {
       url: "https://evm.astar.network",
       chainId: 592,
