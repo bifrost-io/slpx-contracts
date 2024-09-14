@@ -110,12 +110,6 @@ contract MoonbeamSlpx is ISlpx, OwnableUpgradeable, PausableUpgradeable {
         uint64 _overallWeight,
         uint256 _feeAmount
     ) public onlyOwner {
-        require(
-            _transactRequiredWeightAtMost <= 10000000000,
-            "transactRequiredWeightAtMost too large"
-        );
-        require(_feeAmount <= 1000000000000, "feeAmount too large");
-        require(_overallWeight <= 10000000000, "OverallWeight too large");
         operationToFeeInfo[_operation] = FeeInfo(
             _transactRequiredWeightAtMost,
             _feeAmount,
