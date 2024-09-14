@@ -110,12 +110,6 @@ contract MoonbeamSlpx is ISlpx, OwnableUpgradeable, PausableUpgradeable {
         uint64 _overallWeight,
         uint256 _feeAmount
     ) public onlyOwner {
-        require(
-            _transactRequiredWeightAtMost <= 10000000000,
-            "transactRequiredWeightAtMost too large"
-        );
-        require(_feeAmount <= 1000000000000, "feeAmount too large");
-        require(_overallWeight <= 10000000000, "OverallWeight too large");
         operationToFeeInfo[_operation] = FeeInfo(
             _transactRequiredWeightAtMost,
             _feeAmount,
@@ -243,6 +237,88 @@ contract MoonbeamSlpx is ISlpx, OwnableUpgradeable, PausableUpgradeable {
             token,
             targetChain,
             remark
+        );
+        // XCM Transact
+        FeeInfo memory feeInfo = checkFeeInfo(Operation.Mint);
+        XcmTransactorV2(XCM_TRANSACTORV2_ADDRESS).transactThroughSigned(
+            xcmTransactorDestination,
+            BNCAddress,
+            feeInfo.transactRequiredWeightAtMost,
+            callData,
+            feeInfo.feeAmount,
+            feeInfo.overallWeight
+        );
+        emit Mint(
+            _msgSender(),
+            assetAddress,
+            amount,
+            receiver,
+            callData,
+            remark
+        );
+    }
+
+    function mintVNativeAssetWithChannelId(
+        address receiver,
+        string memory remark,
+        uint32 channel_id
+    ) external payable override whenNotPaused {
+        require(bytes(remark).length <= 32, "remark too long");
+        bytes2 nativeToken = checkAssetIsExist(NATIVE_ASSET_ADDRESS);
+        // xtokens call
+        xcmTransferNativeAsset(msg.value);
+
+        // Build bifrost xcm-action mint call data
+        bytes memory targetChain = abi.encodePacked(MOONBEAM_CHAIN, receiver);
+        bytes memory callData = BuildCallData.buildMintWithChannelIdCallBytes(
+            _msgSender(),
+            nativeToken,
+            targetChain,
+            remark,
+            channel_id
+        );
+        // XCM Transact
+        FeeInfo memory feeInfo = checkFeeInfo(Operation.Mint);
+        XcmTransactorV2(XCM_TRANSACTORV2_ADDRESS).transactThroughSigned(
+            xcmTransactorDestination,
+            BNCAddress,
+            feeInfo.transactRequiredWeightAtMost,
+            callData,
+            feeInfo.feeAmount,
+            feeInfo.overallWeight
+        );
+        emit Mint(
+            _msgSender(),
+            NATIVE_ASSET_ADDRESS,
+            msg.value,
+            receiver,
+            callData,
+            remark
+        );
+    }
+
+    function mintVAssetWithChannelId(
+        address assetAddress,
+        uint256 amount,
+        address receiver,
+        string memory remark,
+        uint32 channel_id
+    ) external override whenNotPaused {
+        require(bytes(remark).length <= 32, "remark too long");
+
+        bytes2 token = checkAssetIsExist(assetAddress);
+
+        // xtokens call
+        xcmTransferAsset(assetAddress, amount);
+
+        // Build bifrost xcm-action mint call data
+        bytes memory targetChain = abi.encodePacked(MOONBEAM_CHAIN, receiver);
+        bytes memory callData = BuildCallData.buildMintWithChannelIdCallBytes(
+            _msgSender(),
+            token,
+            targetChain,
+            remark,
+            channel_id
         );
         // XCM Transact
         FeeInfo memory feeInfo = checkFeeInfo(Operation.Mint);
