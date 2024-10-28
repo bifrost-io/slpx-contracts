@@ -28,6 +28,66 @@
     ) external payable;
 ```
 
+## Examples
+
+Mint 1 DOT into VDOT and send it to Hydration.
+Redeem 1 VDOT into DOT and send it to Hydration.
+
+```solidity
+// SPDX-License-Identifier: Apache-2.0
+pragma solidity 0.8.10;
+
+import "./ISlpx.sol";
+import "./IERC20.sol";
+
+contract Example { 
+    ISlpx public slpx = ISlpx(0xF1d4797E51a4640a76769A50b57abE7479ADd3d8);
+    address dot = 0xFfFFfFff1FcaCBd218EDc0EbA20Fc2308C778080;
+    address vdot = 0xFFFfffFf15e1b7E3dF971DD813Bc394deB899aBf;
+    // hydration parachain id
+    uint64 hydration_chain_id = 2034;
+    // Substrate account public key
+    bytes32 receiver = 0xa05d045646ecff8760f9bc3ae4266e910a307f0c11250c3f6fe3ae611dbf8f24;
+    uint128 amount = 10_000_000_000; 
+    string remark = "Hello Slpx";
+    uint32 channel_id = 0;
+    
+    function mint_vdot() public payable {
+        IERC20(dot).transferFrom(msg.sender, address(this), amount);
+        IERC20(dot).approve(address(slpx), amount);
+        slpx.create_order(
+            dot,
+            amount,
+            hydration_chain_id,
+            abi.encodePacked(receiver),
+            remark,
+            channel_id
+        );
+
+        //Your contract logic: 
+
+
+     }
+
+    // Redeem DOT for 0-28 days, once redeemed, it will be sent to the receiver of dest chain
+     function redeem_dot() public payable {
+        IERC20(vdot).transferFrom(msg.sender, address(this), amount);
+        IERC20(vdot).approve(address(slpx), amount);
+        slpx.create_order(
+            vdot,
+            amount,
+            hydration_chain_id,
+            abi.encodePacked(receiver),
+            remark,
+            channel_id
+        );
+
+        //Your contract logic: 
+
+     }
+}
+```
+
 ## CurrencyId && Destination Chain Id
 
 ### Astar
