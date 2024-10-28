@@ -12,4 +12,5 @@ artifacts
 .DS_Store
 .deps
 .openzeppelin
+.states
 
