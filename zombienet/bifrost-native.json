@@ -45,8 +45,8 @@
 	"parachains": [
 		{
 			"cumulus_based": true,
-			"id": 2004,
-			"chain": "moonbeam-local",
+			"id": 2001,
+			"chain": "bifrost-kusama-local",
 			"default_args": [
 				"--trie-cache-size=0",
 				"--state-pruning=archive",
@@ -57,29 +57,7 @@
 			],
 			"collators": [
 				{
-					"command": "moonbeam-v0.37.0",
-					"name": "alith",
-					"ws_port": "{{PARACHAIN_WS_PORT}}",
-					"rpc_port": "{{PARACHAIN_RPC_PORT}}",
-					"args": ["-lparachain=debug", "-lxcm=trace"]
-				}
-			]
-		},
-		{
-			"cumulus_based": true,
-			"id": 2030,
-			"chain": "bifrost-polkadot-local",
-			"default_args": [
-				"--trie-cache-size=0",
-				"--state-pruning=archive",
-				"--no-hardware-benchmarks",
-				"--unsafe-ws-external",
-				"--unsafe-rpc-external",
-				"--rpc-cors=all"
-			],
-			"collators": [
-				{
-					"command": "bifrost-v0.11.0",
+					"command": "bifrost-evm",
 					"name": "alice",
 					"ws_port": "{{BIFROST_WS_PORT}}",
 					"rpc_port": "{{BIFROST_RPC_PORT}}",

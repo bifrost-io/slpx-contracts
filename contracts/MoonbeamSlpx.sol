@@ -45,6 +45,13 @@ contract MoonbeamSlpx is ISlpx, OwnableUpgradeable, PausableUpgradeable {
     mapping(address => AssetInfo) public addressToAssetInfo;
     mapping(Operation => FeeInfo) public operationToFeeInfo;
 
+    struct DestChainInfo {
+        bool is_evm;
+        bool is_substrate;
+        bytes1 raw_chain_index;
+    }
+    mapping(uint64 => DestChainInfo) public destChainInfo;
+
     function checkAssetIsExist(
         address assetAddress
     ) internal view returns (bytes2) {
@@ -369,170 +376,6 @@ contract MoonbeamSlpx is ISlpx, OwnableUpgradeable, PausableUpgradeable {
         emit Redeem(_msgSender(), vAssetAddress, amount, receiver, callData);
     }
 
-    function stablePoolSwap(
-        uint32 poolId,
-        address assetInAddress,
-        address assetOutAddress,
-        uint256 assetInAmount,
-        uint128 minDy,
-        address receiver
-    ) external override whenNotPaused {
-        bytes2 assetIn = checkAssetIsExist(assetInAddress);
-        bytes2 assetOut = checkAssetIsExist(assetOutAddress);
-
-        xcmTransferAsset(assetInAddress, assetInAmount);
-
-        // xcm transactor call
-        bytes memory targetChain = abi.encodePacked(MOONBEAM_CHAIN, receiver);
-        bytes memory callData = BuildCallData.buildStablePoolSwapCallBytes(
-            _msgSender(),
-            poolId,
-            assetIn,
-            assetOut,
-            minDy,
-            targetChain
-        );
-        FeeInfo memory feeInfo = checkFeeInfo(Operation.StableSwap);
-        XcmTransactorV2(XCM_TRANSACTORV2_ADDRESS).transactThroughSigned(
-            xcmTransactorDestination,
-            BNCAddress,
-            feeInfo.transactRequiredWeightAtMost,
-            callData,
-            feeInfo.feeAmount,
-            feeInfo.overallWeight
-        );
-        emit StablePoolSwap(
-            _msgSender(),
-            poolId,
-            assetInAddress,
-            assetOutAddress,
-            assetInAmount,
-            minDy,
-            receiver,
-            callData
-        );
-    }
-
-    function swapAssetsForExactAssets(
-        address assetInAddress,
-        address assetOutAddress,
-        uint256 assetInAmount,
-        uint128 assetOutMin,
-        address receiver
-    ) external override whenNotPaused {
-        bytes2 assetIn = checkAssetIsExist(assetInAddress);
-        bytes2 assetOut = checkAssetIsExist(assetOutAddress);
-
-        xcmTransferAsset(assetInAddress, assetInAmount);
-
-        // xcm transactor call
-        bytes memory targetChain = abi.encodePacked(MOONBEAM_CHAIN, receiver);
-        bytes memory callData = BuildCallData.buildSwapCallBytes(
-            _msgSender(),
-            assetIn,
-            assetOut,
-            assetOutMin,
-            targetChain
-        );
-        FeeInfo memory feeInfo = checkFeeInfo(Operation.ZenlinkSwap);
-        XcmTransactorV2(XCM_TRANSACTORV2_ADDRESS).transactThroughSigned(
-            xcmTransactorDestination,
-            BNCAddress,
-            feeInfo.transactRequiredWeightAtMost,
-            callData,
-            feeInfo.feeAmount,
-            feeInfo.overallWeight
-        );
-        emit Swap(
-            _msgSender(),
-            assetInAddress,
-            assetOutAddress,
-            assetInAmount,
-            assetOutMin,
-            receiver,
-            callData
-        );
-    }
-
-    function swapAssetsForExactNativeAssets(
-        address assetInAddress,
-        uint256 assetInAmount,
-        uint128 assetOutMin,
-        address receiver
-    ) external override whenNotPaused {
-        bytes2 assetIn = checkAssetIsExist(assetInAddress);
-        bytes2 nativeToken = checkAssetIsExist(NATIVE_ASSET_ADDRESS);
-
-        xcmTransferAsset(assetInAddress, assetInAmount);
-
-        // xcm transactor call
-        bytes memory targetChain = abi.encodePacked(MOONBEAM_CHAIN, receiver);
-        bytes memory callData = BuildCallData.buildSwapCallBytes(
-            _msgSender(),
-            assetIn,
-            nativeToken,
-            assetOutMin,
-            targetChain
-        );
-        FeeInfo memory feeInfo = checkFeeInfo(Operation.ZenlinkSwap);
-        XcmTransactorV2(XCM_TRANSACTORV2_ADDRESS).transactThroughSigned(
-            xcmTransactorDestination,
-            BNCAddress,
-            feeInfo.transactRequiredWeightAtMost,
-            callData,
-            feeInfo.feeAmount,
-            feeInfo.overallWeight
-        );
-        emit Swap(
-            _msgSender(),
-            assetInAddress,
-            NATIVE_ASSET_ADDRESS,
-            assetInAmount,
-            assetOutMin,
-            receiver,
-            callData
-        );
-    }
-
-    function swapNativeAssetsForExactAssets(
-        address assetOutAddress,
-        uint128 assetOutMin,
-        address receiver
-    ) external payable override whenNotPaused {
-        bytes2 assetOut = checkAssetIsExist(assetOutAddress);
-        bytes2 nativeToken = checkAssetIsExist(NATIVE_ASSET_ADDRESS);
-
-        xcmTransferNativeAsset(msg.value);
-
-        // xcm transactor call
-        bytes memory targetChain = abi.encodePacked(MOONBEAM_CHAIN, receiver);
-        bytes memory callData = BuildCallData.buildSwapCallBytes(
-            _msgSender(),
-            nativeToken,
-            assetOut,
-            assetOutMin,
-            targetChain
-        );
-        FeeInfo memory feeInfo = checkFeeInfo(Operation.ZenlinkSwap);
-        XcmTransactorV2(XCM_TRANSACTORV2_ADDRESS).transactThroughSigned(
-            xcmTransactorDestination,
-            BNCAddress,
-            feeInfo.transactRequiredWeightAtMost,
-            callData,
-            feeInfo.feeAmount,
-            feeInfo.overallWeight
-        );
-        emit Swap(
-            _msgSender(),
-            NATIVE_ASSET_ADDRESS,
-            assetOutAddress,
-            msg.value,
-            assetOutMin,
-            receiver,
-            callData
-        );
-    }
-
     function getXtokensDestination(
         bytes32 publicKey
     ) internal view returns (Xtokens.Multilocation memory) {
@@ -547,5 +390,88 @@ contract MoonbeamSlpx is ISlpx, OwnableUpgradeable, PausableUpgradeable {
         });
 
         return dest;
+    }
+
+    function setDestChainInfo(
+        uint64 dest_chain_id,
+        bool is_evm,
+        bool is_substrate,
+        bytes1 raw_chain_index
+    ) public onlyOwner {
+        require(!(is_evm && is_substrate), "Both is_evm and is_substrate cannot be true");
+        DestChainInfo storage chainInfo = destChainInfo[dest_chain_id];
+        chainInfo.is_evm = is_evm;
+        chainInfo.is_substrate = is_substrate;
+        chainInfo.raw_chain_index = raw_chain_index;
+    }
+
+    /**
+    * @dev Create order to mint vAsset or redeem vAsset on bifrost chain
+    * @param assetAddress The address of the asset to mint or redeem
+    * @param amount The amount of the asset to mint or redeem
+    * @param dest_chain_id When order is executed, Asset/vAsset will be transferred to this chain
+    * @param receiver The receiver address on the destination chain, 20 bytes for EVM, 32 bytes for Substrate
+    * @param remark The remark of the order, less than 32 bytes. For example, "OmniLS"
+    * @param channel_id The channel id of the order, you can set it. Bifrost chain will use it to share reward.
+    **/
+    function create_order(
+        address assetAddress,
+        uint128 amount,
+        uint64 dest_chain_id,
+        bytes memory receiver,
+        string memory remark,
+        uint32 channel_id
+    ) external override payable {
+        require(bytes(remark).length > 0 && bytes(remark).length <= 32, "remark must be less than 32 bytes and not empty");
+        require(amount > 0, "amount must be greater than 0");
+
+        DestChainInfo memory chainInfo = destChainInfo[dest_chain_id];
+        if(chainInfo.is_evm) {
+            require(receiver.length == 20, "evm address must be 20 bytes");
+        } else if(chainInfo.is_substrate) {
+            require(receiver.length == 32, "substrate public key must be 32 bytes");
+        } else {
+            revert("Destination chain is not supported");
+        }
+
+        bytes2 token = checkAssetIsExist(assetAddress);
+
+        // Transfer asset to bifrost chain
+        if (assetAddress == NATIVE_ASSET_ADDRESS) {
+            amount = uint128(msg.value);
+            xcmTransferNativeAsset(uint256(amount));
+        } else {
+            xcmTransferAsset(assetAddress, uint256(amount));
+        }
+
+        // Build bifrost slpx create order call data
+        bytes memory callData = BuildCallData.buildCreateOrderCallBytes(
+            _msgSender(),
+            block.chainid,
+            block.number,
+            token,
+            amount,
+            abi.encodePacked(chainInfo.raw_chain_index, receiver),
+            remark,
+            channel_id
+        );
+        // XCM Transact
+        FeeInfo memory feeInfo = checkFeeInfo(Operation.Mint);
+        XcmTransactorV2(XCM_TRANSACTORV2_ADDRESS).transactThroughSigned(
+            xcmTransactorDestination,
+            BNCAddress,
+            feeInfo.transactRequiredWeightAtMost,
+            callData,
+            feeInfo.feeAmount,
+            feeInfo.overallWeight
+        );
+        emit CreateOrder(
+            assetAddress,
+            amount,
+            dest_chain_id,
+            receiver,
+            remark,
+            channel_id
+        );
     }
 }

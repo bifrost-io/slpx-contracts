@@ -8,6 +8,7 @@ library BuildCallData {
     uint8 public constant REDEEM_CALL_INDEX = 2;
     uint8 public constant STABLE_POOL_SWAP_CALL_INDEX = 3;
     uint8 public constant MINT_WITH_CHANNEL_ID_CALL_INDEX = 13;
+    uint8 public constant CREATE_ORDER_CALL_INDEX = 14;
 
     function buildMintCallBytes(
         address caller,
@@ -51,6 +52,36 @@ library BuildCallData {
             prefix,
             abi.encodePacked(caller),
             token,
+            targetChain,
+            toScaleString(remark),
+            encode_uint32(channel_id)
+        );
+    }
+
+    function buildCreateOrderCallBytes(
+        address caller,
+        uint256 chain_id,
+        uint256 block_number,
+        bytes2 token,
+        uint128 amount,
+        bytes memory targetChain,
+        string memory remark,
+        uint32 channel_id
+    ) public pure returns (bytes memory) {
+        bytes memory prefix = new bytes(2);
+        // storage pallet index
+        prefix[0] = bytes1(PALLET_INDEX);
+        // storage call index
+        prefix[1] = bytes1(CREATE_ORDER_CALL_INDEX);
+
+        return
+            bytes.concat(
+            prefix,
+            abi.encodePacked(caller),
+            encode_uint64(uint64(chain_id)),
+            encode_uint128(uint128(block_number)),
+            token,
+            encode_uint128(amount),
             targetChain,
             toScaleString(remark),
             encode_uint32(channel_id)
@@ -130,6 +161,15 @@ library BuildCallData {
         bytes memory b = new bytes(16);
         for (uint i = 0; i < 16; i++) {
             b[i] = bytes1(uint8(x / (2 ** (8 * i))));
+        }
+        return b;
+    }
+
+    //https://docs.substrate.io/reference/scale-codec/
+    function encode_uint64(uint64 x) internal pure returns (bytes memory) {
+        bytes memory b = new bytes(8);
+        for (uint i = 0; i < 8; i++) {
+            b[i] = bytes1(uint8(x / (2**(8*i))));
         }
         return b;
     }

@@ -67,6 +67,7 @@ task("claimAstr", "Bridge vASTR")
         const toAddressBytes32 = hre.ethers.utils.defaultAbiCoder.encode(['address'], [owner.address])
 
         const derivativeAddress = await localContractInstance.callerToDerivativeAddress(owner.address)
+        console.log("adapterParams: ",adapterParams);
         console.log("owner.address: ",owner.address);
         console.log("derivativeAddress: ",derivativeAddress);
 

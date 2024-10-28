@@ -8,12 +8,78 @@
 
 ## Contract info
 
-- mintVNativeAsset(address receiver, string memory remark) payable external: Cast the original Token on the parachain into VToken
-- mintVAsset(address assetAddress,uint256 amount, address receiver, string memory remark) external: Cast the non-native Token on the parachain into VToken, such as DOT->vDOT
-- redeemAsset(address vAssetAddress, uint256 amount) external: Redeem your own VToken into Token. The redemption period varies according to the Token. For example, vDOT redemption is 0-28 days
-- swapAssetsForExactAssets(address assetInAddress, address assetOutAddress,uint256 assetInAmount, uint128 assetOutMin, address receiver) external：Swap one Token into another Token, such as BNC Swap into DOT
-- swapAssetsForExactNativeAssets(address assetInAddress, uint256 assetInAmount, uint128 assetOutMin, address receiver) external: Swap a Token into a parachain native Token, such as BNC Swap into GLMR
-- swapNativeAssetsForExactAssets(address assetOutAddress, uint128 assetOutMin, address receiver) payable external: Swap the original Token of the parachain into other Tokens, such as GLMR Swap into BNC
+```solidity
+/**
+    * @dev Create order to mint vAsset or redeem vAsset on bifrost chain
+    * @param assetAddress The address of the asset to mint or redeem
+    * @param amount The amount of the asset to mint or redeem
+    * @param dest_chain_id When order is executed on Bifrost, Asset/vAsset will be transferred to this chain
+    * @param receiver The receiver address on the destination chain, 20 bytes for EVM, 32 bytes for Substrate
+    * @param remark The remark of the order, less than 32 bytes. For example, "OmniLS"
+    * @param channel_id The channel id of the order, you can set it. Bifrost chain will use it to share reward.
+    **/
+    function create_order(
+        address assetAddress,
+        uint128 amount,
+        uint64 dest_chain_id,
+        bytes memory receiver,
+        string memory remark,
+        uint32 channel_id
+    ) external payable;
+```
+
+## CurrencyId && Destination Chain Id
+
+### Astar
+
+| Token                | Address                                    | CurrencyId | operationalMin            |
+|:---------------------| :----------------------------------------- |:-----------|:--------------------------|
+| BNC                  | 0xfFffFffF00000000000000010000000000000007 | 0x0001     | 1_000_000_000_000         |
+| DOT                  | 0xFFfFfFffFFfffFFfFFfFFFFFffFFFffffFfFFFfF | 0x0800     | 1_000_000_000_000         |
+| ASTR                 | 0x0000000000000000000000000000000000000000 | 0x0803     | 1_000_000_000_000_000_000         |
+| GLMR                 | 0xFFFFFFFF00000000000000010000000000000003 | 0x0801     | 1_000_000_000_000_000_000 |
+| Bifrost_Voucher_DOT  | 0xFfFfFfff00000000000000010000000000000008 | 0x0900     | 6_000_000_000             |
+| Bifrost_Voucher_GLMR | 0xFFFFFFFF00000000000000010000000000000015 | 0x0901     | 800_000_000_000_000_000   |
+| Bifrost_Voucher_ASTR | 0xfffFffff00000000000000010000000000000010 | 0x0903     | 800_000_000_000_000_000   |
+
+| Chains      | Dest_Chain_Id | Receiver Type                      | 
+|:------------|:--------------|:-----------------------------------|
+| Astar       | 592           | Ethereum Address(Byets20)          |
+| Moonbeam    | 1284          | Ethereum Address(Byets20)          |
+| Hydration   | 2034          | Substrate Account(Byets32)         |
+| Interlay    | 2032          | Substrate Account(Byets32)         |
+
+### Moonbeam
+
+| Token                         | Address                                    | CurrencyId | operationalMin            |
+|:------------------------------| :----------------------------------------- |:-----------|:--------------------------|
+| BNC                           | 0xFFffffFf7cC06abdF7201b350A1265c62C8601d2 | 0x0001     | 1_000_000_000_000         |
+| xcDOT                         | 0xFfFFfFff1FcaCBd218EDc0EbA20Fc2308C778080 | 0x0800     | 10_000_000_000            |
+| GLMR                          | 0x0000000000000000000000000000000000000802 | 0x0801     | 5_000_000_000_000_000_000 |
+| ASTR                          | 0xFfFFFfffA893AD19e540E172C10d78D4d479B5Cf | 0x0803     | 5_000_000_000_000_000_000 |
+| Bifrost_Filecoin_Native_Token | 0xfFFfFFFF6C57e17D210DF507c82807149fFd70B2 | 0x0804     | 1_000_000_000_000_000_000 |
+| Bifrost_Voucher_DOT           | 0xFFFfffFf15e1b7E3dF971DD813Bc394deB899aBf | 0x0900     | 8_000_000_000             |
+| Bifrost_Voucher_GLMR          | 0xFfFfFFff99dABE1a8De0EA22bAa6FD48fdE96F6c | 0x0901     | 4_000_000_000_000_000_000 |
+| Bifrost_Voucher_ASTR          | 0xFffFffff55C732C47639231a4C4373245763d26E | 0x0903     | 4_000_000_000_000_000_000 |
+| Bifrost_Voucher_FIL           | 0xFffffFffCd0aD0EA6576B7b285295c85E94cf4c1 | 0x0904     | 800_000_000_000_000_000   |
+
+| Chains      | Dest_Chain_Id | Receiver Type                      | 
+|:------------|:--------------|:-----------------------------------|
+| Astar       | 592           | Ethereum Address(Byets20)          |
+| Moonbeam    | 1284          | Ethereum Address(Byets20)          |
+| Hydration   | 2034          | Substrate Account(Byets32)         |
+| Interlay    | 2032          | Substrate Account(Byets32)         |
+
+## Moonriver
+
+| Token                | Address                                    | CurrencyId | operationalMin          |
+| :------------------- | :----------------------------------------- | :--------- | :---------------------- |
+| xcBNC                | 0xFFfFFfFFF075423be54811EcB478e911F22dDe7D | 0x0001     | 1_000_000_000_000       |
+| xcKSM                | 0xFfFFfFff1FcaCBd218EDc0EbA20Fc2308C778080 | 0x0204     | 500_000_000_000         |
+| MOVR                 | 0x0000000000000000000000000000000000000802 | 0x020a     | 500_000_000_000_000_000 |
+| Bifrost_Voucher_BNC  | 0xFFffffff3646A00f78caDf8883c5A2791BfCDdc4 | 0x0101     | 800_000_000_000         |
+| Bifrost_Voucher_KSM  | 0xFFffffFFC6DEec7Fc8B11A2C8ddE9a59F8c62EFe | 0x0104     | 400_000_000_000         |
+| Bifrost_Voucher_MOVR | 0xfFfffFfF98e37bF6a393504b5aDC5B53B4D0ba11 | 0x010a     | 400_000_000_000_000_000 |
 
 # Astar ZkSlpx
 Astar ZkSlpx -> AstarReceiver -> Bifrost -> AstarReceiver -> Astar ZkSlpx
@@ -49,37 +115,3 @@ Astar ZkSlpx -> AstarReceiver -> Bifrost -> AstarReceiver -> Astar ZkSlpx
 function getVTokenByToken(address _assetAddress, uint256 _assetAmount) public view returns (uint256);
 function getTokenByVToken(address _assetAddress, uint256 _vAssetAmount) public view returns (uint256);
 ```
-## CurrencyId
-
-### Astar
-
-| Token                | Address                                    | CurrencyId | operationalMin          |
-|:---------------------| :----------------------------------------- |:-----------|:------------------------|
-| BNC                  | 0xfFffFffF00000000000000010000000000000007 | 0x0001     | 1_000_000_000_000       |
-| DOT                  | 0xFFfFfFffFFfffFFfFFfFFFFFffFFFffffFfFFFfF | 0x0800     | 1_000_000_000_000       |
-| Bifrost_Voucher_DOT  | 0xFfFfFfff00000000000000010000000000000008 | 0x0900     | 6_000_000_000           |
-| Bifrost_Voucher_ASTR | 0xfffFffff00000000000000010000000000000010 | 0x0903     | 800_000_000_000_000_000 |
-
-
-### Moonbeam
-
-| Token                         | Address                                    | CurrencyId | operationalMin            |
-| :---------------------------- | :----------------------------------------- | :--------- | :------------------------ |
-| BNC                           | 0xFFffffFf7cC06abdF7201b350A1265c62C8601d2 | 0x0001     | 1_000_000_000_000         |
-| xcDOT                         | 0xFfFFfFff1FcaCBd218EDc0EbA20Fc2308C778080 | 0x0800     | 10_000_000_000            |
-| GLMR                          | 0x0000000000000000000000000000000000000802 | 0x0801     | 5_000_000_000_000_000_000 |
-| Bifrost_Filecoin_Native_Token | 0xfFFfFFFF6C57e17D210DF507c82807149fFd70B2 | 0x0804     | 1_000_000_000_000_000_000 |
-| Bifrost_Voucher_DOT           | 0xFFFfffFf15e1b7E3dF971DD813Bc394deB899aBf | 0x0900     | 8_000_000_000             |
-| Bifrost_Voucher_GLMR          | 0xFfFfFFff99dABE1a8De0EA22bAa6FD48fdE96F6c | 0x0901     | 4_000_000_000_000_000_000 |
-| Bifrost_Voucher_FIL           | 0xFffffFffCd0aD0EA6576B7b285295c85E94cf4c1 | 0x0904     | 800_000_000_000_000_000   |
-
-## Moonriver
-
-| Token                | Address                                    | CurrencyId | operationalMin          |
-| :------------------- | :----------------------------------------- | :--------- | :---------------------- |
-| xcBNC                | 0xFFfFFfFFF075423be54811EcB478e911F22dDe7D | 0x0001     | 1_000_000_000_000       |
-| xcKSM                | 0xFfFFfFff1FcaCBd218EDc0EbA20Fc2308C778080 | 0x0204     | 500_000_000_000         |
-| MOVR                 | 0x0000000000000000000000000000000000000802 | 0x020a     | 500_000_000_000_000_000 |
-| Bifrost_Voucher_BNC  | 0xFFffffff3646A00f78caDf8883c5A2791BfCDdc4 | 0x0101     | 800_000_000_000         |
-| Bifrost_Voucher_KSM  | 0xFFffffFFC6DEec7Fc8B11A2C8ddE9a59F8c62EFe | 0x0104     | 400_000_000_000         |
-| Bifrost_Voucher_MOVR | 0xfFfffFfF98e37bF6a393504b5aDC5B53B4D0ba11 | 0x010a     | 400_000_000_000_000_000 |

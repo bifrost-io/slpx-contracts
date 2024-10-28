@@ -39,6 +39,12 @@ contract AstarSlpx is ISlpx, OwnableUpgradeable, PausableUpgradeable {
 
     mapping(address => AssetInfo) public addressToAssetInfo;
     mapping(Operation => FeeInfo) public operationToFeeInfo;
+    struct DestChainInfo {
+        bool is_evm;
+        bool is_substrate;
+        bytes1 raw_chain_index;
+    }
+    mapping(uint64 => DestChainInfo) public destChainInfo;
 
     function checkAssetIsExist(
         address assetAddress
@@ -357,43 +363,60 @@ contract AstarSlpx is ISlpx, OwnableUpgradeable, PausableUpgradeable {
         emit Redeem(_msgSender(), vAssetAddress, amount, receiver, callData);
     }
 
-    function stablePoolSwap(
-        uint32,
-        address,
-        address,
-        uint256,
-        uint128,
-        address
-    ) external pure override {
-        require(false, "Not support");
+    function setDestChainInfo(
+        uint64 dest_chain_id,
+        bool is_evm,
+        bool is_substrate,
+        bytes1 raw_chain_index
+    ) public onlyOwner {
+        require(!(is_evm && is_substrate), "Both is_evm and is_substrate cannot be true");
+        DestChainInfo storage chainInfo = destChainInfo[dest_chain_id];
+        chainInfo.is_evm = is_evm;
+        chainInfo.is_substrate = is_substrate;
+        chainInfo.raw_chain_index = raw_chain_index;
     }
 
-    function swapAssetsForExactAssets(
-        address assetInAddress,
-        address assetOutAddress,
-        uint256 assetInAmount,
-        uint128 assetOutMin,
-        address receiver
-    ) external override whenNotPaused {
-        bytes2 assetIn = checkAssetIsExist(assetInAddress);
-        bytes2 assetOut = checkAssetIsExist(assetOutAddress);
-        require(
-            assetIn != bytes2(0) && assetOut != bytes2(0),
-            "Invalid currencyId"
-        );
+    function create_order(
+        address assetAddress,
+        uint128 amount,
+        uint64 dest_chain_id,
+        bytes memory receiver,
+        string memory remark,
+        uint32 channel_id
+    ) external override payable {
+        require(bytes(remark).length > 0 && bytes(remark).length <= 32, "remark must be less than 32 bytes and not empty");
+        require(amount > 0, "amount must be greater than 0");
 
-        xcmTransferAsset(assetInAddress, assetInAmount);
+        DestChainInfo memory chainInfo = destChainInfo[dest_chain_id];
+        if(chainInfo.is_evm) {
+            require(receiver.length == 20, "evm address must be 20 bytes");
+        } else if(chainInfo.is_substrate) {
+            require(receiver.length == 32, "substrate public key must be 32 bytes");
+        } else {
+            revert("Destination chain is not supported");
+        }
 
-        bytes memory targetChain = abi.encodePacked(ASTAR_CHAIN, receiver);
-        bytes memory callData = BuildCallData.buildSwapCallBytes(
+        bytes2 token = checkAssetIsExist(assetAddress);
+        if (assetAddress == NATIVE_ASSET_ADDRESS) {
+            amount = uint128(msg.value);
+            xcmTransferNativeAsset(uint256(amount));
+        } else {
+            xcmTransferAsset(assetAddress, uint256(amount));
+        }
+
+        // Build bifrost slpx create order call data
+        bytes memory callData = BuildCallData.buildCreateOrderCallBytes(
             _msgSender(),
-            assetIn,
-            assetOut,
-            assetOutMin,
-            targetChain
+            block.chainid,
+            block.number,
+            token,
+            amount,
+            abi.encodePacked(chainInfo.raw_chain_index, receiver),
+            remark,
+            channel_id
         );
         // xcm transact
-        FeeInfo memory feeInfo = checkFeeInfo(Operation.ZenlinkSwap);
+        FeeInfo memory feeInfo = checkFeeInfo(Operation.Mint);
         require(
             XCM(XCM_ADDRESS).remote_transact(
                 BIFROST_PARA_ID,
@@ -405,99 +428,13 @@ contract AstarSlpx is ISlpx, OwnableUpgradeable, PausableUpgradeable {
             ),
             "Failed to send xcm"
         );
-        emit Swap(
-            _msgSender(),
-            assetInAddress,
-            assetOutAddress,
-            assetInAmount,
-            assetOutMin,
+        emit CreateOrder(
+            assetAddress,
+            amount,
+            dest_chain_id,
             receiver,
-            callData
-        );
-    }
-
-    function swapAssetsForExactNativeAssets(
-        address assetInAddress,
-        uint256 assetInAmount,
-        uint128 assetOutMin,
-        address receiver
-    ) external override whenNotPaused {
-        bytes2 assetIn = checkAssetIsExist(assetInAddress);
-        bytes2 nativeToken = checkAssetIsExist(NATIVE_ASSET_ADDRESS);
-
-        xcmTransferAsset(assetInAddress, assetInAmount);
-
-        bytes memory targetChain = abi.encodePacked(ASTAR_CHAIN, receiver);
-        bytes memory callData = BuildCallData.buildSwapCallBytes(
-            _msgSender(),
-            assetIn,
-            nativeToken,
-            assetOutMin,
-            targetChain
-        );
-        // xcm transact
-        FeeInfo memory feeInfo = checkFeeInfo(Operation.ZenlinkSwap);
-        require(
-            XCM(XCM_ADDRESS).remote_transact(
-                BIFROST_PARA_ID,
-                false,
-                BNC_ADDRESS,
-                feeInfo.feeAmount,
-                callData,
-                feeInfo.transactRequiredWeightAtMost
-            ),
-            "Failed to send xcm"
-        );
-        emit Swap(
-            _msgSender(),
-            assetInAddress,
-            NATIVE_ASSET_ADDRESS,
-            assetInAmount,
-            assetOutMin,
-            receiver,
-            callData
-        );
-    }
-
-    function swapNativeAssetsForExactAssets(
-        address assetOutAddress,
-        uint128 assetOutMin,
-        address receiver
-    ) external payable override whenNotPaused {
-        bytes2 assetOut = checkAssetIsExist(assetOutAddress);
-        bytes2 nativeToken = checkAssetIsExist(NATIVE_ASSET_ADDRESS);
-
-        xcmTransferNativeAsset(msg.value);
-
-        bytes memory targetChain = abi.encodePacked(ASTAR_CHAIN, receiver);
-        bytes memory callData = BuildCallData.buildSwapCallBytes(
-            _msgSender(),
-            nativeToken,
-            assetOut,
-            assetOutMin,
-            targetChain
-        );
-        // xcm transact
-        FeeInfo memory feeInfo = checkFeeInfo(Operation.ZenlinkSwap);
-        require(
-            XCM(XCM_ADDRESS).remote_transact(
-                BIFROST_PARA_ID,
-                false,
-                BNC_ADDRESS,
-                feeInfo.feeAmount,
-                callData,
-                feeInfo.transactRequiredWeightAtMost
-            ),
-            "Failed to send xcm"
-        );
-        emit Swap(
-            _msgSender(),
-            NATIVE_ASSET_ADDRESS,
-            assetOutAddress,
-            msg.value,
-            assetOutMin,
-            receiver,
-            callData
+            remark,
+            channel_id
         );
     }
 

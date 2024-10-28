@@ -17,25 +17,13 @@ interface ISlpx {
         address receiver,
         bytes callcode
     );
-    event Swap(
-        address swapper,
-        address assetInAddress,
-        address assetOutAddress,
-        uint256 assetInAmount,
-        uint128 assetOutMin,
-        address receiver,
-        bytes callcode
-    );
-
-    event StablePoolSwap(
-        address swapper,
-        uint32 poolId,
-        address assetInAddress,
-        address assetOutAddress,
-        uint256 assetInAmount,
-        uint128 minDy,
-        address receiver,
-        bytes callcode
+    event CreateOrder(
+        address assetAddress,
+        uint128 amount,
+        uint64 dest_chain_id,
+        bytes receiver,
+        string remark,
+        uint32 channel_id
     );
 
     /// Minted vNative assets such as vASTR, vGLMR, vMOVR
@@ -75,36 +63,21 @@ interface ISlpx {
         address receiver
     ) external;
 
-    /// Swap one asset for another
-    function swapAssetsForExactAssets(
-        address assetInAddress,
-        address assetOutAddress,
-        uint256 assetInAmount,
-        uint128 assetOutMin,
-        address receiver
-    ) external;
-
-    /// Swap one asset for native asset
-    function swapAssetsForExactNativeAssets(
-        address assetInAddress,
-        uint256 assetInAmount,
-        uint128 assetOutMin,
-        address receiver
-    ) external;
-
-    /// Swap native asset for another
-    function swapNativeAssetsForExactAssets(
-        address assetOutAddress,
-        uint128 assetOutMin,
-        address receiver
+    /**
+    * @dev Create order to mint vAsset or redeem vAsset on bifrost chain
+    * @param assetAddress The address of the asset to mint or redeem
+    * @param amount The amount of the asset to mint or redeem
+    * @param dest_chain_id When order is executed on Bifrost, Asset/vAsset will be transferred to this chain
+    * @param receiver The receiver address on the destination chain, 20 bytes for EVM, 32 bytes for Substrate
+    * @param remark The remark of the order, less than 32 bytes. For example, "OmniLS"
+    * @param channel_id The channel id of the order, you can set it. Bifrost chain will use it to share reward.
+    **/
+    function create_order(
+        address assetAddress,
+        uint128 amount,
+        uint64 dest_chain_id,
+        bytes memory receiver,
+        string memory remark,
+        uint32 channel_id
     ) external payable;
-
-    function stablePoolSwap(
-        uint32 poolId,
-        address assetInAddress,
-        address assetOutAddress,
-        uint256 assetInAmount,
-        uint128 minDy,
-        address receiver
-    ) external;
 }

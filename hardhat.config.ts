@@ -104,8 +104,22 @@ const config: HardhatUserConfig = {
         process.env.MOONRIVER_API_KEY !== undefined
           ? process.env.MOONRIVER_API_KEY
           : "",
+      astar:
+          process.env.ASTAR_API_KEY !== undefined
+              ? process.env.ASTAR_API_KEY
+              : "",
       moonbaseAlpha: "INSERT_MOONSCAN_API_KEY", // Moonbeam Moonscan API Key
     },
+    customChains: [
+      {
+        network: "astar",
+        chainId: 592,
+        urls: {
+          apiURL: "https://astar.blockscout.com/api",
+          browserURL: "https://astar.blockscout.com"
+        }
+      }
+    ]
   },
 };
 

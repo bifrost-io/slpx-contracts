@@ -17,14 +17,26 @@ import { task } from 'hardhat/config'
 // dot yarn hardhat setMinDstGas --oft 0x3239C38d7eD39EA24Bcf30A6CFAF2E38c87a79EB --id 210 --type 0  --gas 100000 --network astar-zk
 // dot yarn hardhat setMinDstGas --oft 0x3239C38d7eD39EA24Bcf30A6CFAF2E38c87a79EB --id 210 --type 1  --gas 100000 --network astar-zk
 
+// vmanta yarn hardhat setTrustedRemoteAddress --oft 0xDeBBb9309d95DaBbFb82411a9C6Daa3909B164A4 --id 217 --address 0x7746ef546d562b443AE4B4145541a3b1a3D75717 --network moonbeam
+// vmanta yarn hardhat setMinDstGas --oft 0xDeBBb9309d95DaBbFb82411a9C6Daa3909B164A4 --id 217 --type 0  --gas 100000 --network moonbeam
+// vmanta yarn hardhat setMinDstGas --oft 0xDeBBb9309d95DaBbFb82411a9C6Daa3909B164A4 --id 217 --type 1  --gas 100000 --network moonbeam
+
+// vmanta yarn hardhat setTrustedRemoteAddress --oft 0x7746ef546d562b443AE4B4145541a3b1a3D75717 --id 126 --address 0xDeBBb9309d95DaBbFb82411a9C6Daa3909B164A4 --network manta
+// vmanta yarn hardhat setMinDstGas --oft 0x7746ef546d562b443AE4B4145541a3b1a3D75717 --id 126 --type 0  --gas 100000 --network manta
+// vmanta yarn hardhat setMinDstGas --oft 0x7746ef546d562b443AE4B4145541a3b1a3D75717 --id 126 --type 1  --gas 100000 --network manta
+
+// manta yarn hardhat setTrustedRemoteAddress --oft 0x785bFEDb090fd06b916F3E00bAefd58F36C8aB5A --id 217 --address 0x2fD8bbF5dc8b342C09ABF34f211b3488e2d9d691 --network moonbeam
+// manta yarn hardhat setMinDstGas --oft 0x785bFEDb090fd06b916F3E00bAefd58F36C8aB5A --id 217 --type 0  --gas 100000 --network moonbeam
+// manta yarn hardhat setMinDstGas --oft 0x785bFEDb090fd06b916F3E00bAefd58F36C8aB5A --id 217 --type 1  --gas 100000 --network moonbeam
+
+// manta yarn hardhat setTrustedRemoteAddress --oft 0x2fD8bbF5dc8b342C09ABF34f211b3488e2d9d691 --id 126 --address 0x785bFEDb090fd06b916F3E00bAefd58F36C8aB5A --network manta
+// manta yarn hardhat setMinDstGas --oft 0x2fD8bbF5dc8b342C09ABF34f211b3488e2d9d691 --id 126 --type 0  --gas 100000 --network manta
+// manta yarn hardhat setMinDstGas --oft 0x2fD8bbF5dc8b342C09ABF34f211b3488e2d9d691 --id 126 --type 1  --gas 100000 --network manta
+
+
 
 
 // yarn hardhat sendxx --amount 1000000000000000000 --target-network shibuya --network zkatana
-
-const ENDPOINT_ID: { [key: string]: number } = {
-    "shibuya": 10210,
-    "zkatana": 10220
-}
 
 task("setTrustedRemoteAddress", "Bridge vASTR")
     .addParam('oft', ``)
