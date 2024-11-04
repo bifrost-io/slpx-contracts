@@ -1,15 +1,18 @@
 import { task } from 'hardhat/config'
 import {ethers} from "hardhat";
 
-// yarn hardhat mantaSlpxMint --amount 1000000000000000000 --network manta
-// yarn hardhat mantaSlpxRedeem --amount 2000000000000000000 --network manta
-// yarn hardhat mantaSetRemoteContract --contract 0x6a3dd86669e24723Ac0Ef0e30c2dd9AD1a8c2A45 --network manta
+// yarn hardhat mantaSlpxMint --amount 3000000000000000000 --network manta
+// yarn hardhat mantaSlpxRedeem --amount 3000000000000000000 --network manta
+// yarn hardhat mantaSetRemoteContract --contract 0x2952fD1b6dD54930B99eF3070e6b700f18f44066 --network manta
 
 const remoteChainId = 126
 const contractName = "MantaPacificSlpx";
-const contractAddress = "0x174aEfe55aaC3894696984A2d6a029e668219593";
+const contractAddress = "0x95A4D4b345c551A9182289F9dD7A018b7Fd0f940";
+const manta = "0x95CeF13441Be50d20cA4558CC0a27B601aC544E5";
+const vManta = "0x7746ef546d562b443AE4B4145541a3b1a3D75717";
+const channelId = "0";
 
-task("mantaSetRemoteContract", "redeem vASTR")
+task("mantaSetRemoteContract")
     .addParam('contract', ``)
     .setAction(async (taskArgs, hre) => {
             let signers = await hre.ethers.getSigners()
@@ -22,22 +25,21 @@ task("mantaSetRemoteContract", "redeem vASTR")
             const remoteContract = await localContractInstance.remoteContract()
             console.log("remoteContract: ",remoteContract)
             // const tx = await localContractInstance.setRemoteContract(taskArgs.contract)
-            // console.log(`✅ setRemoteContract() to vASTR token:[${owner.address}]: ${tx.hash}`)
+            // console.log(`✅[${owner.address}]: ${tx.hash}`)
     });
 
-task("mantaSlpxMint", "mint vASTR")
+task("mantaSlpxMint")
     .addParam('amount', ``)
     .setAction(async (taskArgs, hre) => {
         let signers = await hre.ethers.getSigners()
         let owner = signers[0]
         let nonce = await hre.ethers.provider.getTransactionCount(owner.address)
-        let qty = BigInt(taskArgs.amount)
+        let amount = BigInt(taskArgs.amount)
 
         // get local contract
-        const OFTWithFee = await hre.ethers.getContractAt("contracts/interfaces/ICommonOFT.sol:ICommonOFT", "0x17313cE6e47D796E61fDeAc34Ab1F58e3e089082", owner)
         const localContractInstance = await hre.ethers.getContractAt(contractName, contractAddress, owner)
-        const _dstGasForCall = 3000000
-        const adapterParams = hre.ethers.utils.solidityPack(["uint16", "uint256"], [1, 3200000])
+        const _dstGasForCall = 4000000
+        const adapterParams = hre.ethers.utils.solidityPack(["uint16", "uint256"], [1, 4200000])
         const toAddressBytes32 = hre.ethers.utils.defaultAbiCoder.encode(['address'], [owner.address])
         const payload = hre.ethers.utils.defaultAbiCoder.encode(['address', 'uint8'], [owner.address, 0])
 
@@ -45,35 +47,44 @@ task("mantaSlpxMint", "mint vASTR")
         console.log("toAddressBytes32", toAddressBytes32)
         console.log("payload", payload)
 
-        const fees = await OFTWithFee.estimateSendAndCallFee(remoteChainId, toAddressBytes32, qty, payload, _dstGasForCall, false, adapterParams)
-        console.log("fee:", hre.ethers.utils.formatUnits(fees[0]))
-        const tx = await localContractInstance.mint(BigInt(taskArgs.amount), _dstGasForCall, adapterParams, { value: fees[0] })
-        console.log(`✅ mint() to vASTR token:[${owner.address}]: ${tx.hash}`)
+        const fees = await localContractInstance.estimateSendAndCallFee(manta, amount, channelId, _dstGasForCall, adapterParams)
+
+        console.log("fee:", hre.ethers.utils.formatUnits(fees))
+        const tx = await localContractInstance.create_order(
+            manta,
+            BigInt(taskArgs.amount),
+            0,
+            _dstGasForCall,
+            adapterParams, { value: fees,  })
+        console.log(`✅${owner.address}]: ${tx.hash}`)
     });
 
-task("mantaSlpxRedeem", "redeem vASTR")
+task("mantaSlpxRedeem")
     .addParam('amount', ``)
     .setAction(async (taskArgs, hre) => {
         let signers = await hre.ethers.getSigners()
         let owner = signers[0]
-        let nonce = await hre.ethers.provider.getTransactionCount(owner.address)
-        let qty = BigInt(taskArgs.amount)
+        let amount = BigInt(taskArgs.amount)
 
         // get local contract
-        const OFTWithFee = await hre.ethers.getContractAt("contracts/interfaces/ICommonOFT.sol:ICommonOFT", "0x7746ef546d562b443AE4B4145541a3b1a3D75717", owner)
         const localContractInstance = await hre.ethers.getContractAt(contractName, contractAddress, owner)
-        const _dstGasForCall = 3000000
-        const adapterParams = hre.ethers.utils.solidityPack(["uint16", "uint256"], [1, 3200000])
-
+        const _dstGasForCall = 4000000
+        const adapterParams = hre.ethers.utils.solidityPack(["uint16", "uint256"], [1, 4200000])
         const toAddressBytes32 = hre.ethers.utils.defaultAbiCoder.encode(['address'], [owner.address])
-        const payload = hre.ethers.utils.defaultAbiCoder.encode(['address', 'uint8'], [owner.address, 1])
+        const payload = hre.ethers.utils.defaultAbiCoder.encode(['address', 'uint8'], [owner.address, 0])
 
         console.log("adapterParams", adapterParams)
         console.log("toAddressBytes32", toAddressBytes32)
         console.log("payload", payload)
 
-        const fees = await OFTWithFee.estimateSendAndCallFee(remoteChainId, toAddressBytes32, qty, payload, _dstGasForCall, false, adapterParams)
-        console.log("fee:", hre.ethers.utils.formatUnits(fees[0]))
-        const tx = await localContractInstance.redeem(BigInt(taskArgs.amount), _dstGasForCall, adapterParams, { value: fees[0] })
-        console.log(`✅ redeem() to vASTR token:[${owner.address}]: ${tx.hash}`)
+        const fees = await localContractInstance.estimateSendAndCallFee(vManta, amount, channelId, _dstGasForCall, adapterParams)
+
+        console.log("fee:", hre.ethers.utils.formatUnits(fees))
+        const tx = await localContractInstance.create_order(
+            vManta,
+            BigInt(taskArgs.amount),
+            0,
+            _dstGasForCall,
+            adapterParams, {value: fees,});
+        console.log(`✅${owner.address}]: ${tx.hash}`);
     });

@@ -2,62 +2,32 @@
 pragma solidity 0.8.10;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/Create2.sol";
 import "./interfaces/IOFTReceiverV2.sol";
 import "./interfaces/IOFTV2.sol";
-import "./interfaces/Types.sol";
-import "./utils/BuildCallData.sol";
-import "./utils/AddressToAccount.sol";
-import "./MoonbeamSlpx.sol";
+import "./interfaces/ISlpx.sol";
 import "./DerivativeContract.sol";
-import "./interfaces/Xtokens.sol";
-import "./interfaces/XcmTransactorV2.sol";
 
 contract MoonbeamReceiver is Ownable, IOFTReceiverV2 {
-    bytes1 private constant MOONBEAM_CHAIN_TYPE = 0x01;
-    bytes2 private constant MANTA_CURRENCY_ID = 0x0808;
-    bytes2 private constant VMANTA_CURRENCY_ID = 0x0908;
-    uint256 private constant BIFROST_PARA_ID = 2030;
-    bool private constant IS_RELAY_CHAIN = false;
     uint16 public constant destChainId = 217;
-    address internal constant XTOKENS =
-        0x0000000000000000000000000000000000000804;
-    address internal constant NATIVE_ASSET_ADDRESS =
-        0x0000000000000000000000000000000000000802;
-    address internal constant XCM_TRANSACTORV2_ADDRESS =
-        0x000000000000000000000000000000000000080D;
 
-    address public constant BNC = 0xFFffffFf7cC06abdF7201b350A1265c62C8601d2;
     address public constant VMANTA = 0xFFfFFfFfdA2a05FB50e7ae99275F4341AEd43379;
     address public constant MANTA = 0xfFFffFFf7D3875460d4509eb8d0362c611B4E841;
-    address public constant moonbeamSlpx =
-        0xF1d4797E51a4640a76769A50b57abE7479ADd3d8;
+    address public constant slpx = 0xF1d4797E51a4640a76769A50b57abE7479ADd3d8;
     address public constant mantaOFT =
-        0x17313cE6e47D796E61fDeAc34Ab1F58e3e089082;
+    0x17313cE6e47D796E61fDeAc34Ab1F58e3e089082;
     address public constant vMantaProxyOFT =
-        0xDeBBb9309d95DaBbFb82411a9C6Daa3909B164A4;
+    0xDeBBb9309d95DaBbFb82411a9C6Daa3909B164A4;
     address public mantaPacificSlpx;
     uint256 public layerZeroFee;
     address public scriptTrigger;
     mapping(address => address) public callerToDerivativeAddress;
 
-    event Mint(
-        address indexed caller,
-        address indexed derivativeAddress,
-        uint256 indexed amount
-    );
-    event Redeem(
-        address indexed caller,
-        address indexed derivativeAddress,
-        uint256 indexed amount
-    );
     event SetDerivativeAddress(
         address indexed caller,
         address indexed derivativeAddress
     );
-    event Receive(address indexed sender, uint256 indexed amount);
     event SetLayerZeroFee(
         address indexed scriptTrigger,
         uint256 indexed layerZeroFee
@@ -69,88 +39,16 @@ contract MoonbeamReceiver is Ownable, IOFTReceiverV2 {
         mantaPacificSlpx = _mantaPacificSlpx;
     }
 
-    function bifrostSlpxMint(
-        address _from,
-        address _to,
-        uint256 _amount
-    ) internal {
-        require(_from != address(0), "Invalid from");
-        require(_to != address(0), "Invalid to");
-        require(_amount != 0, "Invalid amount");
-        xcmTransferAsset(MANTA, _from, _amount);
-
-        bytes memory targetChain = abi.encodePacked(MOONBEAM_CHAIN_TYPE, _to);
-        bytes memory callData = BuildCallData.buildMintCallBytes(
-            _from,
-            MANTA_CURRENCY_ID,
-            targetChain,
-            "MantaPacific"
-        );
-        (
-            uint64 transactRequiredWeightAtMost,
-            uint256 feeAmount,
-            uint64 overallWeight
-        ) = MoonbeamSlpx(moonbeamSlpx).operationToFeeInfo(
-                MoonbeamSlpx.Operation.Mint
-            );
-
-        // xcm transact
-        XcmTransactorV2(XCM_TRANSACTORV2_ADDRESS).transactThroughSigned(
-            getXcmTransactorDestination(),
-            BNC,
-            transactRequiredWeightAtMost,
-            callData,
-            feeAmount,
-            overallWeight
-        );
-        emit Mint(_from, _to, _amount);
-    }
-
-    function bifrostSlpxRedeem(
-        address _from,
-        address _to,
-        uint256 _amount
-    ) internal {
-        require(_from != address(0), "Invalid from");
-        require(_to != address(0), "Invalid to");
-        require(_amount != 0, "Invalid amount");
-        xcmTransferAsset(VMANTA, _from, _amount);
-
-        bytes memory targetChain = abi.encodePacked(MOONBEAM_CHAIN_TYPE, _to);
-        bytes memory callData = BuildCallData.buildRedeemCallBytes(
-            _from,
-            VMANTA_CURRENCY_ID,
-            targetChain
-        );
-
-        (
-            uint64 transactRequiredWeightAtMost,
-            uint256 feeAmount,
-            uint64 overallWeight
-        ) = MoonbeamSlpx(moonbeamSlpx).operationToFeeInfo(
-                MoonbeamSlpx.Operation.Redeem
-            );
-        XcmTransactorV2(XCM_TRANSACTORV2_ADDRESS).transactThroughSigned(
-            getXcmTransactorDestination(),
-            BNC,
-            transactRequiredWeightAtMost,
-            callData,
-            feeAmount,
-            overallWeight
-        );
-        emit Redeem(_from, _to, _amount);
-    }
-
     function onOFTReceived(
-        uint16 _srcChainId,
+        uint16 srcChainId,
         bytes calldata,
         uint64,
-        bytes32 _from,
-        uint _amount,
-        bytes calldata _payload
+        bytes32 from,
+        uint amount,
+        bytes calldata payload
     ) external override {
         require(
-            _srcChainId == destChainId,
+            srcChainId == destChainId,
             "only receive msg from manta pacific"
         );
         require(
@@ -158,34 +56,44 @@ contract MoonbeamReceiver is Ownable, IOFTReceiverV2 {
             "only native oft can call"
         );
         require(
-            address(uint160(uint(_from))) == mantaPacificSlpx,
+            address(uint160(uint(from))) == mantaPacificSlpx,
             "only receive msg from mantaPacificSlpx"
         );
-        (address caller, Types.Operation operation) = abi.decode(
-            _payload,
-            (address, Types.Operation)
+        (address caller, uint32 channel_id) = abi.decode(
+            payload,
+            (address, uint32)
         );
+
         if (callerToDerivativeAddress[caller] == address(0)) {
             setDerivativeAddress(caller);
         }
 
-        if (operation == Types.Operation.Mint) {
+        // vManta:
+        // msg.sender = vMantaProxyOFT, from = mantaPacificSlpx,
+        // Manta:
+        // msg.sender = mantaOFT, from = mantaPacificSlpx
+        address asset_address;
+        if (_msgSender() == mantaOFT) {
             bool success = IERC20(MANTA).transfer(scriptTrigger, layerZeroFee);
             require(success, "failed to charge");
-            bifrostSlpxMint(
-                caller,
-                callerToDerivativeAddress[caller],
-                _amount - layerZeroFee
-            );
-        } else if (operation == Types.Operation.Redeem) {
+            asset_address = MANTA;
+        } else if(_msgSender() == vMantaProxyOFT) {
             bool success = IERC20(VMANTA).transfer(scriptTrigger, layerZeroFee);
             require(success, "failed to charge");
-            bifrostSlpxRedeem(
-                caller,
-                callerToDerivativeAddress[caller],
-                _amount - layerZeroFee
-            );
+            asset_address = VMANTA;
+        } else {
+            revert("invalid msg.sender");
         }
+
+        IERC20(asset_address).approve(slpx, amount - layerZeroFee);
+        ISlpx(slpx).create_order(
+            asset_address,
+            uint128(amount - layerZeroFee),
+            uint64(block.chainid),
+            abi.encodePacked(callerToDerivativeAddress[caller]),
+            "MantaPacificV2",
+            channel_id
+        );
     }
 
     function claimVManta(
@@ -286,52 +194,5 @@ contract MoonbeamReceiver is Ownable, IOFTReceiverV2 {
         require(_scriptTrigger != address(0), "invalid address");
         scriptTrigger = _scriptTrigger;
         emit SetScriptTrigger(_scriptTrigger);
-    }
-
-    function xcmTransferAsset(
-        address assetAddress,
-        address to,
-        uint256 amount
-    ) internal {
-        require(assetAddress != address(0), "Invalid assetAddress");
-        bytes32 publicKey = AddressToAccount.AddressToSubstrateAccount(to);
-
-        Xtokens.Multilocation memory dest_account = getXtokensDestination(
-            publicKey
-        );
-        Xtokens(XTOKENS).transfer(
-            assetAddress,
-            amount,
-            dest_account,
-            type(uint64).max
-        );
-    }
-
-    function getXtokensDestination(
-        bytes32 publicKey
-    ) internal pure returns (Xtokens.Multilocation memory) {
-        bytes[] memory interior = new bytes[](2);
-        interior[0] = bytes.concat(hex"00", bytes4(uint32(2030)));
-        interior[1] = bytes.concat(hex"01", publicKey, hex"00");
-        Xtokens.Multilocation memory dest = Xtokens.Multilocation({
-            parents: 1,
-            interior: interior
-        });
-        return dest;
-    }
-
-    function getXcmTransactorDestination()
-        internal
-        pure
-        returns (XcmTransactorV2.Multilocation memory)
-    {
-        bytes[] memory interior = new bytes[](1);
-        interior[0] = bytes.concat(hex"00", bytes4(uint32(2030)));
-        XcmTransactorV2.Multilocation
-            memory xcmTransactorDestination = XcmTransactorV2.Multilocation({
-                parents: 1,
-                interior: interior
-            });
-        return xcmTransactorDestination;
     }
 }

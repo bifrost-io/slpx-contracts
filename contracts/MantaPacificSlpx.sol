@@ -14,8 +14,7 @@ contract MantaPacificSlpx is Ownable {
     address public constant manta = 0x95CeF13441Be50d20cA4558CC0a27B601aC544E5;
     uint16 public constant destChainId = 126;
     bytes32 public remoteContract;
-
-    mapping(Types.Operation => uint256) public minAmount;
+    uint256 public minAmount;
 
     event Mint(address indexed caller, uint256 indexed amount);
     event Redeem(address indexed caller, uint256 indexed amount);
@@ -25,77 +24,55 @@ contract MantaPacificSlpx is Ownable {
         remoteContract = bytes32(uint256(uint160(_remoteContract)));
     }
 
-    function setMinAmount(
-        Types.Operation _operation,
-        uint256 _minAmount
-    ) public onlyOwner {
+    function setMinAmount(uint256 _minAmount) public onlyOwner {
         require(_minAmount != 0, "Invalid minAmount");
-        minAmount[_operation] = _minAmount;
+        minAmount = _minAmount;
     }
 
-    function mint(
-        uint256 _amount,
-        uint64 _dstGasForCall,
-        bytes calldata _adapterParams
-    ) external payable {
-        require(_amount >= minAmount[Types.Operation.Mint], "amount too small");
-        IERC20(manta).transferFrom(_msgSender(), address(this), _amount);
-        IERC20(manta).approve(mantaOFT, _amount);
-        ICommonOFT.LzCallParams memory callParams = ICommonOFT.LzCallParams(
-            payable(address(this)),
-            address(0),
-            _adapterParams
-        );
-
-        (uint256 estimateFee, bytes memory payload) = estimateSendAndCallFee(
-            _msgSender(),
-            Types.Operation.Mint,
-            _amount,
-            _dstGasForCall,
-            _adapterParams
-        );
-        require(msg.value >= estimateFee, "too small fee");
-        if (msg.value != estimateFee) {
-            uint256 refundAmount = msg.value - estimateFee;
-            (bool success, ) = _msgSender().call{value: refundAmount}("");
-            require(success, "failed to refund");
-        }
-
-        IOFTV2(mantaOFT).sendAndCall{value: estimateFee}(
-            address(this),
-            destChainId,
-            remoteContract,
-            _amount,
-            payload,
-            _dstGasForCall,
-            callParams
-        );
-
-        emit Mint(_msgSender(), _amount);
-    }
-
-    function redeem(
-        uint256 _amount,
-        uint64 _dstGasForCall,
-        bytes calldata _adapterParams
+    function create_order(
+        address assetAddress,
+        uint256 amount,
+        uint32 channel_id,
+        uint64 dstGasForCall,
+        bytes calldata adapterParams
     ) external payable {
         require(
-            _amount >= minAmount[Types.Operation.Redeem],
+            amount >= minAmount,
             "amount too small"
         );
+
+        address oft;
+        address sender;
+
+        if (assetAddress == manta) {
+            IERC20(assetAddress).transferFrom(_msgSender(), address(this), amount);
+            IERC20(assetAddress).approve(mantaOFT, amount);
+            oft = mantaOFT;
+            sender = address(this);
+        } else if(assetAddress == vMantaOFT) {
+            oft = vMantaOFT;
+            sender = _msgSender();
+        } else {
+            revert("Invalid assetAddress");
+        }
+
         ICommonOFT.LzCallParams memory callParams = ICommonOFT.LzCallParams(
-            payable(_msgSender()),
-            address(0),
-            _adapterParams
+                payable(sender),
+                address(0),
+                adapterParams
+            );
+
+        bytes memory payload = abi.encode(_msgSender(), channel_id);
+        (uint256 estimateFee, ) = IOFTV2(oft).estimateSendAndCallFee(
+            destChainId,
+            remoteContract,
+            amount,
+            payload,
+            dstGasForCall,
+            false,
+            adapterParams
         );
 
-        (uint256 estimateFee, bytes memory payload) = estimateSendAndCallFee(
-            _msgSender(),
-            Types.Operation.Redeem,
-            _amount,
-            _dstGasForCall,
-            _adapterParams
-        );
         require(msg.value >= estimateFee, "too small fee");
         if (msg.value != estimateFee) {
             uint256 refundAmount = msg.value - estimateFee;
@@ -103,50 +80,51 @@ contract MantaPacificSlpx is Ownable {
             require(success, "failed to refund");
         }
 
-        IOFTV2(vMantaOFT).sendAndCall{value: estimateFee}(
-            _msgSender(),
+        IOFTV2(oft).sendAndCall{value: estimateFee}(
+            sender,
             destChainId,
             remoteContract,
-            _amount,
+            amount,
             payload,
-            _dstGasForCall,
+            dstGasForCall,
             callParams
         );
 
-        emit Redeem(_msgSender(), _amount);
+        if (assetAddress == manta) {
+            emit Mint(_msgSender(), amount);
+        } else {
+            emit Redeem(_msgSender(), amount);
+        }
     }
 
     function estimateSendAndCallFee(
-        address caller,
-        Types.Operation operation,
-        uint256 _amount,
-        uint64 _dstGasForCall,
-        bytes calldata _adapterParams
-    ) public view returns (uint256, bytes memory) {
-        if (operation == Types.Operation.Mint) {
-            bytes memory payload = abi.encode(caller, Types.Operation.Mint);
-            (uint256 estimateFee, ) = IOFTV2(mantaOFT).estimateSendAndCallFee(
-                destChainId,
-                remoteContract,
-                _amount,
-                payload,
-                _dstGasForCall,
-                false,
-                _adapterParams
-            );
-            return (estimateFee, payload);
+        address assetAddress,
+        uint256 amount,
+        uint32 channel_id,
+        uint64 dstGasForCall,
+        bytes calldata adapterParams
+    ) public view returns (uint256) {
+        address oft;
+
+        if (assetAddress == manta) {
+            oft = mantaOFT;
+        } else if(assetAddress == vMantaOFT) {
+            oft = vMantaOFT;
         } else {
-            bytes memory payload = abi.encode(caller, Types.Operation.Redeem);
-            (uint256 estimateFee, ) = IOFTV2(vMantaOFT).estimateSendAndCallFee(
-                destChainId,
-                remoteContract,
-                _amount,
-                payload,
-                _dstGasForCall,
-                false,
-                _adapterParams
-            );
-            return (estimateFee, payload);
+            revert("Invalid assetAddress");
         }
+
+        bytes memory payload = abi.encode(_msgSender(), channel_id);
+        (uint256 estimateFee, ) = IOFTV2(oft).estimateSendAndCallFee(
+            destChainId,
+            remoteContract,
+            amount,
+            payload,
+            dstGasForCall,
+            false,
+            adapterParams
+        );
+
+        return estimateFee;
     }
 }

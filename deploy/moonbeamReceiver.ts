@@ -17,10 +17,6 @@ const deployFunction: DeployFunction = async function ({
     from: deployer,
     log: true,
     deterministicDeployment: false,
-    libraries: {
-      AddressToAccount: "0x2fD8bbF5dc8b342C09ABF34f211b3488e2d9d691",
-      BuildCallData: "0xB80CF8889Aa09681741C3e69cA90909443524505",
-    }
   });
 };
 
