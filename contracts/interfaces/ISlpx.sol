@@ -64,14 +64,14 @@ interface ISlpx {
     ) external;
 
     /**
-    * @dev Create order to mint vAsset or redeem vAsset on bifrost chain
-    * @param assetAddress The address of the asset to mint or redeem
-    * @param amount The amount of the asset to mint or redeem
-    * @param dest_chain_id When order is executed on Bifrost, Asset/vAsset will be transferred to this chain
-    * @param receiver The receiver address on the destination chain, 20 bytes for EVM, 32 bytes for Substrate
-    * @param remark The remark of the order, less than 32 bytes. For example, "OmniLS"
-    * @param channel_id The channel id of the order, you can set it. Bifrost chain will use it to share reward.
-    **/
+     * @dev Create order to mint vAsset or redeem vAsset on bifrost chain
+     * @param assetAddress The address of the asset to mint or redeem
+     * @param amount The amount of the asset to mint or redeem
+     * @param dest_chain_id When order is executed on Bifrost, Asset/vAsset will be transferred to this chain
+     * @param receiver The receiver address on the destination chain, 20 bytes for EVM, 32 bytes for Substrate
+     * @param remark The remark of the order, less than 32 bytes. For example, "OmniLS"
+     * @param channel_id The channel id of the order, you can set it. Bifrost chain will use it to share reward.
+     **/
     function create_order(
         address assetAddress,
         uint128 amount,

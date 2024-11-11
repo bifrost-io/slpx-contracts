@@ -3,7 +3,7 @@ import {ethers} from "hardhat";
 
 // yarn hardhat mantaSlpxMint --amount 3000000000000000000 --network manta
 // yarn hardhat mantaSlpxRedeem --amount 3000000000000000000 --network manta
-// yarn hardhat mantaSetRemoteContract --contract 0x2952fD1b6dD54930B99eF3070e6b700f18f44066 --network manta
+// yarn hardhat mantaSetRemoteContract --contract 0x5e2DBf9659b64C135912DB1cb2f5397c611e8002 --network manta
 
 const remoteChainId = 126
 const contractName = "MantaPacificSlpx";

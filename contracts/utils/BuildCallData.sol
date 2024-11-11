@@ -49,13 +49,13 @@ library BuildCallData {
         // astar target_chain = bytes1(0)
         return
             bytes.concat(
-            prefix,
-            abi.encodePacked(caller),
-            token,
-            targetChain,
-            toScaleString(remark),
-            encode_uint32(channel_id)
-        );
+                prefix,
+                abi.encodePacked(caller),
+                token,
+                targetChain,
+                toScaleString(remark),
+                encode_uint32(channel_id)
+            );
     }
 
     function buildCreateOrderCallBytes(
@@ -76,16 +76,16 @@ library BuildCallData {
 
         return
             bytes.concat(
-            prefix,
-            abi.encodePacked(caller),
-            encode_uint64(uint64(chain_id)),
-            encode_uint128(uint128(block_number)),
-            token,
-            encode_uint128(amount),
-            targetChain,
-            toScaleString(remark),
-            encode_uint32(channel_id)
-        );
+                prefix,
+                abi.encodePacked(caller),
+                encode_uint64(uint64(chain_id)),
+                encode_uint128(uint128(block_number)),
+                token,
+                encode_uint128(amount),
+                targetChain,
+                toScaleString(remark),
+                encode_uint32(channel_id)
+            );
     }
 
     function buildSwapCallBytes(
@@ -169,7 +169,7 @@ library BuildCallData {
     function encode_uint64(uint64 x) internal pure returns (bytes memory) {
         bytes memory b = new bytes(8);
         for (uint i = 0; i < 8; i++) {
-            b[i] = bytes1(uint8(x / (2**(8*i))));
+            b[i] = bytes1(uint8(x / (2 ** (8 * i))));
         }
         return b;
     }

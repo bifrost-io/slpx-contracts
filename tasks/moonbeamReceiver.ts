@@ -8,7 +8,7 @@ import {ethers} from "hardhat";
 // yarn hardhat MoonbeamReceiverClaimManta --address 0xcdD077770ceb5271e42289Ee1A9b3a19442F445d --network moonbeam
 
 const contractName = "MoonbeamReceiver";
-const contractAddress = "0x2952fD1b6dD54930B99eF3070e6b700f18f44066";
+const contractAddress = "0x5e2DBf9659b64C135912DB1cb2f5397c611e8002";
 
 task("MoonbeamReceiverSetRemoteContract")
     .addParam('contract', ``)
