@@ -36,20 +36,21 @@ contract MantaPacificSlpx is Ownable {
         uint64 dstGasForCall,
         bytes calldata adapterParams
     ) external payable {
-        require(
-            amount >= minAmount,
-            "amount too small"
-        );
+        require(amount >= minAmount, "amount too small");
 
         address oft;
         address sender;
 
         if (assetAddress == manta) {
-            IERC20(assetAddress).transferFrom(_msgSender(), address(this), amount);
+            IERC20(assetAddress).transferFrom(
+                _msgSender(),
+                address(this),
+                amount
+            );
             IERC20(assetAddress).approve(mantaOFT, amount);
             oft = mantaOFT;
             sender = address(this);
-        } else if(assetAddress == vMantaOFT) {
+        } else if (assetAddress == vMantaOFT) {
             oft = vMantaOFT;
             sender = _msgSender();
         } else {
@@ -57,10 +58,10 @@ contract MantaPacificSlpx is Ownable {
         }
 
         ICommonOFT.LzCallParams memory callParams = ICommonOFT.LzCallParams(
-                payable(sender),
-                address(0),
-                adapterParams
-            );
+            payable(sender),
+            address(0),
+            adapterParams
+        );
 
         bytes memory payload = abi.encode(_msgSender(), channel_id);
         (uint256 estimateFee, ) = IOFTV2(oft).estimateSendAndCallFee(
@@ -108,7 +109,7 @@ contract MantaPacificSlpx is Ownable {
 
         if (assetAddress == manta) {
             oft = mantaOFT;
-        } else if(assetAddress == vMantaOFT) {
+        } else if (assetAddress == vMantaOFT) {
             oft = vMantaOFT;
         } else {
             revert("Invalid assetAddress");

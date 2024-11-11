@@ -369,7 +369,10 @@ contract AstarSlpx is ISlpx, OwnableUpgradeable, PausableUpgradeable {
         bool is_substrate,
         bytes1 raw_chain_index
     ) public onlyOwner {
-        require(!(is_evm && is_substrate), "Both is_evm and is_substrate cannot be true");
+        require(
+            !(is_evm && is_substrate),
+            "Both is_evm and is_substrate cannot be true"
+        );
         DestChainInfo storage chainInfo = destChainInfo[dest_chain_id];
         chainInfo.is_evm = is_evm;
         chainInfo.is_substrate = is_substrate;
@@ -383,15 +386,21 @@ contract AstarSlpx is ISlpx, OwnableUpgradeable, PausableUpgradeable {
         bytes memory receiver,
         string memory remark,
         uint32 channel_id
-    ) external override payable {
-        require(bytes(remark).length > 0 && bytes(remark).length <= 32, "remark must be less than 32 bytes and not empty");
+    ) external payable override {
+        require(
+            bytes(remark).length > 0 && bytes(remark).length <= 32,
+            "remark must be less than 32 bytes and not empty"
+        );
         require(amount > 0, "amount must be greater than 0");
 
         DestChainInfo memory chainInfo = destChainInfo[dest_chain_id];
-        if(chainInfo.is_evm) {
+        if (chainInfo.is_evm) {
             require(receiver.length == 20, "evm address must be 20 bytes");
-        } else if(chainInfo.is_substrate) {
-            require(receiver.length == 32, "substrate public key must be 32 bytes");
+        } else if (chainInfo.is_substrate) {
+            require(
+                receiver.length == 32,
+                "substrate public key must be 32 bytes"
+            );
         } else {
             revert("Destination chain is not supported");
         }

@@ -13,11 +13,24 @@ contract EthereumSlpx {
     uint128 constant destinationFee = 1000000;
     uint32 constant paraId = 2030;
     function mint() external payable {
-        uint256 fee = IGateway(gateway).quoteSendTokenFee(veth, paraId, destinationFee);
+        uint256 fee = IGateway(gateway).quoteSendTokenFee(
+            veth,
+            paraId,
+            destinationFee
+        );
         require(msg.value >= fee, "msg.value to low");
         IVETH(slpcore).mint{value: msg.value - fee}();
         uint256 vethAmount = IERC20(veth).balanceOf(address(this));
         IERC20(veth).approve(gateway, vethAmount);
-        IGateway(gateway).sendToken{ value:  fee}(veth, paraId, MultiAddress.MultiAddress({kind: MultiAddress.Kind.Index, data: abi.encode(paraId)}), destinationFee, uint128(vethAmount));
+        IGateway(gateway).sendToken{value: fee}(
+            veth,
+            paraId,
+            MultiAddress.MultiAddress({
+                kind: MultiAddress.Kind.Index,
+                data: abi.encode(paraId)
+            }),
+            destinationFee,
+            uint128(vethAmount)
+        );
     }
 }
