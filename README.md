@@ -1,10 +1,11 @@
 # Slpx
 
-| Network       | Slpx Address |
-|---------------|--------------|
-| Astar         | 0xc6bf0C5C78686f1D0E2E54b97D6de6e2cEFAe9fD          |
-| Moonbeam      | 0xF1d4797E51a4640a76769A50b57abE7479ADd3d8          |
-| Moonriver     | 0x6b0A44c64190279f7034b77c13a566E914FE5Ec4          |
+| Network   | Slpx Address |
+|-----------|--------------|
+| Astar     | 0xc6bf0C5C78686f1D0E2E54b97D6de6e2cEFAe9fD          |
+| Moonbeam  | 0xF1d4797E51a4640a76769A50b57abE7479ADd3d8          |
+| Moonriver | 0x6b0A44c64190279f7034b77c13a566E914FE5Ec4          |
+| Manta     | 0x95A4D4b345c551A9182289F9dD7A018b7Fd0f940          |
 
 ## Contract info
 
