@@ -29,17 +29,19 @@ contract AstarReceiver is CCIPReceiver, Ownable, IOFTReceiverV2 {
     address public constant BNC = 0xfFffFffF00000000000000010000000000000007;
     address public constant VASTR = 0xfffFffff00000000000000010000000000000010;
     address public constant astarSlpx =
-    0xc6bf0C5C78686f1D0E2E54b97D6de6e2cEFAe9fD;
+        0xc6bf0C5C78686f1D0E2E54b97D6de6e2cEFAe9fD;
     address public constant polkadotXcm =
-    0x0000000000000000000000000000000000005004;
+        0x0000000000000000000000000000000000005004;
     address public constant astrNativeOFT =
-    0xdf41220C7e322bFEF933D85D01821ad277f90172;
+        0xdf41220C7e322bFEF933D85D01821ad277f90172;
     address public constant vAstrProxyOFT =
-    0xba273b7Fa296614019c71Dcc54DCa6C922A93BcF;
+        0xba273b7Fa296614019c71Dcc54DCa6C922A93BcF;
 
     uint64 private constant soneiumChainSelector = 6955638871347136141;
-    address private constant AstrToken = 0xbd5F3751856E11f3e80dBdA567Ef91Eb7e874791;
-    address private constant astarRouter = 0x0BF3dE8c5D3e8A2B34D2BEeB17ABfCeBaf363A59;
+    address private constant AstrToken =
+        0xbd5F3751856E11f3e80dBdA567Ef91Eb7e874791;
+    address private constant astarRouter =
+        0x0BF3dE8c5D3e8A2B34D2BEeB17ABfCeBaf363A59;
     address public soneiumSlpx;
 
     uint256 public astrLayerZeroFee;
@@ -147,10 +149,13 @@ contract AstarReceiver is CCIPReceiver, Ownable, IOFTReceiverV2 {
     }
 
     /// handle a received message
-    function _ccipReceive(Client.Any2EVMMessage memory any2EvmMessage) internal override {
+    function _ccipReceive(
+        Client.Any2EVMMessage memory any2EvmMessage
+    ) internal override {
         uint64 sourceChainSelector = any2EvmMessage.sourceChainSelector; // fetch the source chain identifier (aka selector)
         address sender = abi.decode(any2EvmMessage.sender, (address)); // abi-decoding of the sender address
-        Client.EVMTokenAmount[] memory tokenAmounts = any2EvmMessage.destTokenAmounts;
+        Client.EVMTokenAmount[] memory tokenAmounts = any2EvmMessage
+            .destTokenAmounts;
         address token = tokenAmounts[0].token; // we expect one token to be transfered at once but of course, you can transfer several tokens.
         uint256 amount = tokenAmounts[0].amount; // we expect one token to be transfered at once but of course, you can transfer several tokens.
 
@@ -212,16 +217,17 @@ contract AstarReceiver is CCIPReceiver, Ownable, IOFTReceiverV2 {
         );
     }
 
-    function claimAstr(
-        address addr,
-        uint256 _amount
-    ) external payable {
+    function claimAstr(address addr, uint256 _amount) external payable {
         require(_msgSender() == scriptTrigger, "must be scriptTrigger");
         DerivativeContract(callerToDerivativeAddress[addr]).withdrawNativeToken(
             _amount
         );
-        Client.EVMTokenAmount[] memory tokenAmounts = new Client.EVMTokenAmount[](1);
-        Client.EVMTokenAmount memory tokenAmount = Client.EVMTokenAmount({token: AstrToken, amount: _amount});
+        Client.EVMTokenAmount[]
+            memory tokenAmounts = new Client.EVMTokenAmount[](1);
+        Client.EVMTokenAmount memory tokenAmount = Client.EVMTokenAmount({
+            token: AstrToken,
+            amount: _amount
+        });
         tokenAmounts[0] = tokenAmount;
         Client.EVM2AnyMessage memory message = Client.EVM2AnyMessage({
             receiver: abi.encode(addr),
@@ -231,7 +237,10 @@ contract AstarReceiver is CCIPReceiver, Ownable, IOFTReceiverV2 {
             feeToken: address(0)
         });
 
-        uint256 estimateFee = IRouterClient(this.getRouter()).getFee(soneiumChainSelector, message);
+        uint256 estimateFee = IRouterClient(this.getRouter()).getFee(
+            soneiumChainSelector,
+            message
+        );
 
         require(msg.value >= estimateFee, "too small fee");
         if (msg.value != estimateFee) {
@@ -239,7 +248,10 @@ contract AstarReceiver is CCIPReceiver, Ownable, IOFTReceiverV2 {
             (bool success, ) = _msgSender().call{value: refundAmount}("");
             require(success, "failed to refund");
         }
-        IRouterClient(this.getRouter()).ccipSend{value: estimateFee}(soneiumChainSelector, message);
+        IRouterClient(this.getRouter()).ccipSend{value: estimateFee}(
+            soneiumChainSelector,
+            message
+        );
     }
 
     function setDerivativeAddress(address addr) public {

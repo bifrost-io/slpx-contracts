@@ -10,14 +10,17 @@ import "./interfaces/IOFTV2.sol";
 import "./interfaces/Types.sol";
 
 contract SoneiumSlpx is OwnerIsCreator {
-    address private constant vAstrOFT = 0x7746ef546d562b443AE4B4145541a3b1a3D75717;
+    address private constant vAstrOFT =
+        0x7746ef546d562b443AE4B4145541a3b1a3D75717;
     uint16 private constant destChainId = 210;
     bytes32 public remoteContract;
 
     // Astar Shibuya Chain Selector
     uint64 private constant astarChainSelector = 6955638871347136141;
-    address private constant AstrToken = 0xbd5F3751856E11f3e80dBdA567Ef91Eb7e874791;
-    address private constant SoneiumMinatoRouter = 0x0BF3dE8c5D3e8A2B34D2BEeB17ABfCeBaf363A59;
+    address private constant AstrToken =
+        0xbd5F3751856E11f3e80dBdA567Ef91Eb7e874791;
+    address private constant SoneiumMinatoRouter =
+        0x0BF3dE8c5D3e8A2B34D2BEeB17ABfCeBaf363A59;
     address public AstarReceiver;
 
     mapping(Types.Operation => uint256) public minAmount;
@@ -45,8 +48,12 @@ contract SoneiumSlpx is OwnerIsCreator {
         IERC20(AstrToken).transferFrom(msg.sender, address(this), _amount);
 
         // set the token amounts
-        Client.EVMTokenAmount[] memory tokenAmounts = new Client.EVMTokenAmount[](1);
-        Client.EVMTokenAmount memory tokenAmount = Client.EVMTokenAmount({token: AstrToken, amount: _amount});
+        Client.EVMTokenAmount[]
+            memory tokenAmounts = new Client.EVMTokenAmount[](1);
+        Client.EVMTokenAmount memory tokenAmount = Client.EVMTokenAmount({
+            token: AstrToken,
+            amount: _amount
+        });
         tokenAmounts[0] = tokenAmount;
         // Create an EVM2AnyMessage struct in memory with necessary information for sending a cross-chain message
         bytes memory data = abi.encode(msg.sender, Types.Operation.Mint);
