@@ -36,7 +36,6 @@ contract XcmOracle is OwnableUpgradeable, PausableUpgradeable {
     }
 
     /// Setting up data with XCM.
-    /// Multi-signature is used to monitor XCM after an error to set up data.
     function setTokenAmount(
         bytes2 _currencyId,
         uint256 _assetAmount,
