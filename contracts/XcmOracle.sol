@@ -42,10 +42,7 @@ contract XcmOracle is OwnableUpgradeable, PausableUpgradeable {
         uint256 _assetAmount,
         uint256 _vAssetAmount
     ) public {
-        require(
-            _msgSender() == sovereignAddress || _msgSender() == owner(),
-            "No permission"
-        );
+        require(_msgSender() == sovereignAddress, "No permission");
         PoolInfo storage poolInfo = tokenPool[_currencyId];
         poolInfo.assetAmount = _assetAmount;
         poolInfo.vAssetAmount = _vAssetAmount;
