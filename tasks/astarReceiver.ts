@@ -8,7 +8,7 @@ import { task } from 'hardhat/config'
 // yarn hardhat estimateFee --network astar
 
 const contractName = "AstarReceiver";
-const contractAddress = "0x872bB9Ae4491A8f0DB7a9811B562686f2a4416ac";
+const contractAddress = "0x825cddFb8F28f1C09577A20f649E2736886380C4";
 
 task("AstarReceiverSetRemoteContract")
     .addParam('contract', ``)

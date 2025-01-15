@@ -149,7 +149,7 @@ contract AstarReceiver is CCIPReceiver, Ownable, IOFTReceiverV2 {
         create_order(
             caller,
             address(0),
-            ASTAR_CHAIN_TYPE,
+            ASTR_CURRENCY_ID,
             uint128(amount),
             callerToDerivativeAddress[receiver],
             channelId

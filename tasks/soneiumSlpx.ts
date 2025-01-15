@@ -3,7 +3,7 @@ import {ethers} from "hardhat";
 
 // yarn hardhat soneiumSlpxMint --amount 5000000000000000000 --network soneium
 // yarn hardhat soneiumSlpxRedeem --amount 5000000000000000000 --network soneium
-// yarn hardhat soneiumSetRemoteContract --contract 0x872bB9Ae4491A8f0DB7a9811B562686f2a4416ac --network soneium
+// yarn hardhat soneiumSetRemoteContract --contract 0x825cddFb8F28f1C09577A20f649E2736886380C4 --network soneium
 // yarn hardhat soneiumSetMinAmount --amount 2000000000000000000 --network soneium
 // yarn hardhat estimateSendAndCallFee --network soneium
 
