@@ -14,6 +14,7 @@ import "./interfaces/IOFTWithFee.sol";
 import "./interfaces/XCM.sol";
 import "./interfaces/XCM_v2.sol";
 import "./interfaces/Types.sol";
+import "./interfaces/IWASTR.sol";
 import "./utils/BuildCallData.sol";
 import "./utils/AddressToAccount.sol";
 import "./AstarSlpx.sol";
@@ -25,26 +26,23 @@ contract AstarReceiver is CCIPReceiver, Ownable, IOFTReceiverV2 {
     bytes2 private constant VASTR_CURRENCY_ID = 0x0903;
     uint256 private constant BIFROST_PARA_ID = 2030;
     bool private constant IS_RELAY_CHAIN = false;
-    uint16 public constant destChainId = 257;
+    uint16 public constant destChainId = 340;
     address public constant BNC = 0xfFffFffF00000000000000010000000000000007;
     address public constant VASTR = 0xfffFffff00000000000000010000000000000010;
     address public constant astarSlpx =
         0xc6bf0C5C78686f1D0E2E54b97D6de6e2cEFAe9fD;
     address public constant polkadotXcm =
         0x0000000000000000000000000000000000005004;
-    address public constant astrNativeOFT =
-        0xdf41220C7e322bFEF933D85D01821ad277f90172;
     address public constant vAstrProxyOFT =
         0xba273b7Fa296614019c71Dcc54DCa6C922A93BcF;
 
-    uint64 private constant soneiumChainSelector = 6955638871347136141;
-    address private constant AstrToken =
-        0xbd5F3751856E11f3e80dBdA567Ef91Eb7e874791;
+    uint64 private constant soneiumChainSelector = 12505351618335765396;
+    address private constant WASTR =
+        0x37795FdD8C165CaB4D6c05771D564d80439CD093;
     address private constant astarRouter =
-        0x0BF3dE8c5D3e8A2B34D2BEeB17ABfCeBaf363A59;
+        0x8D5c5CB8ec58285B424C93436189fB865e437feF;
     address public soneiumSlpx;
 
-    uint256 public astrLayerZeroFee;
     uint256 public vastrLayerZeroFee;
     address public scriptTrigger;
     mapping(address => address) public callerToDerivativeAddress;
@@ -57,7 +55,6 @@ contract AstarReceiver is CCIPReceiver, Ownable, IOFTReceiverV2 {
     event Receive(address indexed sender, uint256 indexed amount);
     event SetLayerZeroFee(
         address indexed scriptTrigger,
-        uint256 indexed astrFee,
         uint256 indexed vastrFee
     );
     event SetScriptTrigger(address indexed scriptTrigger);
@@ -123,60 +120,64 @@ contract AstarReceiver is CCIPReceiver, Ownable, IOFTReceiverV2 {
             address(uint160(uint(_from))) == soneiumSlpx,
             "only receive msg from soneiumSlpx"
         );
-        (address caller, Types.Operation operation) = abi.decode(
-            _payload,
-            (address, Types.Operation)
-        );
-        if (callerToDerivativeAddress[caller] == address(0)) {
-            setDerivativeAddress(caller);
-        }
-
-        if (operation == Types.Operation.Redeem) {
-            bool success = IERC20(VASTR).transfer(
-                scriptTrigger,
-                vastrLayerZeroFee
-            );
-            require(success, "failed to charge");
-            create_order(
-                caller,
-                VASTR,
-                VASTR_CURRENCY_ID,
-                uint128(_amount - vastrLayerZeroFee),
-                callerToDerivativeAddress[caller],
-                0
-            );
-        }
+        processOFTReceive(_amount, _payload);
     }
 
     /// handle a received message
     function _ccipReceive(
         Client.Any2EVMMessage memory any2EvmMessage
     ) internal override {
-        uint64 sourceChainSelector = any2EvmMessage.sourceChainSelector; // fetch the source chain identifier (aka selector)
-        address sender = abi.decode(any2EvmMessage.sender, (address)); // abi-decoding of the sender address
         Client.EVMTokenAmount[] memory tokenAmounts = any2EvmMessage
             .destTokenAmounts;
         address token = tokenAmounts[0].token; // we expect one token to be transfered at once but of course, you can transfer several tokens.
         uint256 amount = tokenAmounts[0].amount; // we expect one token to be transfered at once but of course, you can transfer several tokens.
+        processCCIPReceive(token, amount, any2EvmMessage.data);
+    }
 
+    function processCCIPReceive(address token, uint256 amount, bytes memory data) internal {
+        require(token == WASTR, "only receive WASTR");
+        IWASTR(payable(WASTR)).withdraw(amount);
+
+        (address caller, Types.Operation operation, address receiver, uint32 channelId) = abi.decode(
+            data,
+            (address, Types.Operation, address, uint32)
+        );
+        if (callerToDerivativeAddress[receiver] == address(0)) {
+            setDerivativeAddress(receiver);
+        }
+        require(operation == Types.Operation.Mint, "only mint operation is allowed");
+        create_order(
+            caller,
+            address(0),
+            ASTAR_CHAIN_TYPE,
+            uint128(amount),
+            callerToDerivativeAddress[receiver],
+            channelId
+        );
+    }
+
+    function processOFTReceive(uint256 amount, bytes memory data) internal  {
         (address caller, Types.Operation operation) = abi.decode(
-            any2EvmMessage.data,
+            data,
             (address, Types.Operation)
         );
         if (callerToDerivativeAddress[caller] == address(0)) {
             setDerivativeAddress(caller);
         }
-
-        if (operation == Types.Operation.Mint) {
-            create_order(
-                caller,
-                address(0),
-                ASTAR_CHAIN_TYPE,
-                uint128(amount),
-                callerToDerivativeAddress[caller],
-                0
-            );
-        }
+        require(operation == Types.Operation.Redeem, "only redeem operation is allowed");
+        bool success = IERC20(VASTR).transfer(
+            scriptTrigger,
+            vastrLayerZeroFee
+        );
+        require(success, "failed to charge");
+        create_order(
+            caller,
+            VASTR,
+            VASTR_CURRENCY_ID,
+            uint128(amount - vastrLayerZeroFee),
+            callerToDerivativeAddress[caller],
+            0
+        );
     }
 
     function claimVAstr(
@@ -217,15 +218,16 @@ contract AstarReceiver is CCIPReceiver, Ownable, IOFTReceiverV2 {
         );
     }
 
-    function claimAstr(address addr, uint256 _amount) external payable {
+    function claimAstr(address addr, uint256 gasLimit) external payable {
         require(_msgSender() == scriptTrigger, "must be scriptTrigger");
-        DerivativeContract(callerToDerivativeAddress[addr]).withdrawNativeToken(
-            _amount
-        );
+        uint256 _amount = DerivativeContract(callerToDerivativeAddress[addr]).withdrawNativeToken();
+
+        IWASTR(payable(WASTR)).deposit{value: _amount}();
+        IWASTR(payable(WASTR)).approve(astarRouter, _amount);
         Client.EVMTokenAmount[]
-            memory tokenAmounts = new Client.EVMTokenAmount[](1);
+        memory tokenAmounts = new Client.EVMTokenAmount[](1);
         Client.EVMTokenAmount memory tokenAmount = Client.EVMTokenAmount({
-            token: AstrToken,
+            token: WASTR,
             amount: _amount
         });
         tokenAmounts[0] = tokenAmount;
@@ -233,8 +235,11 @@ contract AstarReceiver is CCIPReceiver, Ownable, IOFTReceiverV2 {
             receiver: abi.encode(addr),
             data: abi.encode(""),
             tokenAmounts: tokenAmounts,
-            extraArgs: "",
-            feeToken: address(0)
+            extraArgs: Client._argsToBytes(
+                Client.EVMExtraArgsV1({
+                    gasLimit: gasLimit // Gas limit for the callback on the destination chain
+                })),
+            feeToken: WASTR
         });
 
         uint256 estimateFee = IRouterClient(this.getRouter()).getFee(
@@ -242,19 +247,15 @@ contract AstarReceiver is CCIPReceiver, Ownable, IOFTReceiverV2 {
             message
         );
 
-        require(msg.value >= estimateFee, "too small fee");
-        if (msg.value != estimateFee) {
-            uint256 refundAmount = msg.value - estimateFee;
-            (bool success, ) = _msgSender().call{value: refundAmount}("");
-            require(success, "failed to refund");
-        }
-        IRouterClient(this.getRouter()).ccipSend{value: estimateFee}(
+        require(_amount > estimateFee, "too small fee");
+        message.tokenAmounts[0].amount = _amount - estimateFee;
+        IRouterClient(this.getRouter()).ccipSend(
             soneiumChainSelector,
             message
         );
     }
 
-    function setDerivativeAddress(address addr) public {
+    function setDerivativeAddress(address addr) internal {
         require(
             callerToDerivativeAddress[addr] == address(0),
             "already set derivativeAddress"
@@ -284,20 +285,10 @@ contract AstarReceiver is CCIPReceiver, Ownable, IOFTReceiverV2 {
             adapterParams
         );
 
-        (uint256 astrFee, ) = IOFTWithFee(astrNativeOFT).estimateSendFee(
-            destChainId,
-            toAddress,
-            amount,
-            false,
-            adapterParams
-        );
-
-        astrLayerZeroFee = astrFee;
         vastrLayerZeroFee = vastrFee;
 
         emit SetLayerZeroFee(
             scriptTrigger,
-            astrLayerZeroFee,
             vastrLayerZeroFee
         );
     }
@@ -352,11 +343,5 @@ contract AstarReceiver is CCIPReceiver, Ownable, IOFTReceiverV2 {
         );
     }
 
-    receive() external payable {
-        require(
-            isDerivativeAddress[_msgSender()] || _msgSender() == astrNativeOFT,
-            "sender is not a derivativeAddress or astrNativeOFT"
-        );
-        emit Receive(_msgSender(), msg.value);
-    }
+    receive() external payable {}
 }

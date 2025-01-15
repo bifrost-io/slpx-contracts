@@ -25,11 +25,13 @@ contract DerivativeContract is ReentrancyGuard {
         return balance;
     }
 
-    function withdrawNativeToken(uint256 _amount) external nonReentrant {
+    function withdrawNativeToken() external nonReentrant returns (uint256) {
         require(msg.sender == receiver, "forbidden");
-        require(_amount != 0, "balance to low");
-        (bool success, ) = receiver.call{value: _amount}("");
+        uint256 balance = address(this).balance;
+        require(balance != 0, "balance to low");
+        (bool success, ) = receiver.call{value: balance}("");
         require(success, "failed to withdrawNativeToken");
-        emit Withdraw(msg.sender, receiver, address(0), _amount);
+        emit Withdraw(msg.sender, receiver, address(0), balance);
+        return balance;
     }
 }
