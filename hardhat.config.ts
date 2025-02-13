@@ -33,6 +33,12 @@ const config: HardhatUserConfig = {
       accounts:
           process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
+    soneium: {
+      url: "https://rpc.soneium.org",
+      chainId: 1868,
+      accounts:
+          process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
     astar: {
       url: "https://evm.astar.network",
       chainId: 592,
@@ -108,6 +114,10 @@ const config: HardhatUserConfig = {
           process.env.ASTAR_API_KEY !== undefined
               ? process.env.ASTAR_API_KEY
               : "",
+      soneium:
+          process.env.SONEIUM_API_KEY !== undefined
+              ? process.env.SONEIUM_API_KEY
+              : "",
       moonbaseAlpha: "INSERT_MOONSCAN_API_KEY", // Moonbeam Moonscan API Key
     },
     customChains: [
@@ -117,6 +127,14 @@ const config: HardhatUserConfig = {
         urls: {
           apiURL: "https://astar.blockscout.com/api",
           browserURL: "https://astar.blockscout.com"
+        }
+      },
+      {
+        network: "soneium",
+        chainId: 1868,
+        urls: {
+          apiURL: "https://soneium.blockscout.com/api",
+          browserURL: "https://soneium.blockscout.com"
         }
       }
     ]

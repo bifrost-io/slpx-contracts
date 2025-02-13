@@ -1,14 +1,14 @@
 import { task } from 'hardhat/config'
 
-// yarn hardhat sendxx --amount 1000000000000000000 --target-network zkatana --network shibuya
-// yarn hardhat sendxx --amount 1000000000000000000 --target-network shibuya --network zkatana
+// yarn hardhat send-vastr --amount 20000000000000000000 --target-network soneium --network astar
+// yarn hardhat send-vastr --amount 1000000000000000000 --target-network astar --network soneium
 
 const ENDPOINT_ID: { [key: string]: number } = {
-    "shibuya": 10210,
-    "zkatana": 10220
+    "astar": 210,
+    "soneium": 340
 }
 
-task("sendxx", "Bridge vASTR")
+task("send-vastr", "Bridge vASTR")
     .addParam('amount', ``)
     .addParam('targetNetwork', ``)
     .setAction(async (taskArgs, hre) => {
@@ -22,30 +22,28 @@ task("sendxx", "Bridge vASTR")
         let contractAddress;
 
         switch (taskArgs.targetNetwork) {
-            case "shibuya":
+            case "astar":
                 contractName = "VoucherAstrOFT"
-                contractAddress = "0x051713fD66845a13BF23BACa008C5C22C27Ccb58"
+                contractAddress = "0x60336f9296C79dA4294A19153eC87F8E52158e5F"
                 break;
-            case "zkatana":
+            case "soneium":
                 contractName = "VoucherAstrProxyOFT"
-                contractAddress = "0xF1d4797E51a4640a76769A50b57abE7479ADd3d8"
+                contractAddress = "0xba273b7Fa296614019c71Dcc54DCa6C922A93BcF"
                 break;
             default:
                 contractName = "VoucherAstrProxyOFT"
-                contractAddress = "0xF1d4797E51a4640a76769A50b57abE7479ADd3d8"
+                contractAddress = "0xba273b7Fa296614019c71Dcc54DCa6C922A93BcF"
                 break;
         }
-
-
-        // get remote chain id
-        const remoteChainId = ENDPOINT_ID[taskArgs.targetNetwork]
 
         // get local contract
         const localContractInstance = await hre.ethers.getContractAt(contractName, contractAddress, owner)
 
+        // get remote chain id
+        const remoteChainId = ENDPOINT_ID[taskArgs.targetNetwork]
+
         // quote fee with default adapterParams
-        let adapterParams = hre.ethers.utils.solidityPack(["uint16", "uint256"], [1, 200000])
-        console.log("adapterParams", adapterParams)
+        let adapterParams = hre.ethers.utils.solidityPack(["uint16", "uint256"], [1, 2000000])
 
         // convert to address to bytes32
         let toAddressBytes32 = hre.ethers.utils.defaultAbiCoder.encode(['address'], [toAddress])
@@ -54,8 +52,7 @@ task("sendxx", "Bridge vASTR")
         let fees = await localContractInstance.estimateSendFee(remoteChainId, toAddressBytes32, qty, false, adapterParams)
         // console.log(`OFT fees[0] (wei): ${fees[0]} / (eth): ${ethers.utils.formatEther(fees[0])}`)
 
-        // const balance = await hre.ethers.provider.getBalance(owner.address)
-        // console.log("Balance: " + balance.toString())
+        // await localContractInstance.setPeer(remoteChainId, hre.ethers.utils.zeroPad("0x4D43d8268365616aA4573362A7a470de23f9598B", 32))
 
         console.log(owner.address, remoteChainId, toAddressBytes32, qty )
         console.log(fees[0].toString())

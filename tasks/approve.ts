@@ -9,6 +9,14 @@ import {ethers} from "hardhat";
 // vmanta:
 // yarn hardhat approve --erc20 0x7746ef546d562b443AE4B4145541a3b1a3D75717 --to 0x95A4D4b345c551A9182289F9dD7A018b7Fd0f940 --network manta
 
+// astr
+// yarn hardhat approve --erc20 0xfffFffff00000000000000010000000000000010 --to 0x4D43d8268365616aA4573362A7a470de23f9598B --network astar
+
+// soneium vastr
+// yarn hardhat approve --erc20 0x60336f9296C79dA4294A19153eC87F8E52158e5F --to 0x9D40Ca58eF5392a8fB161AB27c7f61de5dfBF0E2 --network soneium
+// soneium astr
+// yarn hardhat approve --erc20 0x2CAE934a1e84F693fbb78CA5ED3B0A6893259441 --to 0x9D40Ca58eF5392a8fB161AB27c7f61de5dfBF0E2 --network soneium
+
 
 task("approve")
     .addParam('erc20', ``)
